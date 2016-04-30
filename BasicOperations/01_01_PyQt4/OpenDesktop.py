@@ -1,0 +1,1 @@
+QtGui.QDesktopServices.openUrl(QtCore.QUrl('file:///' + strategyFolder))

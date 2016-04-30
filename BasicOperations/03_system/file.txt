@@ -1,0 +1,28 @@
+redirectStandardout.py:  import sys
+redirectStandardout.py:  sys.stdout = open("stdout.txt", "w")
+DirAndFiles.py:  import os
+DirAndFiles.py:  import sys
+DirAndFiles.py:  info=os.getcwd()
+DirAndFiles.py:  #info = './'
+DirAndFiles.py:  #listfile=os.listdir(os.getcwd())
+DirAndFiles.py:  #info=raw_input("请输入要列举文件的目录：(如D:\\temp)")
+DirAndFiles.py:  
+DirAndFiles.py:  listfile=os.listdir(info)
+DirAndFiles.py:  file = info+'/'+'file.txt'
+DirAndFiles.py:  filename=open(file,'w')
+DirAndFiles.py:  for line in listfile:  #把目录下的文件都赋值给line这个参数
+DirAndFiles.py:      if line[-3:] == '.py' or line[-4:] != '.txt':
+DirAndFiles.py:              print (line)
+DirAndFiles.py:              out=open(line,'r')    #定义读取line里面的内容，也就是读取每个文件的内容
+DirAndFiles.py:              for com in out:       #把每个文件的内容（也就是目录下的文件）赋值给com
+DirAndFiles.py:                  filename.write(line+":  "  +com)
+DirAndFiles.py:                  print(com)
+DirAndFiles.py:   
+DirAndFiles.py:      else:
+DirAndFiles.py:          print(line+'  '+"该文件是目录形式")
+DirAndFiles.py:  filename.close() Shell.py:  import subprocess
+Shell.py:  import os
+Shell.py:  print('==============')
+Shell.py:  
+Shell.py:  os.system('ls -l')
+Shell.py:  subprocess.call(['ls','-l'])
