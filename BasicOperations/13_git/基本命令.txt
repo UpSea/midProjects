@@ -7,7 +7,7 @@
 	git add -all
 4)提交文件git commit -m 'mids first commit'
 
-5)推送文件git push
+5)推送文件git push git@github.com:upsea/midProjects master
 
 
 
