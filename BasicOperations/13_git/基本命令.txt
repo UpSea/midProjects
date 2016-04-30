@@ -1,13 +1,15 @@
 1)初始化本地仓库,此命令需要在被初始化的仓库的目录下执行
 	git init
 2)获取github仓库到本地,以下语句的符号':'之前的为协议说明，之后的为用户名和仓库名
-	git pull git pull git@github.com:upsea/midProjects
+	git pull git@github.com:upsea/midProjects
 
 3)添加文件所有改动过文件
 	git add -all
-4)提交文件git commit -m 'mids first commit'
+4)提交文件
+	git commit -m 'mids first commit'
 
-5)推送文件git push git@github.com:upsea/midProjects master
+5)推送文件,push后俩参数,前参数为远端仓库,后参数为本地仓库分支.
+	git push git@github.com:upsea/midProjects master
 
 
 
