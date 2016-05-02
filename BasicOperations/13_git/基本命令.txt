@@ -4,7 +4,7 @@
 	git pull git@github.com:upsea/midProjects
 
 3)添加文件所有改动过文件
-	git add -all
+	git add --all
 4)提交文件
 	git commit -m 'mids first commit'
 
@@ -22,3 +22,6 @@
 
 分布式版本系统的最大好处之一是在本地工作完全不需要考虑远程库的存在，也就是有没有联网都可以正常工作，
 而SVN在没有联网的时候是拒绝干活的！当有网络的时候，再把本地提交推送一下就完成了同步，真是太方便了！
+
+6)版本回退
+	git reset --hard HEAD^     #将工作区恢复到上一个commit的状态，第n个为HEAD~n
