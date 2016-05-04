@@ -17,10 +17,13 @@ class SMACrossOver(strategy.BacktestingStrategy):
     def getLMA(self):
         return self.__lma
     def onEnterOk(self, position):
+        execInfo = position.getEntryOrder().getExecutionInfo()        
         if isinstance(position, strategy.position.LongPosition):
             print 'longPosition opened by broker.'+str(position.getShares())
+            self.info("BUY at $%.2f" % (execInfo.getPrice()))                    
         elif isinstance(position, strategy.position.ShortPosition):
             print 'shortPosition opened by broker.'+str(position.getShares())
+            self.info("SELL at $%.2f" % (execInfo.getPrice()))                    
     def onEnterCanceled(self, position):
         if isinstance(position, strategy.position.LongPosition):
             self.__longPosition = None
