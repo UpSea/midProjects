@@ -1,0 +1,13 @@
+pyalgotrade-cn项目自定义添加的文件有三个地方：
+1.pyalgotrade-cn/dataframefeed
+    此文件夹下包含的文件主要有三个功能
+        1.1.utils/文件夹下定义了一个直接读取tushare数据并作为barfeed提供给pat使用的
+        1.2.data.py文件用于下载tushare数据，检索本地保存的tushare数据
+        1.3.pyalg_test.py定义了几个策略，用于在pyalg_2.py中测试调用
+        1.4.pyalg_2.py对3中定义的策略进行调用测试
+2.pyalgotrade-cn/stratlib
+    此文件定义了几个均线策略
+3.pyalgotrade-cn/histdata
+    此文件夹用于储存tushare历史数据供1.2.调用
+4.pyalgotrade-cn/pyalgotrade/tushare
+    此文件夹定义有tushare实时数据的使用策略示例

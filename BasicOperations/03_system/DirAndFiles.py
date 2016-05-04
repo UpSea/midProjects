@@ -19,3 +19,12 @@ for line in listfile:  #把目录下的文件都赋值给line这个参数
     else:
         print(line+'  '+"该文件是目录形式")
 filename.close() 
+
+#mid 根据某个文件的相对位置打开确定的文件
+import sys,os
+#mid 获取当前文件父目录下孙文件夹的路径，不能使用‘/’，os.sep，算法中遇到‘/’时会清空之前的所有字符
+path = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata','day'))
+#mid 合成全文件名
+filepath = path +os.sep + instrument + market + ".csv"
+#mid 将文件夹添加入系统目录
+sys.path.append(path) 
