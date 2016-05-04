@@ -28,7 +28,7 @@ class Expert():
         feed.addBarsFromCSV(instrument, fullName)  
         return feed
     def getFeedFromYahoo(self,instrument):
-        feed = yahoofinance.build_feed([instrument], 2016, 2016, "data")    
+        feed = yahoofinance.build_feed([instrument], 2015, 2016, "data")    
         return feed
     def initAnalyzer(self):
         #self.strat = BBands(self.feed, self.instrument, self.bBandsPeriod) 

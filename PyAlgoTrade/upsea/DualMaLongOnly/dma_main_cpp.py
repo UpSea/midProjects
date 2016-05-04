@@ -22,7 +22,6 @@ class Expert():
         self.initAnalyzer()
     def getFeedFromCsv(self,instrument):
         feed = yahoofeed.Feed()
-        # -*- coding: cp936 -*-
         import sys,os
         fullName = os.path.abspath(os.path.join(os.path.dirname(__file__),"data\\orcl-2000.csv"))     
         feed.addBarsFromCSV(instrument, fullName)  
@@ -63,18 +62,70 @@ class Expert():
         #addDataSeries()    
     
         return SPlotter
+    def stat(self):
+        print "Sharpe ratio: %.2f" % self.sharpeRatioAnalyzer.getSharpeRatio(0.05)
+        
+        
+        print "Final portfolio value: $%.2f" % self.strat.getResult()
+        print "Cumulative returns: %.2f %%" % (self.returnsAnalyzer.getCumulativeReturns()[-1] * 100)
+        print "Sharpe ratio: %.2f" % (self.sharpeRatioAnalyzer.getSharpeRatio(0.05))
+        print "Max. drawdown: %.2f %%" % (self.drawdownAnalyzer.getMaxDrawDown() * 100)
+        print "Longest drawdown duration: %s" % (self.drawdownAnalyzer.getLongestDrawDownDuration())
+        
+        print
+        print "Total trades: %d" % (self.tradesAnalyzer.getCount())
+        if self.tradesAnalyzer.getCount() > 0:
+            profits = self.tradesAnalyzer.getAll()
+            print "Avg. profit: $%2.f" % (profits.mean())
+            print "Profits std. dev.: $%2.f" % (profits.std())
+            print "Max. profit: $%2.f" % (profits.max())
+            print "Min. profit: $%2.f" % (profits.min())
+            returns = self.tradesAnalyzer.getAllReturns()
+            print "Avg. return: %2.f %%" % (returns.mean() * 100)
+            print "Returns std. dev.: %2.f %%" % (returns.std() * 100)
+            print "Max. return: %2.f %%" % (returns.max() * 100)
+            print "Min. return: %2.f %%" % (returns.min() * 100)
+        
+        print
+        print "Profitable trades: %d" % (self.tradesAnalyzer.getProfitableCount())
+        if self.tradesAnalyzer.getProfitableCount() > 0:
+            profits = self.tradesAnalyzer.getProfits()
+            print "Avg. profit: $%2.f" % (profits.mean())
+            print "Profits std. dev.: $%2.f" % (profits.std())
+            print "Max. profit: $%2.f" % (profits.max())
+            print "Min. profit: $%2.f" % (profits.min())
+            returns = self.tradesAnalyzer.getPositiveReturns()
+            print "Avg. return: %2.f %%" % (returns.mean() * 100)
+            print "Returns std. dev.: %2.f %%" % (returns.std() * 100)
+            print "Max. return: %2.f %%" % (returns.max() * 100)
+            print "Min. return: %2.f %%" % (returns.min() * 100)
+        
+        print
+        print "Unprofitable trades: %d" % (self.tradesAnalyzer.getUnprofitableCount())
+        if self.tradesAnalyzer.getUnprofitableCount() > 0:
+            losses = self.tradesAnalyzer.getLosses()
+            print "Avg. loss: $%2.f" % (losses.mean())
+            print "Losses std. dev.: $%2.f" % (losses.std())
+            print "Max. loss: $%2.f" % (losses.min())
+            print "Min. loss: $%2.f" % (losses.max())
+            returns = self.tradesAnalyzer.getNegativeReturns()
+            print "Avg. return: %2.f %%" % (returns.mean() * 100)
+            print "Returns std. dev.: %2.f %%" % (returns.std() * 100)
+            print "Max. return: %2.f %%" % (returns.max() * 100)
+            print "Min. return: %2.f %%" % (returns.min() * 100)        
     def run(self,plot):
-        # 1.0) 夏普比率 
+        # 1.2) 回撤统计
+        self.strat.attachAnalyzer(self.drawdownAnalyzer)
+        # 1.2) 夏普比率 
         self.strat.attachAnalyzer(self.sharpeRatioAnalyzer)
         # 1.3) 策略结果
         self.strat.attachAnalyzer(self.returnsAnalyzer)    
-        # 1.4) 
+        # 1.4) 交易统计
         self.strat.attachAnalyzer(self.tradesAnalyzer)
         # 1.4) 策略结果图形化关联
         spPlooter = self.analyzer(self.strat,self.instrument)    
         self.strat.run()
-        print "Sharpe ratio: %.2f" % self.sharpeRatioAnalyzer.getSharpeRatio(0.05)
-    
+        self.stat()
         # Plot the strategy.
         if(plot):#自定义方式获取figure，并对其进行设置
             import matplotlib.pyplot as plt

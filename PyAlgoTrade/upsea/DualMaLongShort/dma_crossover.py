@@ -34,33 +34,13 @@ class SMACrossOver(strategy.BacktestingStrategy):
                 print "instrument:"+d+",postion:"+str(x)           
     def onBars(self, bars):
         # If a position was not opened, check if we should enter a long position.
-           
-        
-        #shares = position[self.__instrument]
-             
-        self.outputPositions()
         shares = 100 
-        self.__position = self.enterLong(self.__instrument, shares, True)
-        if self.__position is not None:
-            self.__position.exitMarket()           
-        #self.marketOrder(self.__instrument, 1*shares)
-        self.outputPositions()
-      
-
-        return 
-        position =   0
-        if self.__position is not None:
-            print "Positions: %.2f" % self.__position.getShares()
-            position = self.__position.getShares()
-
-
-        shares = 100 
-        if cross.cross_above(self.__sma, self.__lma) > 0 and position <= 0:
+        if cross.cross_above(self.__sma, self.__lma) > 0:
             # Enter a buy market order. The order is good till canceled.
             if self.__position is not None:
                 self.__position.exitMarket()   
             self.__position = self.enterLong(self.__instrument, shares, True)
-        elif cross.cross_below(self.__sma,self.__lma) > 0 and position >= 0:
+        elif cross.cross_below(self.__sma,self.__lma) > 0:
             if self.__position is not None:
                 self.__position.exitMarket()   
             self.__position=self.enterShort(self.__instrument, shares, True)                
