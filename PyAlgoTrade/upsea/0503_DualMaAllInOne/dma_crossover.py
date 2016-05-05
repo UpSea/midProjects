@@ -12,7 +12,6 @@ class SMACrossOver(strategy.BacktestingStrategy):
         self.__position = SequenceDataSeries()
         
         # We'll use adjusted close values instead of regular close values.
-        self.setUseAdjustedValues(True)
         self.__prices = feed[instrument].getPriceDataSeries()
         self.__sma = ma.SMA(self.__prices, shortPeriod)
         self.__lma = ma.SMA(self.__prices,longPeriod)
@@ -80,7 +79,7 @@ class SMACrossOver(strategy.BacktestingStrategy):
         longAllowed = True
         shortAllowed = True
         
-        shares = int(self.getBroker().getCash() * 0.9 / bars[self.__instrument].getPrice())
+        #shares = int(self.getBroker().getCash() * 0.9 / bars[self.__instrument].getPrice())
         shares = 100
         
         self.testCon()            

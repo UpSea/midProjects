@@ -17,14 +17,14 @@
 .. 
 u用以转换dataFrame到feed，相当于以pandas dataframe 为桥，不再以csv为桥。下一步增加方法直接从数据库中读
 """
-
-import dataFrameBarfeed
 from pyalgotrade.barfeed import common
 from pyalgotrade.utils import dt
 from pyalgotrade import bar
 from pyalgotrade import dataseries
+from pyalgotrade.barfeed import membf
 
 import datetime
+from pyalgotrade.barfeed.csvfeed import RowParser
 
 
 ######################################################################
@@ -35,7 +35,39 @@ import datetime
 # Date,Open,High,Low,Close,Volume,Adj Close
 #
 # The csv Date column must have the following format: YYYY-MM-DD
+class dataFrameBarFeed(membf.BarFeed):
+    """Base class for CSV file based :class:`pyalgotrade.barfeed.BarFeed`.
 
+    .. note::
+        This is a base class and should not be used directly.
+    """
+
+    def __init__(self, frequency, maxLen=dataseries.DEFAULT_MAX_LEN):
+        membf.BarFeed.__init__(self, frequency, maxLen)
+        self.__barFilter = None
+        self.__dailyTime = datetime.time(0, 0, 0)
+
+    def getDailyBarTime(self):
+        return self.__dailyTime
+
+    def setDailyBarTime(self, time):
+        self.__dailyTime = time
+
+    def getBarFilter(self):
+        return self.__barFilter
+
+    def setBarFilter(self, barFilter):
+        self.__barFilter = barFilter
+    #使用apply+handler最提高效率，但是层层调用显得麻烦
+    def addBarsFromDataFrame(self, instrument,rowParser,df):
+        # Load the csv file
+        loadedBars = []
+        for row in df.iterrows():
+            bar_ = rowParser.parseBar(row)
+            if bar_ is not None and (self.__barFilter is None or self.__barFilter.includeBar(bar_)):
+                loadedBars.append(bar_)
+        self.addBarsFromSequence(instrument, loadedBars)
+        
 def parse_date(date):
     # Sample: 2005-12-30
     # This custom parsing works faster than:
@@ -47,7 +79,7 @@ def parse_date(date):
     return ret
 
 
-class RowParser(dataFrameBarfeed.RowParser):
+class RowParser(RowParser):
     def __init__(self, dailyBarTime, frequency, timezone=None, sanitize=False):
         self.__dailyBarTime = dailyBarTime
         self.__frequency = frequency
@@ -82,7 +114,7 @@ class RowParser(dataFrameBarfeed.RowParser):
         high = float(row[1]['high'])
         low = float(row[1]['low'])
         volume = float(row[1]['volume'])
-        adjClose = float(row[1][5])
+        adjClose = None
         
         if self.__sanitize:
             open_, high, low, close = common.sanitize_ohlc(open_, high, low, close)
@@ -90,7 +122,7 @@ class RowParser(dataFrameBarfeed.RowParser):
         return bar.BasicBar(dateTime, open_, high, low, close, volume, adjClose, self.__frequency)
 
 
-class Feed(dataFrameBarfeed.BarFeed):
+class Feed(dataFrameBarFeed):
     """A :class:`pyalgotrade.barfeed.csvfeed.BarFeed` that loads bars from CSV files downloaded from Yahoo! Finance.
 
     :param frequency: The frequency of the bars. Only **pyalgotrade.bar.Frequency.DAY** or **pyalgotrade.bar.Frequency.WEEK**
@@ -116,7 +148,7 @@ class Feed(dataFrameBarfeed.BarFeed):
         if frequency not in [bar.Frequency.DAY, bar.Frequency.WEEK]:
             raise Exception("Invalid frequency.")
 
-        dataFrameBarfeed.BarFeed.__init__(self, frequency, maxLen)
+        dataFrameBarFeed.__init__(self, frequency, maxLen)
         self.__timezone = timezone
         self.__sanitizeBars = False
 
@@ -145,4 +177,4 @@ class Feed(dataFrameBarfeed.BarFeed):
             timezone = self.__timezone
 
         rowParser = RowParser(self.getDailyBarTime(), self.getFrequency(), timezone, self.__sanitizeBars)
-        dataFrameBarfeed.BarFeed.addBarsFromDataFrame(self, instrument,rowParser,dataFrame)
+        dataFrameBarFeed.addBarsFromDataFrame(self, instrument,rowParser,dataFrame)

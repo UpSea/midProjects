@@ -18,14 +18,7 @@ class Expert():
         self.feed = self.getFeedFromYahoo(self.instrument)
         #self.feed = self.getFeedFromCsv(self.instrument)
         self.strat = dma_crossover.SMACrossOver(self.feed, self.instrument, self.shortPeriod,self.longPeriod)
-        
         self.initAnalyzer()
-    def getFeedFromCsv(self,instrument):
-        feed = yahoofeed.Feed()
-        import sys,os
-        fullName = os.path.abspath(os.path.join(os.path.dirname(__file__),"data\\orcl-2000.csv"))     
-        feed.addBarsFromCSV(instrument, fullName)  
-        return feed
     def getFeedFromYahoo(self,instrument):
         feed = yahoofinance.build_feed([instrument], 2008, 2012, "data")    
         return feed

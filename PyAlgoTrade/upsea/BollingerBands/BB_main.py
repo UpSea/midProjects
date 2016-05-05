@@ -9,35 +9,19 @@ from pyalgotrade.stratanalyzer import trades
 
 from BollingerBands import BBands
 
+import os,sys
+dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata'))        
+sys.path.append(dataRoot)        
+from feedFactory import feeds
+
 class Expert():
     def __init__(self):
         self.instrument = "yhoo"
         self.bBandsPeriod = 40
-        #self.feed = self.getFeedFromYahoo(self.instrument)
-        self.feed = self.getFeedFromCsv(self.instrument)
+        fd = feeds()
+        #mid feedFormat = tushareCsv|yahooCsv|generic|yahoo
+        self.feed = fd.getFeeds(feedFormat = "yahoo",instrument = self.instrument)
         self.initAnalyzer()
-    def getFeedFromCsv(self,instrument):
-        feed = yahoofeed.Feed()
-        # -*- coding: cp936 -*-
-        import sys,os
-        path01 = os.path.abspath(os.path.join(os.path.dirname(__file__),"data\\orcl-2000.csv"))     
-        #获取脚本文件的当前路径
-        def cur_file_dir():
-            #获取脚本路径
-            path = sys.path[0]
-            #判断为脚本文件还是py2exe编译后的文件，如果是脚本文件，则返回的是脚本的目录，如果是py2exe编译后的文件，则返回的是编译后的文件路径
-            if os.path.isdir(path):
-                return path
-            elif os.path.isfile(path):
-                return os.path.dirname(path)
-            
-        #打印结果
-        print cur_file_dir()        
-        feed.addBarsFromCSV(instrument, path01)  
-        return feed
-    def getFeedFromYahoo(self,instrument):
-        feed = yahoofinance.build_feed([instrument], 2000, 2016, "data")    
-        return feed
     def initAnalyzer(self):
         self.strat = BBands(self.feed, self.instrument, self.bBandsPeriod)        
         self.returnsAnalyzer = returns.Returns()

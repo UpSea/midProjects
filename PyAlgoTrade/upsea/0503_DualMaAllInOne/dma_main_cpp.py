@@ -1,12 +1,16 @@
 from pyalgotrade import plotter
-from pyalgotrade.tools import yahoofinance
-from pyalgotrade.barfeed import yahoofeed
 
 from pyalgotrade.stratanalyzer import sharpe
 from pyalgotrade.stratanalyzer import returns
 from pyalgotrade.stratanalyzer import drawdown
 from pyalgotrade.stratanalyzer import trades
 
+import os,sys
+dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata'))        
+sys.path.append(dataRoot)        
+from feedFactory import feeds
+
+import pandas as pd
 #from BollingerBands import BBands
 import dma_crossover
 
@@ -14,22 +18,15 @@ class Expert():
     def __init__(self):
         self.instrument = "yhoo"
         self.shortPeriod = 20
-        self.longPeriod = 40
-        self.feed = self.getFeedFromYahoo(self.instrument)
-        #self.feed = self.getFeedFromCsv(self.instrument)
+        self.longPeriod = 40        
+        fd = feeds()
+        #mid feedFormat = tushareCsv|yahooCsv|generic|yahoo
+        self.feed = fd.getFeeds(feedFormat = "tushareCsv",instrument = self.instrument)
         self.strat = dma_crossover.SMACrossOver(self.feed, self.instrument, self.shortPeriod,self.longPeriod)
         
+        #self.strat.setUseAdjustedValues(False)
+        
         self.initAnalyzer()
-    def getFeedFromCsv(self,instrument):
-        feed = yahoofeed.Feed()
-        # -*- coding: cp936 -*-
-        import sys,os
-        fullName = os.path.abspath(os.path.join(os.path.dirname(__file__),"data\\orcl-2000.csv"))     
-        feed.addBarsFromCSV(instrument, fullName)  
-        return feed
-    def getFeedFromYahoo(self,instrument):
-        feed = yahoofinance.build_feed([instrument], 2015, 2016, "data")    
-        return feed
     def initAnalyzer(self):
         #self.strat = BBands(self.feed, self.instrument, self.bBandsPeriod) 
         

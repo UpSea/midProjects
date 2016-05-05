@@ -241,7 +241,7 @@ if __name__ == "__main__":
     if frequency == bar.Frequency.MINUTE:
         path = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata','min'))        
     elif frequency == bar.Frequency.DAY:        
-        path = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata','day'))        
+        path = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata','tushare','day'))        
     filepath = path +os.sep + instrument + market + ".csv"
     
     

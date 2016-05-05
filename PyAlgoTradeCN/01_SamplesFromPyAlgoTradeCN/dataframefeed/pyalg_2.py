@@ -20,7 +20,10 @@ import constant as ct
 import pandas as pd 
 import json
 #mid import pyalg_utils,data,data_sql
-from utils import dataFramefeed
+import os,sys
+dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata'))        
+sys.path.append(dataRoot)
+import dataFramefeed
 
 def turtle_test(load_type = 'dataFrame',dataString = 'pyalg'):
     if load_type =='csv':
@@ -30,7 +33,7 @@ def turtle_test(load_type = 'dataFrame',dataString = 'pyalg'):
     elif load_type =='dataFrame':
         #从dataFrame中加载，
         import os
-        dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata'))        
+        dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata','tushare'))        
         code = '600209'
         filename = dataRoot+os.sep+'day'+os.sep+('%s.csv'%code)          
         
@@ -76,7 +79,7 @@ def vwap(plot):
     if(True):
         #mid 从dataFrame中加载,即直接加载tushare格式数据
         feed = dataFramefeed.Feed()
-        dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata'))        
+        dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata','tushare'))        
         
         code = '600209'
         filename = dataRoot+os.sep+'day'+os.sep+('%s.csv'%code)        

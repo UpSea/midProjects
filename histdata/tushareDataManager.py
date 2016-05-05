@@ -6,7 +6,11 @@ Created on Tue Jul 28 11:04:32 2015
 """
 from itertools import izip
 #import sys
+import os,sys
+dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir))        
+sys.path.append(dataRoot) 
 import constant as ct
+
 import pylab as plt
 import pandas as pd
 import tushare as ts
@@ -19,7 +23,7 @@ from pandas import DataFrame
 
 class tushareDataCenter():
     def __init__(self):
-        self.dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata'))        
+        self.dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata','tushare'))        
         self.codefile = self.dataRoot +os.sep + "code.csv"   
         self.codeinusefile = self.dataRoot + os.sep + "code_inuse.csv"
         self.codenewinusefile = self.dataRoot + os.sep + "code_new_inuse.csv"
@@ -55,7 +59,7 @@ class tushareDataCenter():
         for code in dat['code'].values:
             i+= 1
             print i,code
-            if i > 10:
+            if i > 15:
                 break
             try:
                 _data_ = ts.get_hist_data(str(code),end=ct._MIDDLE_)  #默认取3年，code为str，start无效的,start 和end若当天有数据则全都取
@@ -215,30 +219,32 @@ class tushareDataCenter():
             return results.params[0]
         value1=[0.5,1.0,1.5,2.0,2.5,3.0]
         value2=[1.75,2.45,3.81,4.80,7.00,8.60]
-        print get_beta(value1,value2)        
-tsCenter = tushareDataCenter()
-if(False):
-    tsCenter.downloadAndStoreOrAppendAllData()
-if(False):
-    #mid 1)加载所有KData数据
-    d = tsCenter.retriveAllData()
-if(False):
-    #mid 应做修改，使用codes列表进行下载
-    code = '600209'
-    d = tsCenter.downloadAndStoreKDataByCode(code)
-if(False):
-    #mid 2)下载代码表
-    tsCenter.downloadAndStoreCodes()
-if(True):
-    #mid 3)依据已下载代码表下载所有对应KData到本地
-    tsCenter.downloadAndStoreAllData()      
-if(False):
-    #mid 4)依据代码，检索本地数据，并图形化输出
-    kdata = tsCenter.retriveKDataByCode('600209')    
-    da = tsCenter.get_macd(kdata)
-    da = tsCenter.plt_macd(kdata,da)
-if(True):
-    tsCenter.bigVolume()
+        print get_beta(value1,value2) 
+        
+if __name__ == "__main__":
+    tsCenter = tushareDataCenter()
+    if(False):
+        tsCenter.downloadAndStoreOrAppendAllData()
+    if(False):
+        #mid 1)加载所有KData数据
+        d = tsCenter.retriveAllData()
+    if(False):
+        #mid 应做修改，使用codes列表进行下载
+        code = '600209'
+        d = tsCenter.downloadAndStoreKDataByCode(code)
+    if(False):
+        #mid 2)下载代码表
+        tsCenter.downloadAndStoreCodes()
+    if(False):
+        #mid 3)依据已下载代码表下载所有对应KData到本地
+        tsCenter.downloadAndStoreAllData()      
+    if(True):
+        #mid 4)依据代码，检索本地数据，并图形化输出
+        kdata = tsCenter.retriveKDataByCode('600209')    
+        da = tsCenter.get_macd(kdata)
+        da = tsCenter.plt_macd(kdata,da)
+    if(False):
+        tsCenter.bigVolume()
 ''' mid 读取并图形化某个symbol的数据
 df = pd.read_csv(datafile,index_col=0,parse_dates=[0],encoding='gbk') 
 da = get_macd(df) 
