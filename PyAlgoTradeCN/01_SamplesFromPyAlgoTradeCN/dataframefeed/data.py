@@ -19,10 +19,10 @@ from pandas import DataFrame
 
 class tushareDataCenter():
     def __init__(self):
-        self.path = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata'))        
-        self.codefile = self.path +os.sep + "code.csv"   
-        self.codeinusefile = self.path + os.sep + "code_inuse.csv"
-        self.codenewinusefile = self.path + os.sep + "code_new_inuse.csv"
+        self.dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata'))        
+        self.codefile = self.dataRoot +os.sep + "code.csv"   
+        self.codeinusefile = self.dataRoot + os.sep + "code_inuse.csv"
+        self.codenewinusefile = self.dataRoot + os.sep + "code_new_inuse.csv"
     def downloadAndStoreCodes(self,code):
         dat = ts.get_industry_classified()
         dat = dat.drop_duplicates('code') 
@@ -60,7 +60,7 @@ class tushareDataCenter():
             try:
                 _data_ = ts.get_hist_data(str(code),end=ct._MIDDLE_)  #默认取3年，code为str，start无效的,start 和end若当天有数据则全都取
                 if _data_ is not None:
-                    _data_.to_csv((self.path+os.sep+'day'+os.sep+('%s.csv'%code)),encoding='gbk')
+                    _data_.to_csv((self.dataRoot+os.sep+'day'+os.sep+('%s.csv'%code)),encoding='gbk')
                     print str(_data_.index[0])+':'+str(_data_.index[-1])
                     if _data_.index[-1] in ct._start_range and _data_.index[0] in ct._end_range:                          #筛选一次代码，使用头尾都包含的代码
                         inuse.append(code)
@@ -118,7 +118,7 @@ class tushareDataCenter():
             i+= 1
             #print i,code
             try:
-                df = pd.read_csv(self.path+os.sep+'day'+os.sep+('%s.csv'%code),index_col=0,parse_dates=[0],encoding='gbk')  #parse_dates直接转换数据类型，不用再重新狗再累   
+                df = pd.read_csv(self.dataRoot+os.sep+'day'+os.sep+('%s.csv'%code),index_col=0,parse_dates=[0],encoding='gbk')  #parse_dates直接转换数据类型，不用再重新狗再累   
                 if df is not None:
                     dic[code] = df
                     print i,code,type(code)
@@ -138,7 +138,7 @@ class tushareDataCenter():
   
     def retriveKDataByCode(self,code):
         try:
-            dat = pd.read_csv(self.path+os.sep+'day'+os.sep+('%s.csv'%code),index_col=0,parse_dates=[0],encoding='gbk')  #parse_dates直接转换数据类型，不用再重新狗再累 
+            dat = pd.read_csv(self.dataRoot+os.sep+'day'+os.sep+('%s.csv'%code),index_col=0,parse_dates=[0],encoding='gbk')  #parse_dates直接转换数据类型，不用再重新狗再累 
         except Exception:
             dat = None
         return dat
@@ -178,7 +178,7 @@ class tushareDataCenter():
         i=0
         for code in inuse['code'].values:
             try:
-                _data_ = pd.read_csv(self.path+os.sep+'day'+os.sep+('%s.csv'%code),index_col=0,parse_dates=[0],encoding='gbk')   #默认取3年，code为str，start无效的,start 和end若当天有数据则全都取
+                _data_ = pd.read_csv(self.dataRoot+os.sep+'day'+os.sep+('%s.csv'%code),index_col=0,parse_dates=[0],encoding='gbk')   #默认取3年，code为str，start无效的,start 和end若当天有数据则全都取
                 dd = (_data_['volume']/_data_['volume'].shift(1)>v_times) & (_data_['turnover']>t_percent)
                 dd = dd & (_data_['close']<22)
                 if dd[-scope:].any():

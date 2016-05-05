@@ -30,9 +30,9 @@ def turtle_test(load_type = 'dataFrame',dataString = 'pyalg'):
     elif load_type =='dataFrame':
         #从dataFrame中加载，
         import os
-        path = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata'))        
+        dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata'))        
         code = '600209'
-        filename = path+os.sep+'day'+os.sep+('%s.csv'%code)          
+        filename = dataRoot+os.sep+'day'+os.sep+('%s.csv'%code)          
         
         dat = pd.read_csv(filename,index_col=0,encoding='gbk')
         feed = dataFramefeed.Feed()
@@ -76,16 +76,16 @@ def vwap(plot):
     if(True):
         #mid 从dataFrame中加载,即直接加载tushare格式数据
         feed = dataFramefeed.Feed()
-        path = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata'))        
+        dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata'))        
         
         code = '600209'
-        filename = path+os.sep+'day'+os.sep+('%s.csv'%code)        
+        filename = dataRoot+os.sep+'day'+os.sep+('%s.csv'%code)        
         dat = pd.read_csv(filename,index_col=0,encoding='gbk')
         
         feed.addBarsFromDataFrame("lenovo", dat)  
         
         code = '600051'
-        filename = path+os.sep+'day'+os.sep+('%s.csv'%code)        
+        filename = dataRoot+os.sep+'day'+os.sep+('%s.csv'%code)        
         dat = pd.read_csv(filename,index_col=0,encoding='gbk')
         
         feed.addBarsFromDataFrame("mi", dat)          

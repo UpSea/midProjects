@@ -104,11 +104,12 @@ if __name__ == "__main__":
     plot = True
     
     #############################################path set ############################33 
+    import sys,os    
     if frequency == bar.Frequency.MINUTE:
-        path = "..\\histdata\\min\\"
-    elif frequency == bar.Frequency.DAY:
-        path = "..\\histdata\\day\\"
-    filepath = path + instrument + market + ".csv"
+        path = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata','min'))        
+    elif frequency == bar.Frequency.DAY:        
+        path = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata','day'))        
+    filepath = path +os.sep + instrument + market + ".csv"
     
     
     #############################################don't change ############################33  

@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Created on Tue Nov 03 13:06:56 2015
 
@@ -85,7 +85,6 @@ class fourSMA(strategy.BacktestingStrategy):
         if self.__mall[-1] is None:
             return
             
-        self.testCon()            
             
         if self.__longPos is not None:
 
@@ -134,12 +133,12 @@ if __name__ == "__main__":
     plot = True
     
     #############################################path set ############################33 
+    import sys,os    
     if frequency == bar.Frequency.MINUTE:
-        path = "..\\histdata\\min\\"
-    elif frequency == bar.Frequency.DAY:
-        path = "..\\histdata\\day\\"
-    filepath = path + instrument + market + ".csv"
-    
+        path = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata','min'))        
+    elif frequency == bar.Frequency.DAY:        
+        path = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata','day'))        
+    filepath = path +os.sep + instrument + market + ".csv"    
     
     #############################################don't change ############################33  
     from pyalgotrade.barfeed.csvfeed import GenericBarFeed
@@ -160,7 +159,7 @@ if __name__ == "__main__":
             plt.getInstrumentSubplot('indicator').addDataSeries("smass", mass)
             
             position = strat.getTest()
-            plt.getOrCreateSubplot("position").addDataSeriesS("position", position)
+            plt.getOrCreateSubplot("position").addDataSeries("position", position)
         
     strat.run()
     

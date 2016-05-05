@@ -28,7 +28,7 @@ class Expert():
         feed.addBarsFromCSV(instrument, fullName)  
         return feed
     def getFeedFromYahoo(self,instrument):
-        feed = yahoofinance.build_feed([instrument], 2008, 2016, "data")    
+        feed = yahoofinance.build_feed([instrument], 2015, 2016, "data")    
         return feed
     def initAnalyzer(self):
         #self.strat = BBands(self.feed, self.instrument, self.bBandsPeriod) 
@@ -61,7 +61,9 @@ class Expert():
             SPlotter.getOrCreateSubplot("orders02").addDataSeries("mid's dataSeries",feedDataSerie,plotter.LineMarker)
         #addCallBack()
         #addDataSeries()    
-    
+        
+        position = strat.getTest()
+        SPlotter.getOrCreateSubplot("position").addDataSeries("position", position)    
         return SPlotter
     def run(self,plot):
         # 1.0) ÏÄÆÕ±ÈÂÊ 

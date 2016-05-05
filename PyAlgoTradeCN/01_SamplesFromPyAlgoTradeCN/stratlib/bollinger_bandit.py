@@ -239,9 +239,9 @@ if __name__ == "__main__":
     #############################################path set ############################33 
     import sys,os    
     if frequency == bar.Frequency.MINUTE:
-        path = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata','min'))        
+        path = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata','min'))        
     elif frequency == bar.Frequency.DAY:        
-        path = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata','day'))        
+        path = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata','day'))        
     filepath = path +os.sep + instrument + market + ".csv"
     
     

@@ -10,4 +10,4 @@ pyalgotrade-cn项目自定义添加的文件有三个地方：
 3.pyalgotrade-cn/histdata
     此文件夹用于储存tushare历史数据供1.2.调用
 4.pyalgotrade-cn/pyalgotrade/tushare
-    此文件夹定义有tushare实时数据的使用策略示例,在stratlib的thrSMA_live.py策略中有调用
+    此文件夹定义有tushare实时数据的使用策略示例

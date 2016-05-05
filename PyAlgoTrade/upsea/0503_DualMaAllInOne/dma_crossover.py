@@ -1,17 +1,49 @@
 from pyalgotrade import strategy
 from pyalgotrade.technical import ma
 from pyalgotrade.technical import cross
+from pyalgotrade.dataseries import SequenceDataSeries
+
 class SMACrossOver(strategy.BacktestingStrategy):
     def __init__(self, feed, instrument, shortPeriod,longPeriod):
         strategy.BacktestingStrategy.__init__(self, feed)
         self.__instrument = instrument
         self.__longPosition = None
         self.__shortPosition = None
+        self.__position = SequenceDataSeries()
+        
         # We'll use adjusted close values instead of regular close values.
         self.setUseAdjustedValues(True)
         self.__prices = feed[instrument].getPriceDataSeries()
         self.__sma = ma.SMA(self.__prices, shortPeriod)
         self.__lma = ma.SMA(self.__prices,longPeriod)
+        
+        self.i = 0
+    def testCon(self):
+        # record position      
+        #######################################################################
+        broker = self.getBroker()
+        share = broker.getShares(self.__instrument)
+        position = broker.getPositions()
+        curTime = self.getCurrentDateTime()
+        if(True):
+            if(self.i==0):
+                self.__position.append(200)
+                self.i = self.i + 1
+            elif(self.i==1):
+                self.__position.append(-200)
+                self.i = self.i + 1
+            else:
+                self.__position.append(share)
+
+        else:
+            if self.__longPosition is not None:
+                self.__position.append(1)
+            if self.__shortPosition is not None:
+                self.__position.append(-1)
+            elif self.__longPosition is None and self.__shortPosition is None:
+                self.__position.append(0)
+    def getTest(self):
+        return self.__position    
     def getSMA(self):
         return self.__sma
     def getLMA(self):
@@ -50,6 +82,9 @@ class SMACrossOver(strategy.BacktestingStrategy):
         
         shares = int(self.getBroker().getCash() * 0.9 / bars[self.__instrument].getPrice())
         shares = 100
+        
+        self.testCon()            
+        
         if(longAllowed):
     
             if self.__longPosition is None:
