@@ -12,6 +12,8 @@ class feeds():
             feed = self.__getFeedFromYahooCsv(instrument)
         elif(feedFormat == "tushareCsv"):
             feed = self.__getFeedFromTushareCsv(instrument)
+        elif(feedFormat == "tushare"):
+            feed = self.__getFeedFromTushare(instrument)
         elif(feedFormat == "generic"):
             feed = self.__getFeedFromGenericCsv(instrument)
         return feed
@@ -33,7 +35,7 @@ class feeds():
         import dataFramefeed    
         
         dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata','tushare'))        
-        code = '600624'
+        code = '600061'
         filename = dataRoot+os.sep+'day'+os.sep+('%s.csv'%code)          
     
         dat = pd.read_csv(filename,index_col=0,encoding='gbk')
@@ -53,4 +55,11 @@ class feeds():
         import sys,os
         dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata','yahoo'))          
         feed = yahoofinance.build_feed([instrument], 2015, 2015, dataPath)    
-        return feed    
+        return feed
+    def __getFeedFromTushare(self,instrument):
+        import tusharefinance
+        import sys,os
+        dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata','tushare'))          
+        feed = tusharefinance.build_feed([instrument], 2015, 2015, dataPath)    
+        return feed        
+        

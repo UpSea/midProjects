@@ -31,17 +31,39 @@ class tushareDataCenter():
         dat = ts.get_industry_classified()
         dat = dat.drop_duplicates('code') 
         dat.to_csv(self.codefile,encoding='gbk')    
-    def downloadAndStoreKDataByCode(self,code):
+    def exists(self,instrument,frequency):
+        from pyalgotrade import bar        
         try:
-            _data_ = ts.get_hist_data(str(code),start=_start_,end=_end_)  #默认取3年，start 8-1包括
-            filename = path+os.sep+'day'+os.sep+('%s.csv'%code)
-            if _data_ is not None and _data_.size != 0:
-                if os.path.exists(filename):
-                    _data_.to_csv(filename, mode='a', header=None,encoding='gbk')
+            if frequency == bar.Frequency.DAY:
+                fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
+                if os.path.exists(fileName):
+                    return True
                 else:
-                    _data_.to_csv(filename,encoding='gbk')
+                    return False
+            elif frequency == bar.Frequency.WEEK:
+                fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
+                if os.path.exists(fileName):
+                    return True
+                else:
+                    return False                
+            else:
+                raise Exception("Invalid frequency")
+        except Exception, e:
+            raise e   
+    def downloadAndStoreKDataByCode(self,instrument,_start_,_end_):
+        try:
+            _data_ = ts.get_hist_data(instrument,start=None,end=None)  #默认取3年，start 8-1包括
+            fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
+            if _data_ is not None and _data_.size != 0:
+                if os.path.exists(fileName):
+                    _data_.to_csv(fileName, mode='a', header=None,encoding='gbk')
+                else:
+                    _data_.to_csv(fileName,encoding='gbk')
+            else:
+                return False
         except IOError: 
-            pass    #不行的话还是continue           
+            pass    #不行的话还是continue
+        return True
     def downloadAndStoreAllData(self):
         '''mid 下载代码表及其中所有历史数据
         1.自tushare下载代码表:code.csv
@@ -140,11 +162,19 @@ class tushareDataCenter():
         return dat['code'].values 
 
   
-    def retriveKDataByCode(self,code):
-        try:
-            dat = pd.read_csv(self.dataRoot+os.sep+'day'+os.sep+('%s.csv'%code),index_col=0,parse_dates=[0],encoding='gbk')  #parse_dates直接转换数据类型，不用再重新狗再累 
-        except Exception:
-            dat = None
+    def retriveKDataByCode(self,instrument,frequency):
+        from pyalgotrade import bar        
+        if frequency == bar.Frequency.DAY:
+            fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
+        elif frequency == bar.Frequency.WEEK:
+            fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
+    
+        try:        
+            dat = pd.read_csv(fileName,index_col=0,encoding='gbk')
+            #dat = pd.read_csv(fileName,index_col=0,parse_dates=[0],encoding='gbk')  #parse_dates直接转换数据类型，不用再重新狗再累 
+        except Exception,e:
+            dat = None            
+            raise e
         return dat
     def get_macd(self,df):
         _columns_ = ['EMA_12','EMA_26','DIFF','MACD','BAR']

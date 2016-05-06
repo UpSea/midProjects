@@ -16,12 +16,12 @@ import dma_crossover
 
 class Expert():
     def __init__(self):
-        self.instrument = "yhoo"
+        self.instrument = "000881"
         self.shortPeriod = 20
         self.longPeriod = 40        
         fd = feeds()
-        #mid feedFormat = tushareCsv|yahooCsv|generic|yahoo
-        self.feed = fd.getFeeds(feedFormat = "tushareCsv",instrument = self.instrument)
+        #mid feedFormat = tushareCsv|tushare|yahooCsv|yahoo|generic
+        self.feed = fd.getFeeds(feedFormat = "tushare",instrument = self.instrument)
         self.strat = dma_crossover.SMACrossOver(self.feed, self.instrument, self.shortPeriod,self.longPeriod)
         
         #self.strat.setUseAdjustedValues(False)
