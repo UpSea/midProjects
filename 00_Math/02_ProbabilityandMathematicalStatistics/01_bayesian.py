@@ -34,63 +34,54 @@ Bayes法则可表述为：
 import numpy as np
 from scipy import stats
 from matplotlib import pyplot as plt
-
+def getPosteriors(priorAlpha,priorBeta,heads):
+    postAlpha = heads + priorAlpha
+    postBeta = N-heads+priorBeta
+    postMu = (postAlpha/(postAlpha+postBeta))                                                   #mid mu
+    postSigma = (((postAlpha*postBeta)/((postAlpha+postBeta)**2*(postAlpha+postBeta+1)))**0.5)  #mid sigma        
+    return postAlpha,postBeta,postMu,postSigma
 
 if __name__ == "__main__":
-    # Create a list of the number of coin tosses ("Bernoulli trials")
+    #mid 伯努利实验次数列表
     number_of_trials = [0, 2, 10, 20, 50, 500,1000,2000]
-
-    # Conduct 500 coin tosses and output into a list of 0s and 1s
-    # where 0 represents a tail and 1 represents a head
+    #mid 按最大次数生成随机实验结果，1为头，0为尾
     data = stats.bernoulli.rvs(0.5, size=number_of_trials[-1])
-
-    # Discretise the x-axis into 100 separate plotting points
+    #mid x轴刻度划分
     x = np.linspace(0, 1, 100)
-
-    # Loops over the number_of_trials list to continually add
-    # more coin toss data. For each new set of data, we update
-    # our (current) prior belief to be a new posterior. This is
-    # carried out using what is known as the Beta-Binomial model.
-    # For the time being, we won't worry about this too much.
-    
+    #mid 设置先验的1出现的概率的结果分布的期望和均值，
     priorMu = 0.5
     priorSigma = 0.28867511
-
+    #mid 自先验期望和均值计算alpha和beta
     priorAlpha = 1.0*int(((1-priorMu)/priorSigma**2-1/priorMu)*priorMu**2)
     priorBeta = 1.0*int(priorAlpha*(1/priorMu-1)) 
+    
     print priorAlpha,priorBeta    
     
+    #mid 分别对不同的实验次数的结果进行结合先验条件的评估得出后验的分布参数估计
     for i, N in enumerate(number_of_trials):
-        # Accumulate the total number of heads for this
-        # particular Bayesian update
+        #mid 求出当前实验次数下的heads出现的次数
         heads = data[:N].sum()
-        # Create an axes subplot for each update
+        #mid 创建子图，此处需要实验次数列表为偶数长度
         ax = plt.subplot(len(number_of_trials) / 2, 2, i + 1)
         ax.set_title("%s trials, %s heads" % (N, heads))
-        # Add labels to both axes and hide labels on y-axis
         ax.set_xlabel("$P(H)$, Probability of Heads")
         ax.set_ylabel("Density")
+        #mid 为第一个均匀分布的子图设置y轴刻度范围，若不设，则会填满
         if i == 0:
             plt.ylim([0.0, 2.0])
         #plt.setp(ax.get_yticklabels(), visible=False)
-        # Create and plot a Beta distribution to represent the
-        # posterior belief in fairness of the coin.
-
-        
-        postAlpha = heads + priorAlpha
-        postBeta = N-heads+priorBeta
-        postMu = (postAlpha/(postAlpha+postBeta))                         #mid mu
-        postSigma = (((postAlpha*postBeta)/((postAlpha+postBeta)**2*(postAlpha+postBeta+1)))**0.5)   #mid sigma        
+        #mid 根据先验参数和新的实证数据计算后验参数
+        postAlpha,postBeta,postMu,postSigma = getPosteriors(priorAlpha, priorBeta, heads)
+        #mid 根据后验参数计算后验参数下beta分布在x范围内的密度值
         y = stats.beta.pdf(x, postAlpha, postBeta)
+        #mid 绘图
         label01 = "observe %d tosses, %d heads" % (N, heads)
         label02 = "$\\alpha=%.4f$, $\\beta=%.4f$, $\\mu=%.4f$, $\\sigma=%.4f$" % (postAlpha,postBeta,postMu,postSigma)
         ax.set_title(label01+'\n'+label02)
         ax.plot(x, y, label=label01+label02)
-        
         ax.fill_between(x, 0, y, color="#aaaadd", alpha=0.5)
-        
+        #mid 将此次估计得到的参数作为下次实验的先验参数
         priorAlpha = postAlpha
         priorBeta = postBeta
-    # Expand plot to cover full width/height and show it
     plt.tight_layout()
     plt.show()
