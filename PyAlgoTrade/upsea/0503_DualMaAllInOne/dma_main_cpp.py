@@ -16,7 +16,7 @@ import dma_crossover
 
 class Expert():
     def __init__(self):
-        self.instrument = "000881"
+        self.instrument = "000001"
         self.shortPeriod = 20
         self.longPeriod = 40        
         fd = feeds()

@@ -17,6 +17,8 @@ import tushare as ts
 import numpy as np
 import time,os
 from pandas import DataFrame
+from pyalgotrade import bar        
+
 #reload(sys)
 #sys.setdefaultencoding('utf-8')
 #code为全部，code_inuse为起止日期完备的数据
@@ -84,11 +86,11 @@ class tushareDataCenter():
             if i > 15:
                 break
             try:
-                _data_ = ts.get_hist_data(str(code),end=ct._MIDDLE_)  #默认取3年，code为str，start无效的,start 和end若当天有数据则全都取
+                _data_ = ts.get_hist_data(str(code),end=ct._MIDDLE_)
                 if _data_ is not None:
                     _data_.to_csv((self.dataRoot+os.sep+'day'+os.sep+('%s.csv'%code)),encoding='gbk')
                     print str(_data_.index[0])+':'+str(_data_.index[-1])
-                    if _data_.index[-1] in ct._start_range and _data_.index[0] in ct._end_range:                          #筛选一次代码，使用头尾都包含的代码
+                    if _data_.index[-1] in ct._start_range and _data_.index[0] in ct._end_range:
                         inuse.append(code)
             except IOError: 
                 pass    #不行的话还是continue           
@@ -113,7 +115,7 @@ class tushareDataCenter():
             if i > 10:
                 break        
             try:
-                _data_ = ts.get_hist_data(str(code),start=_start_,end=_end_)  #默认取3年，start 8-1包括
+                _data_ = ts.get_hist_data(str(code),start=_start_,end=_end_)
                 filename = path+os.sep+'day'+os.sep+('%s.csv'%code)
                 if _data_ is not None and _data_.size != 0:
                     if os.path.exists(filename):
@@ -122,7 +124,7 @@ class tushareDataCenter():
                         _data_.to_csv(filename,encoding='gbk')
                     startRange = pd.date_range(start=_start_,periods=7)
                     endRange = pd.date_range(end=_end_,periods=7)
-                    if code in inuse['code'].values and _data_.index[0] in endRange and _data_.index[-1] in startRange:   #筛选一次代码，使用头尾都包含的代码
+                    if code in inuse['code'].values and _data_.index[0] in endRange and _data_.index[-1] in startRange:
                         new_inuse.append(code)  
             except IOError: 
                 pass    #不行的话还是continue           
@@ -144,7 +146,7 @@ class tushareDataCenter():
             i+= 1
             #print i,code
             try:
-                df = pd.read_csv(self.dataRoot+os.sep+'day'+os.sep+('%s.csv'%code),index_col=0,parse_dates=[0],encoding='gbk')  #parse_dates直接转换数据类型，不用再重新狗再累   
+                df = pd.read_csv(self.dataRoot+os.sep+'day'+os.sep+('%s.csv'%code),index_col=0,parse_dates=[0],encoding='gbk')  
                 if df is not None:
                     dic[code] = df
                     print i,code,type(code)
@@ -162,8 +164,7 @@ class tushareDataCenter():
         return dat['code'].values 
 
   
-    def retriveKDataByCode(self,instrument,frequency):
-        from pyalgotrade import bar        
+    def retriveKDataByCode(self,instrument,frequency=bar.Frequency.DAY):
         if frequency == bar.Frequency.DAY:
             fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
         elif frequency == bar.Frequency.WEEK:
@@ -171,11 +172,12 @@ class tushareDataCenter():
     
         try:        
             dat = pd.read_csv(fileName,index_col=0,encoding='gbk')
-            #dat = pd.read_csv(fileName,index_col=0,parse_dates=[0],encoding='gbk')  #parse_dates直接转换数据类型，不用再重新狗再累 
+            #dat = pd.read_csv(fileName,index_col=0,parse_dates=[0],encoding='gbk')  #parse_dates直接转换数据类型 string->datastamp
         except Exception,e:
             dat = None            
             raise e
-        return dat
+        
+        return dat.sort_index(axis=0,ascending=True)
     def get_macd(self,df):
         _columns_ = ['EMA_12','EMA_26','DIFF','MACD','BAR']
         a = np.zeros(len(df)*5).reshape(len(df),5) #也可以EMA_12 = [0 for i in range(len(df))]
@@ -212,7 +214,7 @@ class tushareDataCenter():
         i=0
         for code in inuse['code'].values:
             try:
-                _data_ = pd.read_csv(self.dataRoot+os.sep+'day'+os.sep+('%s.csv'%code),index_col=0,parse_dates=[0],encoding='gbk')   #默认取3年，code为str，start无效的,start 和end若当天有数据则全都取
+                _data_ = pd.read_csv(self.dataRoot+os.sep+'day'+os.sep+('%s.csv'%code),index_col=0,parse_dates=[0],encoding='gbk')
                 dd = (_data_['volume']/_data_['volume'].shift(1)>v_times) & (_data_['turnover']>t_percent)
                 dd = dd & (_data_['close']<22)
                 if dd[-scope:].any():
@@ -237,7 +239,8 @@ class tushareDataCenter():
             _data_ = pd.read_csv('d:/data/%s.csv'%code,index_col=0,parse_dates=[0],encoding='gbk')  #默认取3年，start 8-1包括
             _data_=_data_.rename(columns=re_columns)
             _data_.index.name = 'Date'
-            _data_.to_csv('d:/data2/%s.csv'%code,columns=['Open','High','Low','Close','Volume','Adj Close'],date_format="%Y-%m-%d",encoding='gbk')
+            _data_.to_csv('d:/data2/%s.csv'%code,columns=['Open','High','Low','Close','Volume','Adj Close'],
+                          date_format="%Y-%m-%d",encoding='gbk')
     def getBetaSample(self):  
         '''mid
         仅是一个实例，用于演示，无特定功能
@@ -270,7 +273,14 @@ if __name__ == "__main__":
         tsCenter.downloadAndStoreAllData()      
     if(True):
         #mid 4)依据代码，检索本地数据，并图形化输出
-        kdata = tsCenter.retriveKDataByCode('600209')    
+        kdata = tsCenter.retriveKDataByCode('000881')
+        start = u'2015-04-01'
+        end = u'2015-12-31'
+        data = kdata.loc[start:end,['open','high','low','close']]
+        data = kdata.loc[start:end,:]
+        
+        kdata = data
+        
         da = tsCenter.get_macd(kdata)
         da = tsCenter.plt_macd(kdata,da)
     if(False):
@@ -292,5 +302,5 @@ plt_macd(df,da)
 #refresh_data()              
 #change_type_to_yahoo()
 #bigVolume()
-#_data_ = pd.read_csv('d:/data/600848.csv',index_col=0,parse_dates=[0],encoding='gbk')   #默认取3年，code为str，start无效的,start 和end若当天有数据则全都取
+#_data_ = pd.read_csv('d:/data/600848.csv',index_col=0,parse_dates=[0],encoding='gbk')
 #_data_.plot() 
