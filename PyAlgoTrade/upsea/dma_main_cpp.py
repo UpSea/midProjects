@@ -6,26 +6,36 @@ from pyalgotrade.stratanalyzer import drawdown
 from pyalgotrade.stratanalyzer import trades
 
 import os,sys
-dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata'))        
+dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
 sys.path.append(dataRoot)        
 from feedFactory import feeds
 
 import pandas as pd
 #from BollingerBands import BBands
-import dma_crossover
+import strategies.dma_crossover as dma_crossover
+import money.moneyFixed as moneyFixed
 
 class Expert():
-    def __init__(self):
-        self.instrument = "000001"
-        self.shortPeriod = 20
-        self.longPeriod = 40        
+    def __init__(self,toPlot = True,instrument = '000001',shortPeriod = 20,longPeriod = 40,feedFormat = 'tushare',money = None):
+        self.instrument = instrument
+        self.shortPeriod = shortPeriod
+        self.longPeriod = longPeriod
+        self.toPlot = toPlot
+        
+        #mid data
         fd = feeds()
         #mid feedFormat = tushareCsv|tushare|yahooCsv|yahoo|generic
         self.feed = fd.getFeeds(feedFormat = "tushare",instrument = self.instrument)
-        self.strat = dma_crossover.SMACrossOver(self.feed, self.instrument, self.shortPeriod,self.longPeriod)
         
+        #mid money
+        self.money = money
+        
+        #mid strategy
+        self.strat = dma_crossover.DMACrossOver(feed=self.feed, instrument=self.instrument,shortPeriod=self.shortPeriod,
+                                                longPeriod=self.longPeriod,money=money)
         #self.strat.setUseAdjustedValues(False)
         
+        #mid results
         self.initAnalyzer()
     def initAnalyzer(self):
         #self.strat = BBands(self.feed, self.instrument, self.bBandsPeriod) 
@@ -62,7 +72,7 @@ class Expert():
         position = strat.getTest()
         SPlotter.getOrCreateSubplot("position").addDataSeries("position", position)    
         return SPlotter
-    def run(self,plot):
+    def run(self):
         # 1.0) 夏普比率 
         self.strat.attachAnalyzer(self.sharpeRatioAnalyzer)
         # 1.3) 策略结果
@@ -75,7 +85,7 @@ class Expert():
         print "Sharpe ratio: %.2f" % self.sharpeRatioAnalyzer.getSharpeRatio(0.05)
     
         # Plot the strategy.
-        if(plot):#自定义方式获取figure，并对其进行设置
+        if(self.toPlot):#自定义方式获取figure，并对其进行设置
             import matplotlib.pyplot as plt
             fig = spPlooter.buildFigure()
             fig.tight_layout()    
@@ -85,5 +95,8 @@ class Expert():
 
 
 if __name__ == "__main__":
-    ex = Expert()
-    ex.run(True)
+    money = moneyFixed.moneyFixed()
+    ex = Expert(toPlot=True, instrument='600243', shortPeriod=20, 
+               longPeriod=40, feedFormat='tushare',
+               money = money)
+    ex.run()
