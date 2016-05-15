@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
 import matplotlib.dates as mpd
 import matplotlib.finance as mpf
