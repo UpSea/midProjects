@@ -1,19 +1,19 @@
-git config --global user.email "����ʼ���ַ"
-git config --global user.name "���Github�û���"
+git config --global user.email "你的邮件地址"
+git config --global user.name "你的Github用户名"
 
-���ϲ��費֪��û���á�
-��1��������SSH Key��
-���û���Ŀ¼�£�������û��.sshĿ¼������У��ٿ������Ŀ¼����û��id_rsa��id_rsa.pub�������ļ���
-����Ѿ����ˣ���ֱ��������һ�������û�У���Shell��Windows�´�Git Bash��������SSH Key��
+以上步骤不知有没有用。
+第1步：创建SSH Key。
+在用户主目录下，看看有没有.ssh目录，如果有，再看看这个目录下有没有id_rsa和id_rsa.pub这两个文件，
+如果已经有了，可直接跳到下一步。如果没有，打开Shell（Windows下打开Git Bash），创建SSH Key：
 
 $ ssh-keygen -t rsa -C "youremail@example.com"
 
-����Ҫ���ʼ���ַ�������Լ����ʼ���ַ��Ȼ��һ·�س���ʹ��Ĭ��ֵ���ɣ��������KeyҲ�������ھ���Ŀ�ģ�����Ҳ�����������롣
+你需要把邮件地址换成你自己的邮件地址，然后一路回车，使用默认值即可，由于这个Key也不是用于军事目的，所以也无需设置密码。
 
-���һ��˳���Ļ����������û���Ŀ¼���ҵ�.sshĿ¼��������id_rsa��id_rsa.pub�����ļ�������������SSH Key����Կ�ԣ�id_rsa��˽Կ������й¶��ȥ��id_rsa.pub�ǹ�Կ�����Է��ĵظ����κ��ˡ�
+如果一切顺利的话，可以在用户主目录里找到.ssh目录，里面有id_rsa和id_rsa.pub两个文件，这两个就是SSH Key的秘钥对，id_rsa是私钥，不能泄露出去，id_rsa.pub是公钥，可以放心地告诉任何人。
 
-��2������½GitHub���򿪡�Account settings������SSH Keys��ҳ�棺
+第2步：登陆GitHub，打开“Account settings”，“SSH Keys”页面：
 
-Ȼ�󣬵㡰Add SSH Key������������Title����Key�ı�����ճ��id_rsa.pub�ļ������ݣ�
+然后，点“Add SSH Key”，填上任意Title，在Key文本框里粘贴id_rsa.pub文件的内容：
 
-mid˵��:id_rsa.pub�е�����ճ����github.com��վ����󣬻���ʾprint����pub�ļ��еĲ�ͬ�����û���⡣
+mid说明:id_rsa.pub中的内容粘贴到github.com网站保存后，会显示print，和pub文件中的不同，这个没问题。
