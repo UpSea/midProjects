@@ -7,7 +7,7 @@ Created on Tue Jul 28 11:04:32 2015
 from itertools import izip
 #import sys
 import os,sys
-dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir))        
+dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir))        
 sys.path.append(dataRoot) 
 import constant as ct
 
@@ -25,7 +25,7 @@ from pyalgotrade import bar
 
 class tushareDataCenter():
     def __init__(self):
-        self.dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata','tushare'))        
+        self.dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__)))        
         self.codefile = self.dataRoot +os.sep + "code.csv"   
         self.codeinusefile = self.dataRoot + os.sep + "code_inuse.csv"
         self.codenewinusefile = self.dataRoot + os.sep + "code_new_inuse.csv"

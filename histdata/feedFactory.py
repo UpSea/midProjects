@@ -57,7 +57,7 @@ class feeds():
         feed = yahoofinance.build_feed([instrument], 2015, 2015, dataPath)    
         return feed
     def __getFeedFromTushare(self,instrument):
-        import tusharefinance
+        import tusharedb.tusharefinance as tusharefinance
         import sys,os
         dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata','tushare'))          
         feed = tusharefinance.build_feed([instrument], 2015, 2015, dataPath)    

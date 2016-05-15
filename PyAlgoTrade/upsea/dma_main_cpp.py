@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from pyalgotrade import plotter
 
 from pyalgotrade.stratanalyzer import sharpe
@@ -55,7 +56,7 @@ class Expert():
         #SPlotter.getOrCreateSubplot("SharpeRatio").addDataSeries("Sharpe Ratio", self.tradesAnalyzer.getCommissionsForAllTrades())    
 
         def addCallBack():
-            # mid Ê¹ÓÃÄ¬ÈÏ»æÍ¼Àà»æÖÆ×Ô¶¨ÒåÊı¾İ,´Ë´¦ÊÇLineMarker
+            # mid ä½¿ç”¨é»˜è®¤ç»˜å›¾ç±»ç»˜åˆ¶è‡ªå®šä¹‰æ•°æ®,æ­¤å¤„æ˜¯LineMarker
             def midBars(bars):
                 midOpen = bars[self.instrument].getOpen()
                 midClose = bars[self.instrument].getClose()
@@ -73,24 +74,24 @@ class Expert():
         SPlotter.getOrCreateSubplot("position").addDataSeries("position", position)    
         return SPlotter
     def run(self):
-        # 1.0) ÏÄÆÕ±ÈÂÊ 
+        # 1.0) å¤æ™®æ¯”ç‡ 
         self.strat.attachAnalyzer(self.sharpeRatioAnalyzer)
-        # 1.3) ²ßÂÔ½á¹û
+        # 1.3) ç­–ç•¥ç»“æœ
         self.strat.attachAnalyzer(self.returnsAnalyzer)    
         # 1.4) 
         self.strat.attachAnalyzer(self.tradesAnalyzer)
-        # 1.4) ²ßÂÔ½á¹ûÍ¼ĞÎ»¯¹ØÁª
+        # 1.4) ç­–ç•¥ç»“æœå›¾å½¢åŒ–å…³è”
         spPlooter = self.analyzer(self.strat,self.instrument)    
         self.strat.run()
         print "Sharpe ratio: %.2f" % self.sharpeRatioAnalyzer.getSharpeRatio(0.05)
     
         # Plot the strategy.
-        if(self.toPlot):#×Ô¶¨Òå·½Ê½»ñÈ¡figure£¬²¢¶ÔÆä½øĞĞÉèÖÃ
+        if(self.toPlot):#è‡ªå®šä¹‰æ–¹å¼è·å–figureï¼Œå¹¶å¯¹å…¶è¿›è¡Œè®¾ç½®
             import matplotlib.pyplot as plt
             fig = spPlooter.buildFigure()
             fig.tight_layout()    
             plt.show()
-        else:#Ê¹ÓÃpyalgoµÄ·½Ê½»æÖÆ
+        else:#ä½¿ç”¨pyalgoçš„æ–¹å¼ç»˜åˆ¶
             spPlooter.plot()
 
 
