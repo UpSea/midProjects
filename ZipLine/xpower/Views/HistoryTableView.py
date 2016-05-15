@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from PyQt4 import QtGui,QtCore
 import datetime as dt
 from DataSources.DataSourceMongodb import Mongodb

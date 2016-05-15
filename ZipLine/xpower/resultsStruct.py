@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 following program is in run()
 '''

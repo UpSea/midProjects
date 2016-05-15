@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import zipline.transforms.ta as ta
 import zipline.utils.events as zpEvents
 import zipline.finance.commission as zpCommission

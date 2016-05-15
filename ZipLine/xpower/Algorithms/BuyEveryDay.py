@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import zipline as zp
 class BuyEveryDay(zp.TradingAlgorithm):       
     def __init__(self, *args, **kwargs):

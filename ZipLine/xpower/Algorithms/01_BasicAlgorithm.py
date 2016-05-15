@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import zipline.transforms.ta as ta
 import zipline as zp
 ''' mid 2016-3-16 18:27

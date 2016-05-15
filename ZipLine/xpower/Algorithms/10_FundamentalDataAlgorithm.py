@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
     Trading Strategy using Fundamental Data
     

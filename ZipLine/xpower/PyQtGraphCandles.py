@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Demonstrate creation of a custom graphic (a candlestick plot)
 """

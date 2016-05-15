@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 sys.path.append('/home/mid/PythonProjects/xpower/pyqtgraph-0.9.10')
 from PyQt4 import QtCore, QtGui

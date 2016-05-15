@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from PyQt4 import QtGui,QtCore

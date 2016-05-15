@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys,os
 xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir)) # mid path of current file's parent folder
 xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),"pyqtgraph-0.9.10"))

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # The pipeline API requires imports.
 #from quantopian.pipeline import Pipeline
 #from quantopian.algorithm import attach_pipeline, pipeline_output

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from Strategies.Strategy_01_BuyApple import prepareData
 from Algorithms.Algorithm_BuyOneEveryDay import BuyOneEveryDay

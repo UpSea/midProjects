@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # This example runs the same momentum play as the first sample 
 # (https://www.quantopian.com/help#sample-basic), but this time it uses more
 # securities during the backtest.

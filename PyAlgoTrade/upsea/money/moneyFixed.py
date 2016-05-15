@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import baseMoney
 class moneyFixed(baseMoney.baseMoney):
     def __init__(self):

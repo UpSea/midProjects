@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from pyalgotrade import strategy
 from pyalgotrade.technical import ma
 from pyalgotrade.technical import cross

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from zipline.api import order, record, symbol
 # Import exponential moving average from talib wrapper
 from zipline.transforms.ta import EMA
