@@ -9,7 +9,7 @@ from pyalgotrade.stratanalyzer import trades
 import os,sys
 dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
 sys.path.append(dataRoot)        
-from feedFactory import feeds
+from feedsForPAT import feeds
 
 import pandas as pd
 #from BollingerBands import BBands
