@@ -4,12 +4,11 @@ import matplotlib.finance as mpf
 class Analyzer03():
     """"""
     #----------------------------------------------------------------------
-    def __init__(self,fig=None):
+    def __init__(self,Globals=None):
         """Constructor"""
-        if fig==None:
-            self.fig = plt.figure()
-        else:
-            self.fig = fig        
+        self.fig = plt.figure()
+        self.Globals = Globals
+        self.Globals.append(self)          
     #----------------------------------------------------------------------
     def drawCandle(self,ax,quotes, width=0.6,colorup='b', colordown='r',alpha=0.5,bDrawText=False): 
         mpf.candlestick_ohlc(ax, quotes, width,colorup, colordown,alpha)
@@ -54,17 +53,18 @@ class Analyzer03():
             
             if(bDrawText):
                 self.addText(ax2,results.index,results.AAPL)
-            
+
             ax2.plot(results.ix[results.buy].index, results.short_ema[results.buy],
                      '^', markersize=10, color='m')
             ax2.plot(results.ix[results.sell].index,
                      results.short_ema[results.sell],
-                     'v', markersize=10, color='k')
+                     'v', markersize=10, color='k')            
 
             #plt.legend(loc=0)
                 # Show the plot.
             fig.set_size_inches(18, 8)
             fig.tight_layout()
+            fig.show()
         else:
             msg = 'AAPL, short_ema and long_ema data not captured using record().'
             ax2.annotate(msg, xy=(0.1, 0.5))

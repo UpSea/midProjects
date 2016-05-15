@@ -1,5 +1,7 @@
-import sys
-sys.path.append('/home/mid/PythonProjects/xpower/pyqtgraph-0.9.10')
+import sys,os
+xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'pyqtgraph-0.9.10'))
+sys.path.append(xpower)
+
 from PyQt4 import QtCore, QtGui
 import numpy as np
 import pyqtgraph as pg

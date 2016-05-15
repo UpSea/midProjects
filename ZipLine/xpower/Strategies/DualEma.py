@@ -4,21 +4,20 @@ if __name__ == '__main__':
     from PyQt4 import QtCore, QtGui
     app = QtGui.QApplication(sys.argv) 
     
-    xpower = '/home/mid/PythonProjects/xpower'  
     xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir))
-    sys.path.append(xpower)  
+    sys.path.append(xpower)
     
     params={}
     Globals=[]
     dataSource={}
     algo={}
     
-    dataSource['ip']='192.168.1.100'
+    dataSource['ip']='192.168.0.212'
     dataSource['port']=27017
     dataSource['database']='Tushare'
     
-    dataSource['symbol']='000001'
-    dataSource['dateStart']='2015-02-19'
+    dataSource['symbol']='600028'
+    dataSource['dateStart']='2015-03-19'
     dataSource['dateEnd']='2015-12-31'
     dataSource['frequency']='D'
     
@@ -52,14 +51,7 @@ def dumpDict(dictStr):
 algo.dumpDict = dumpDict
 result = algo.run(dataUtcTime)
 
-
-
-fig = plt.figure()
-
-
-
-
-analyzer = Analyzer02(fig=fig)
+analyzer = Analyzer03(Globals=Globals)
 analyzer.analyze(result,dataForCandle,bDrawText=False)
 
 

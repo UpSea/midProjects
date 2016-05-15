@@ -17,9 +17,6 @@ class BuyEveryDay(zp.TradingAlgorithm):
         self.order(self.sid,self.amount)            #mid open 1 long position.
         self.record(AAPL=data[self.sid].price)      #mid add one column named 'AAPL' to returns of Algorithm.run()                   
 if __name__ == '__main__':
-    import sys
-    sys.path.append('/home/mid/PythonProjects/xpower')      
-    
     import zipline.utils.factory as zpf
     from datetime import datetime
     import matplotlib.pyplot as plt

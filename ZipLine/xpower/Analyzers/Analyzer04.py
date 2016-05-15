@@ -11,12 +11,11 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 class Analyzer04():
     """"""
     #----------------------------------------------------------------------
-    def __init__(self,fig=None):
+    def __init__(self,Globals=None):
         """Constructor"""
-        if fig==None:
-            self.fig = plt.figure()
-        else:
-            self.fig = fig
+        self.fig = plt.figure()
+        self.Globals = Globals
+        self.Globals.append(self)        
     def addText(self,ax,xAxis,yAxis):        #mid add some y value to ax.
         for x,y in zip(xAxis,yAxis):
             text = '('+str(round(y,3))+')'
@@ -65,14 +64,18 @@ class Analyzer04():
         ax.plot(self.results.index,self.results.AAPL)
         
         if 'AAPL' in self.results and 'short_ema' in self.results and 'long_ema' in self.results:
-            self.results[['AAPL', 'short_ema', 'long_ema']].plot(ax=ax)
+            results = self.results
+            results[['AAPL', 'short_ema', 'long_ema']].plot(ax=ax)
             
-            ax.plot(self.results.index,self.results.AAPL)
-            ax.plot(self.results.index,self.results.short_ema)
-            ax.plot(self.results.index,self.results['long_ema'])
-            
-            ax.plot(self.results.ix[self.results.buy].index, self.results.short_ema[self.results.buy],'^', markersize=10, color='m')
-            ax.plot(self.results.ix[self.results.sell].index,self.results.short_ema[self.results.sell],'v', markersize=10, color='k')        
+            ax.plot(results.index,results.AAPL)
+            ax.plot(results.index,results.short_ema)
+            ax.plot(results.index,results['long_ema'])
+            x = results.ix[ results.buy].index
+            y = results.short_ema[ results.buy]
+            ax.plot(x,y,'^', markersize=10, color='m')
+            ax.plot(results.ix[ results.sell].index,  results.short_ema[ results.sell],'v', markersize=10, color='k')            
+            #ax.plot(self.results.ix[self.results.buy].index, self.results.short_ema[self.results.buy],'^', markersize=10, color='m')
+            #ax.plot(self.results.ix[self.results.sell].index,self.results.short_ema[self.results.sell],'v', markersize=10, color='k')        
         #ax.scatter(self.results.index,self.results.AAPL)
         ax.set_ylabel('AAPL price (USD)')
         if(bDrawText):
@@ -109,4 +112,4 @@ class Analyzer04():
         # Show the plot.
         fig.set_size_inches(18, 8)
         fig.tight_layout()
-        
+        fig.show()

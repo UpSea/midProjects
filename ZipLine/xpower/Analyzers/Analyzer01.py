@@ -7,12 +7,11 @@ import datetime as dt
 class Analyzer01():
     """"""
     #----------------------------------------------------------------------
-    def __init__(self,fig=None):
+    def __init__(self,Globals=None):
         """Constructor"""
-        if fig==None:
-            self.fig = plt.figure()
-        else:
-            self.fig = fig
+        self.fig = plt.figure()
+        self.Globals = Globals
+        self.Globals.append(self)    
     def addText(self,ax,xAxis,yAxis):        #mid add some y value to ax.
         #return
         for x,y in zip(xAxis,yAxis):
@@ -95,3 +94,4 @@ class Analyzer01():
         # Show the plot.
         fig.set_size_inches(18, 8)
         fig.tight_layout()
+        fig.show()

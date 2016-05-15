@@ -24,7 +24,7 @@ class DataConverter():
             col5=close
         """     
         #date = np.array([mpd.date2num(dt.datetime.strptime(dateStr, '%Y-%m-%d')) for dateStr in history.index])         
-        date = np.array([mpd.date2num(pd.to_datetime(dateStr+' 09:30:00+08', '%Y-%m-%d %H:%M:%S').tz_localize('utc')) for dateStr in history.index])         
+        date = np.array([mpd.date2num(pd.to_datetime(dateStr+' 09:30:00+08',format= '%Y-%m-%d %H:%M:%S').tz_localize('utc')) for dateStr in history.index])         
         quotes = np.array(history.iloc[:][['open','high','low','close']])
         rows = quotes.shape[0]
         colls = quotes.shape[1]
@@ -43,7 +43,8 @@ class DataConverter():
             	pandas.DataFrame
 		Index=Datatime
         """
-        date = pd.to_datetime(history.index+' 09:30:00+08','%Y-%m-%d %H:%M:%S')
+        #date = pd.to_datetime(history.index+' 09:30:00+08',format='%Y-%m-%d %H:%M:%S')
+        date = pd.to_datetime(history.index+' 00:00:00+00',format='%Y-%m-%d %H:%M:%S')
         date.name='Date'
         close = pd.Series(np.array(history['close']),index=date,name='AAPL')
     

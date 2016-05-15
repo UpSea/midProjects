@@ -80,7 +80,7 @@ class Analyzer05():
         if 'short_ema' in self.results and 'long_ema' in self.results:
             ax.plot(date,self.results.short_ema)
             ax.plot(date,self.results['long_ema'])
-            
+
             xBuy = np.array([mpd.date2num(date) for date in self.results.ix[self.results.buy].index])         
             yBuy = np.array(self.results.short_ema[self.results.buy])            
             for x1,y1 in zip(xBuy,yBuy):

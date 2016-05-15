@@ -40,9 +40,6 @@ class DualEmaTalib(zp.TradingAlgorithm):
                sell=sell)
         
 if __name__ == '__main__':
-    import sys
-    sys.path.append('/home/mid/PythonProjects/xpower')      
-    
     import zipline.utils.factory as zpf
     from datetime import datetime
     import matplotlib.pyplot as plt

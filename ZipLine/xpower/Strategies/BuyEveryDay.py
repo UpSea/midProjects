@@ -4,8 +4,6 @@ if __name__ == '__main__':
     from PyQt4 import QtCore, QtGui
     app = QtGui.QApplication(sys.argv) 
     
-    #sys.path.append('/home/mid/PythonProjects/xpower')    
-    xpower = '/home/mid/PythonProjects/xpower'  
     xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir))
     sys.path.append(xpower)
     
@@ -15,11 +13,11 @@ if __name__ == '__main__':
     algo={}
     #-------------------------------------------------------------------------------------------
     # 0)自定义数据获取参数
-    dataSource['ip']='192.168.1.100'
+    dataSource['ip']='192.168.0.212'
     dataSource['port']=27017
     dataSource['database']='Tushare'
     
-    dataSource['symbol']='000001'
+    dataSource['symbol']='600028'
     dataSource['dateStart']='2015-12-21'
     dataSource['dateEnd']='2015-12-24'
     dataSource['frequency']='D'
