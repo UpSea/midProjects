@@ -51,7 +51,7 @@ def dumpDict(dictStr):
 algo.dumpDict = dumpDict
 result = algo.run(dataUtcTime)
 
-analyzer = Analyzer03(Globals=Globals)
+analyzer = Analyzer05(Globals=Globals)
 analyzer.analyze(result,dataForCandle,bDrawText=False)
 
 
