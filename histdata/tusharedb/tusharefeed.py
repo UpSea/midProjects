@@ -158,7 +158,7 @@ class Feed(dataFrameBarFeed):
     def barsHaveAdjClose(self):
         return True
 
-    def __addBarsFromDataFrame(self, instrument,dataFrame,timezone=None):
+    def addBarsFromDataFrame(self, instrument,dataFrame,timezone=None):
         """Loads bars for a given instrument from a CSV formatted file.
         The instrument gets registered in the bar feed.
 
@@ -178,8 +178,7 @@ class Feed(dataFrameBarFeed):
 
         rowParser = RowParser(self.getDailyBarTime(), self.getFrequency(), timezone, self.__sanitizeBars)
         dataFrameBarFeed.addBarsFromDataFrame(self, instrument,rowParser,dataFrame)
-    def addBarsFromCSV(self,instrument):
+    def addBarsFromCSV(self,tsCenter,instrument):
         from tushareDataManager import tushareDataCenter
-        tsCenter = tushareDataCenter()         
-        dat = tsCenter.retriveKDataByCode(instrument,bar.Frequency.DAY)
-        self.__addBarsFromDataFrame(instrument, dat)
+        dat = tsCenter.retriveDataFrameKData(instrument,bar.Frequency.DAY)
+        self.addBarsFromDataFrame(instrument, dat)

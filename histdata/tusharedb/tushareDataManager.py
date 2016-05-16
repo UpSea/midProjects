@@ -24,8 +24,8 @@ from pyalgotrade import bar
 #code为全部，code_inuse为起止日期完备的数据
 
 class tushareDataCenter():
-    def __init__(self):
-        self.dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__)))        
+    def __init__(self,dataRoot):
+        self.dataRoot = dataRoot      
         self.codefile = self.dataRoot +os.sep + "code.csv"   
         self.codeinusefile = self.dataRoot + os.sep + "code_inuse.csv"
         self.codenewinusefile = self.dataRoot + os.sep + "code_new_inuse.csv"
@@ -56,7 +56,7 @@ class tushareDataCenter():
         try:
             _data_ = ts.get_hist_data(instrument,start=None,end=None)  #默认取3年，start 8-1包括
             fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
-            if _data_ is not None and _data_.size != 0:
+            if _data_ is not None and len(_data_) != 0:
                 if os.path.exists(fileName):
                     _data_.to_csv(fileName, mode='a', header=None,encoding='gbk')
                 else:
@@ -164,7 +164,7 @@ class tushareDataCenter():
         return dat['code'].values 
 
   
-    def retriveKDataByCode(self,instrument,frequency=bar.Frequency.DAY):
+    def retriveDataFrameKData(self,instrument,frequency=bar.Frequency.DAY):
         if frequency == bar.Frequency.DAY:
             fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
         elif frequency == bar.Frequency.WEEK:

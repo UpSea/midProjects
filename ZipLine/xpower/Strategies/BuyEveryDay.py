@@ -118,6 +118,17 @@ if __name__ == '__main__':
         return benchmark_returns, treasury_curves
     
     # 1.3)交易环境指定
+    '''mid
+    TradingEnvironment()类定义交易的环境，包括：
+    1.交易日历(哪天交易，哪天不交易)
+    2.交易基准数据，包括指数回报，国债回报
+    3.交易所时区
+    
+    这些环境数据若不自定义，系统会默认使用纽交所的数据，而且是实时下载，数据来源有两个，
+    若有一个连接不可用时，会导致无限等待。
+    所以，这个东西有必要自定义
+    另外，若要应用到中国市场，这些数据也必须要自定义
+    '''
     from zipline.finance.trading import TradingEnvironment
     algo['env']=TradingEnvironment(load=load_market_data,
                                    #bm_symbol='000001',

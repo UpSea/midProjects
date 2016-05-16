@@ -9,7 +9,7 @@ from pyalgotrade.stratanalyzer import trades
 import os,sys
 dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
 sys.path.append(dataRoot)        
-from feedsForPAT import feeds
+import feedsForPAT as feedsForPAT
 
 import pandas as pd
 #from BollingerBands import BBands
@@ -24,9 +24,9 @@ class Expert():
         self.toPlot = toPlot
         
         #mid data
-        fd = feeds()
+        fd = feedsForPAT.feeds()
         #mid feedFormat = tushareCsv|tushare|yahooCsv|yahoo|generic
-        self.feed = fd.getFeeds(feedFormat = "tushare",instrument = self.instrument)
+        self.feed = fd.getFeeds(feedFormat = feedFormat,instrument = self.instrument)
         
         #mid money
         self.money = money
@@ -95,9 +95,41 @@ class Expert():
             spPlooter.plot()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":    
+    #mid feedFormat = tushareCsv|tushare|yahooCsv|yahoo|generic
+
+
     money = moneyFixed.moneyFixed()
-    ex = Expert(toPlot=True, instrument='600243', shortPeriod=20, 
+    ex = Expert(toPlot=True, instrument='002732', shortPeriod=20, 
                longPeriod=40, feedFormat='tushare',
                money = money)
     ex.run()
+
+
+    '''
+
+    money = moneyFixed.moneyFixed()
+    ex = Expert(toPlot=True, instrument='000001SZ', shortPeriod=20, 
+               longPeriod=40, feedFormat='generic',
+               money = money)
+    ex.run()
+
+    money = moneyFixed.moneyFixed()
+    ex = Expert(toPlot=True, instrument='AAPL', shortPeriod=20, 
+               longPeriod=40, feedFormat='yahoo',
+               money = money)
+    ex.run()
+    money = moneyFixed.moneyFixed()
+    ex = Expert(toPlot=True, instrument='AAPL', shortPeriod=20, 
+               longPeriod=40, feedFormat='yahooCsv',
+               money = money)
+    ex.run()
+
+    
+    money = moneyFixed.moneyFixed()
+    ex = Expert(toPlot=True, instrument='600243', shortPeriod=20, 
+               longPeriod=40, feedFormat='tushareCsv',
+               money = money)
+    ex.run()        
+    
+    '''

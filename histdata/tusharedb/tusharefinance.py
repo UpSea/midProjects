@@ -93,6 +93,9 @@ def build_feed(instruments, fromYear, toYear, storage, frequency=bar.Frequency.D
     import tusharefeed  
     import pandas as pd
     #------
+    from tushareDataManager import tushareDataCenter
+    tsCenter = tushareDataCenter(storage)    
+    
     logger = pyalgotrade.logger.getLogger("tusharefinance")
     ret = tusharefeed.Feed()
 
@@ -101,8 +104,7 @@ def build_feed(instruments, fromYear, toYear, storage, frequency=bar.Frequency.D
         os.mkdir(storage)
 
     for instrument in instruments:
-        from tushareDataManager import tushareDataCenter
-        tsCenter = tushareDataCenter()                
+                
         if(not tsCenter.exists(instrument,frequency)):
             logger.info("Downloading %s from %d to %d" % (instrument, fromYear,toYear))
             try:
@@ -126,7 +128,7 @@ def build_feed(instruments, fromYear, toYear, storage, frequency=bar.Frequency.D
                     raise e
         else:
             logger.info("\n%s already existed." % (instrument))
-        ret.addBarsFromCSV(instrument)   
+        ret.addBarsFromCSV(tsCenter,instrument)   
         #dat = tsCenter.retriveKDataByCode(instrument,bar.Frequency.DAY)
         #ret.addBarsFromDataFrame(instrument, dat)               
     return ret

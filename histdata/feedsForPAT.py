@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os,sys
 import pandas as pd
 
@@ -18,48 +19,57 @@ class feeds():
             feed = self.__getFeedFromGenericCsv(instrument)
         return feed
     def __getFeedFromGenericCsv(self,instrument):
+        '''mid
+        使用系统自定义的与数据提供者的数据格式相互独立的csv格式储存的文件
+        可以作为用户管理各种数据源的统一格式使用
+        '''
         from pyalgotrade.barfeed.csvfeed import GenericBarFeed
         from pyalgotrade import bar
         frequency = bar.Frequency.DAY
         barfeed = GenericBarFeed(frequency)
         barfeed.setDateTimeFormat('%Y-%m-%d %H:%M:%S')
         
-        dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata','tushare'))        
-        code = '000001SZ'
-        filename = dataRoot+os.sep+'day'+os.sep+('%s.csv'%code)          
+        dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','generic','csv'))        
+        filename = dataRoot+os.sep+'day'+os.sep+('%s.csv'%instrument)          
         barfeed.addBarsFromCSV(instrument, filename) 
         return barfeed
     def __getFeedFromTushareCsv(self,instrument):
-        #dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'PyAlgoTradeCN','utils'))        
-        #sys.path.append(dataRoot)
-        import dataFramefeed    
-        
-        dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata','tushare'))        
-        code = '600061'
-        filename = dataRoot+os.sep+'day'+os.sep+('%s.csv'%code)          
+        '''mid
+        直接读取某个tushare格式的csv文件到pandas，再解析为feed格式返回
+        '''
+        import tusharedb.tusharefeed as tusharefeed        
+        dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','tusharedb','csv'))        
+        filename = dataRoot+os.sep+'day'+os.sep+('%s.csv'%instrument)          
     
         dat = pd.read_csv(filename,index_col=0,encoding='gbk')
-        feed = dataFramefeed.Feed()
-        feed.addBarsFromDataFrame(instrument, dat)        
+        feed = tusharefeed.Feed()
+        feed.addBarsFromDataFrame(instrument, dat)   
         return feed
-    def __getFeedFromYahooCsv(self,instrument):   
+    def __getFeedFromYahooCsv(self,instrument,fromYear = 2014,toYear = 2016):   
         from pyalgotrade.barfeed import yahoofeed        
         feed = yahoofeed.Feed()
         import sys,os
-        dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata','yahoo'))                  
-        fullName = os.path.abspath(os.path.join(dataPath,"yhoo-2015-yahoofinance.csv"))     
-        feed.addBarsFromCSV(instrument, fullName)  
+        dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','yahoodb','csv'))    
+        
+        for year in range(fromYear, toYear+1):
+            fileName = os.path.join(dataPath, "%s-%d-yahoofinance.csv" % (instrument, year))
+            if os.path.exists(fileName):              
+                feed.addBarsFromCSV(instrument, fileName)  
         return feed
     def __getFeedFromYahoo(self,instrument):
         from pyalgotrade.tools import yahoofinance        
         import sys,os
-        dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata','yahoo'))          
+        dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','yahoodb','csv'))          
         feed = yahoofinance.build_feed([instrument], 2015, 2015, dataPath)    
         return feed
     def __getFeedFromTushare(self,instrument):
+        '''mid
+        通过tusharedatamanager查询某个csv文件是否存在，如果不存在则通过tushare模块下载
+        将已存在的csv文件通过tusharedatamanager读入dataframe，再解析为feed格式返回
+        '''
         import tusharedb.tusharefinance as tusharefinance
         import sys,os
-        dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata','tushare'))          
+        dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','tusharedb','csv'))          
         feed = tusharefinance.build_feed([instrument], 2015, 2015, dataPath)    
         return feed        
         
