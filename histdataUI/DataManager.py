@@ -227,7 +227,22 @@ class DataManagerDialog(QtGui.QDialog):
         """
         show currrent selected symbol in table
         """
-        self.tableHistory=HistoryTableView()
+        def getRawDataFromMongodb():
+            # 1)connect to Mongodb 
+            connect = Mongodb('192.168.0.212', 27017)
+            connect.use('Tushare')    #database
+            
+            # 2)retrive data from specified collection
+            symbol = '600028'
+            strStart = '2015-01-01'
+            dateEnd = dt.datetime.now()
+            strEnd = dateEnd.strftime('%Y-%m-%d')  
+            frequency = 'D'
+            connect.setCollection(frequency)    #table
+            return connect.retrive(symbol,strStart,strEnd,frequency)        
+            
+        data = getRawDataFromMongodb()
+        self.tableHistory=HistoryTableView(rawData=data)
         self.tableHistory.setWindowTitle("history")
         self.tableHistory.show()        
     def slotShowInCandleGraph(self):
@@ -319,7 +334,7 @@ class MyDialog(QtGui.QDialog):
         layoutLeft.addWidget(self.infoEdit)
         # 5) add canvas to layoutLeft
         fig = plt.figure()
-        #fig.subplots_adjust(top=0.98,bottom=0.05,left=0.15,right=0.99,hspace =0.1,wspace = 0.1) 
+        fig.subplots_adjust(top=0.98,bottom=0.05,left=0.15,right=0.99,hspace =0.1,wspace = 0.1) 
         self.fig = fig
         ax1 = fig.add_subplot(1,1,1) 
         
@@ -335,18 +350,20 @@ class MyDialog(QtGui.QDialog):
 
         fig.tight_layout()
         detailCanvas = FigureCanvas(fig)
-        #layoutLeft.addWidget(detailCanvas)
+        layoutLeft.addWidget(detailCanvas)
         # 4) add button to layoutLeft
-        button01 = QtGui.QPushButton('OK01')   
-        button02 = QtGui.QPushButton('OK02')
+        button01 = QtGui.QPushButton('HistoryCandleView')   
+        button02 = QtGui.QPushButton('3D')
         layoutLeft.addWidget(button01)
-        layoutLeft.addWidget(button02)        
+        layoutLeft.addWidget(button02)   
+        self.connect(button01,QtCore.SIGNAL("clicked()"),self.slotOK01)
+        self.connect(button02,QtCore.SIGNAL("clicked()"),self.slotOK02)        
         # 5) add candleView to mainlayout
         canvas = HistoryCandleView(dataForCandle=dataForCandle,fnUpdateBarInfoCallback=self.updateBarInfo)        
-        #layout.addWidget(canvas)
+        layout.addWidget(canvas)
         
         layout.setStretchFactor(layoutLeft,10)
-        #layout.setStretchFactor(canvas,60)
+        layout.setStretchFactor(canvas,60)
     #----------------------------------------------------------------------
     def updateBarInfo(self,event):
         """"""
@@ -354,38 +371,7 @@ class MyDialog(QtGui.QDialog):
             #event.name,event.button,event.x,event.y,mpd.num2date(event.xdata),event.ydata) 
         info = 'event.name:{}\nButton:{}\nFig x,y:{}, {}\nData x:{},\nData y:{}'.format(
             event.name,event.button,event.x,event.y,dt.datetime.strftime(mpd.num2date(event.xdata),'%Y-%m-%d %H:%M:%S')  ,event.ydata)        
-        self.infoEdit.setText(info)
-'''
-class MyDialogBackupOnly(QtGui.QDialog):   # mid not used
-    def __init__(self,dataForCandle=None, parent=None):  
-        super(MyDialog, self).__init__(parent)  
-        # 1) set mainlayout
-        layout = QtGui.QHBoxLayout()  
-        self.setLayout(layout)     
-        # 2) creates layoutLeft and add it to mainlayout
-        layoutLeft = QtGui.QVBoxLayout()  
-        layout.addLayout(layoutLeft)  
-        # 3) add table to mainlayout
-        self.MyTable = QtGui.QTableWidget(4,3)  
-        self.MyTable.setHorizontalHeaderLabels(['姓名','身高','体重'])  
-        newItem = QtGui.QTableWidgetItem("松鼠")  
-        newItem = QtGui.QTableWidgetItem("10cm")          
-        newItem = QtGui.QTableWidgetItem("60g")     
-        self.MyTable.setItem(0, 0, newItem)  
-        self.MyTable.setItem(0, 1, newItem) 
-        self.MyTable.setItem(0, 2, newItem)
-        layout.addWidget(self.MyTable)   
-        # 4) add button to layoutLeft
-        button01 = QtGui.QPushButton('OK01')   
-        button02 = QtGui.QPushButton('OK02')
-        layoutLeft.addWidget(button01)
-        layoutLeft.addWidget(button02)        
-        # 5) add candleView to mainlayout
-        canvas = HistoryCandleView(dataForCandle=dataForCandle)        
-        layout.addWidget(canvas)
-        # 6) connect
-        self.connect(button01,QtCore.SIGNAL("clicked()"),self.slotOK01)
-        self.connect(button02,QtCore.SIGNAL("clicked()"),self.slotOK02)
+        self.infoEdit.setText(info)    
     #----------------------------------------------------------------------
     def slotOK01(self):
         """"""
@@ -395,28 +381,26 @@ class MyDialogBackupOnly(QtGui.QDialog):   # mid not used
         graphView = QtGui.QWidget(self.mainWindow)
         layout = QtGui.QVBoxLayout(graphView)
         
+        def getCandleData():
+            xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))
+            sys.path.append(xpower)
         
+            import feedsForCandle as feedsForCandle
         
+            dataSource={}
+            dataSource['ip']='192.168.0.212'
+            dataSource['port']=27017
+            dataSource['database']='Tushare'
+            dataSource['symbol']='600028'
+            dataSource['dateStart']='2013-08-19'
+            dataSource['dateEnd']='2015-08-31'
+            dataSource['frequency']='D'
+            dataForCandle = feedsForCandle.GetCandlesFromMongodb(dataSource)
+            return dataForCandle    
         
+        candleData = getCandleData()  
         
-
-        symbolToDownload = '000001'
-        dataConverter = DataConverter()
-        # 1)connect to Mongodb 
-        connect = Mongodb('192.168.1.100', 27017)
-        connect.use('Tushare')    #database            
-        # 2)retrive data from specified collection
-        strStart = '2015-12-01'
-        dateEnd = dt.datetime.now()
-        strEnd = dateEnd.strftime('%Y-%m-%d')  
-        frequency = 'D'
-        connect.setCollection(frequency)    #table
-        history = connect.retrive(symbolToDownload,strStart,strEnd,frequency)
-        dataForCandle = dataConverter.DataFrameToCandle(history)                    
-        graph = HistoryCandleView(dataForCandle=dataForCandle)
-        
-        
-        
+        graph = HistoryCandleView(dataForCandle=candleData)
         
         layout.addWidget(graph)
         self.mainWindow.setCentralWidget(graphView)          
@@ -444,8 +428,7 @@ class MyDialogBackupOnly(QtGui.QDialog):   # mid not used
         
         ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color='b', zsort='average')
         
-        plt.show()
-'''
+        fig.show()
 
 if __name__ == '__main__':
     qApp=QtGui.QApplication(sys.argv)

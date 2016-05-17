@@ -2,8 +2,13 @@
 from PyQt4 import QtGui,QtCore
 import os
 import matplotlib.pyplot as plt
-from Views.HistoryCandleView import HistoryCandleView
 from spyderlib.widgets.sourcecode.codeeditor import CodeEditor
+'''mid
+
+
+
+'''
+
 class EditorView(CodeEditor):
     def __init__(self,parent=None,fileName=None):
         super(EditorView,self).__init__(parent)
@@ -50,3 +55,18 @@ class EditorView(CodeEditor):
         global_namespace = {"__file__": filepath,"__name__": __name__}
         with open(filepath, 'rb') as file:
             exec(compile(file.read(), filepath, 'exec'), global_namespace)
+            
+if __name__ == '__main__':
+    import os,sys        
+    app = QtGui.QApplication([])
+    codeSample = '''
+    import matplotlib.pyplot as plt
+    plt.plot([1,2,3])
+    plt.show()
+    '''
+    myWindow = EditorView()  
+    
+    myWindow.setPlainText(codeSample)      
+    myWindow.showMaximized()   
+    
+    sys.exit(app.exec_())

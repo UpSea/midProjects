@@ -2,8 +2,7 @@
 from PyQt4 import QtGui,QtCore
 import os
 import matplotlib.pyplot as plt
-from Views.HistoryCandleView import HistoryCandleView
-
+from EditorView import EditorView
 class StrategyEditorView(QtGui.QDialog):
     def __init__(self,parent=None):
         super(StrategyEditorView,self).__init__(parent)
@@ -18,6 +17,7 @@ class StrategyEditorView(QtGui.QDialog):
    
         # 2) creates widgets 
         self.EditStrategy = QtGui.QTextEdit()
+        self.EditStrategy = EditorView()
         self.buttonSave = QtGui.QPushButton(self.tr('Save'))
         self.buttonRun = QtGui.QPushButton(self.tr('Run'))
         # 3)arrange widgets
@@ -26,10 +26,11 @@ class StrategyEditorView(QtGui.QDialog):
    
         layout.addWidget(self.EditStrategy)
         self.connect(self.buttonRun,QtCore.SIGNAL("clicked()"),self.slotRun)
+
     #----------------------------------------------------------------------
-    def setText(self,text):
+    def setPlainText(self,text):
         """"""
-        self.EditStrategy.setText(text)
+        self.EditStrategy.setPlainText(text)
     #----------------------------------------------------------------------
     def slotRun(self):
         """"""
@@ -53,4 +54,19 @@ class StrategyEditorView(QtGui.QDialog):
         global_namespace = {"__file__": filepath,"__name__": "__main__","__fig__":self.strategyFig}
         with open(filepath, 'rb') as file:
             exec(compile(file.read(), filepath, 'exec'), global_namespace)        
-      
+            
+            
+if __name__ == '__main__':
+    import os,sys        
+    app = QtGui.QApplication([])
+    codeSample = '''
+import matplotlib.pyplot as plt
+plt.plot([1,2,3])
+plt.show()
+'''
+    myWindow = StrategyEditorView()  
+    
+    myWindow.setPlainText(codeSample)      
+    myWindow.show()   
+    
+    sys.exit(app.exec_())

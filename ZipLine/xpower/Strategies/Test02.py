@@ -1,5 +1,5 @@
 import sys,os
-xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'pyqtgraph-0.9.10'))
+xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'thirdParty','pyqtgraph-0.9.10'))
 sys.path.append(xpower)
 
 from PyQt4 import QtCore, QtGui

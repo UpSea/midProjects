@@ -3,11 +3,16 @@ from PyQt4 import QtGui,QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 import matplotlib.finance as mpf
+import datetime as dt
+import matplotlib.dates as mpd
+import numpy as np
+import os,sys        
 
 class HistoryCandleView(FigureCanvas):
     """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
     def __init__(self,dataForCandle=None,fnUpdateBarInfoCallback=None, parent=None, width=5, height=4, dpi=100):
-        self.updateBarInfo = fnUpdateBarInfoCallback
+        if(fnUpdateBarInfoCallback is not None):
+            self.updateBarInfo = fnUpdateBarInfoCallback
         fig = plt.figure()
         #fig.subplots_adjust(top=0.98,bottom=0.05,left=0.15,right=0.99,hspace =0.1,wspace = 0.1) 
 
@@ -32,6 +37,13 @@ class HistoryCandleView(FigureCanvas):
         cMouseLeave = fig.canvas.mpl_connect('axes_leave_event', self.slotLeaveAxes)
         self.InAxes = False
         #fig.canvas.mpl_disconnect(cid)
+    def updateBarInfo(self,event):
+        """"""
+        #info = 'event.name:{}\nButton:{}\nFig x,y:{}, {}\nData x:{},\nData y:{}'.format(
+            #event.name,event.button,event.x,event.y,mpd.num2date(event.xdata),event.ydata) 
+        info = 'event.name:{}\nButton:{}\nFig x,y:{}, {}\nData x:{},\nData y:{}'.format(
+            event.name,event.button,event.x,event.y,dt.datetime.strftime(mpd.num2date(event.xdata),'%Y-%m-%d %H:%M:%S')  ,event.ydata)        
+        #self.infoEdit.setText(info)    
     #----------------------------------------------------------------------
     def slotEnterAxes(self,event):
         """"""
@@ -49,7 +61,24 @@ class HistoryCandleView(FigureCanvas):
             ax.annotate(text,xy=(x,y))   
     #----------------------------------------------------------------------
     def candlePlot(self,ax,quotes, width=0.6,colorup='b', colordown='r',alpha=0.5): 
-        mpf.candlestick(ax, quotes, width,colorup, colordown,alpha)
+        if sys.version > '3':
+            PY3 = True
+        else:
+            PY3 = False   
+            
+        if (PY3 == True):        
+            mpf.candlestick_ohlc(ax, quotes, width,colorup, colordown,alpha)
+        else:        
+            #opens, closes, highs, lows,
+            time  = quotes[:,0]
+            opens = quotes[:,1]
+            closes= quotes[:,4]
+            highs = quotes[:,2]
+            lows  = quotes[:,3]
+
+            quotesNew = np.vstack((time,opens,closes,highs,lows))           
+            mpf.candlestick(ax, quotesNew.T, width,colorup, colordown,alpha)
+
         ax.xaxis_date()
         ax.autoscale_view()
         #self.addText(ax,quotes[:,0],quotes[:,4])
@@ -59,37 +88,71 @@ class HistoryCandleView(FigureCanvas):
             label.set_fontsize(12)   
         ax.grid(True)  
 
+class MyDialog(QtGui.QDialog):  
+    def __init__(self,dataForCandle=None, parent=None):  
+        super(MyDialog, self).__init__(parent)  
+        # 1) set mainlayout
+        layout = QtGui.QHBoxLayout()  
+        self.setLayout(layout)     
+        # 2) creates layoutLeft and add it to mainlayout
+        layoutLeft = QtGui.QVBoxLayout()  
+        layout.addLayout(layoutLeft)  
+        # 3) add table to layoutLeft
+        barLable = QtGui.QLabel('Bar Info:')        
+        self.MyTable = QtGui.QTableWidget(4,2)  
+        self.MyTable.setHorizontalHeaderLabels(['Item','data'])  
+        newItem = QtGui.QTableWidgetItem("datetime")  
+        newItem = QtGui.QTableWidgetItem("2015-07-05 22:00:00")          
+        self.MyTable.setItem(0, 0, newItem)  
+        self.MyTable.setItem(0, 1, newItem) 
+        layoutLeft.addWidget(barLable)
+        layoutLeft.addWidget(self.MyTable)  
+        # 4) add edit to layoutLeft
+        infoLable = QtGui.QLabel('Symbol Info:')
+        self.infoEdit=QtGui.QTextEdit()
+        layoutLeft.addWidget(infoLable)
+        layoutLeft.addWidget(self.infoEdit)
+        # 5) add canvas to layoutLeft
+        fig = plt.figure()
+        fig.subplots_adjust(top=0.98,bottom=0.05,left=0.15,right=0.99,hspace =0.1,wspace = 0.1) 
+        self.fig = fig
+        ax1 = fig.add_subplot(1,1,1) 
+        
+        mu, sigma    =    100,    15
+        x    =    mu    +    sigma    *    np.random.randn(10000)# the histogram of the data
+        n, bins, patches =  plt.hist(x,50, normed=1, facecolor='g', alpha=0.75)
+        ax1.set_xlabel('Smarts')
+        ax1.set_ylabel('Probability')
+        ax1.set_title('Histogram of IQ')
+        ax1.text(60,.025,'$\mu=100,\\sigma=15$')
+        ax1.axis([40,160,0,0.03])
+        ax1.grid(True)        
 
+        fig.tight_layout()
+        detailCanvas = FigureCanvas(fig)
+        #layoutLeft.addWidget(detailCanvas)
+        # 4) add button to layoutLeft
+        button01 = QtGui.QPushButton('OK01')   
+        button02 = QtGui.QPushButton('OK02')
+        layoutLeft.addWidget(button01)
+        layoutLeft.addWidget(button02)        
+        # 5) add candleView to mainlayout
+        canvas = HistoryCandleView(dataForCandle=dataForCandle,fnUpdateBarInfoCallback=self.updateBarInfo)        
+        layout.addWidget(canvas)
+        
+        layout.setStretchFactor(layoutLeft,10)
+        layout.setStretchFactor(canvas,60)
+    #----------------------------------------------------------------------
+    def updateBarInfo(self,event):
+        """"""
+        #info = 'event.name:{}\nButton:{}\nFig x,y:{}, {}\nData x:{},\nData y:{}'.format(
+            #event.name,event.button,event.x,event.y,mpd.num2date(event.xdata),event.ydata) 
+        info = 'event.name:{}\nButton:{}\nFig x,y:{}, {}\nData x:{},\nData y:{}'.format(
+            event.name,event.button,event.x,event.y,dt.datetime.strftime(mpd.num2date(event.xdata),'%Y-%m-%d %H:%M:%S')  ,event.ydata)        
+        self.infoEdit.setText(info)
 
 if __name__ == '__main__':
     import os,sys        
-    '''
-    if(rowSelected>=0):   #a row selected or table is not empty.
-        symbolToDownload = self.tableLocalSymbols.item(rowSelected,0).text()
-        dataConverter = DataConverter()
-        # 1)connect to Mongodb 
-        connect = Mongodb('192.168.0.212', 27017)
-        connect.use('Tushare')    #database            
-        # 2)retrive data from specified collection
-        strStart = '2013-12-01'
-        dateEnd = dt.datetime.now()
-        strEnd = dateEnd.strftime('%Y-%m-%d')  
-        frequency = 'D'
-        connect.setCollection(frequency)    #table
-        history = connect.retrive(symbolToDownload,strStart,strEnd,frequency)
-        dataForCandle = dataConverter.DataFrameToCandle(history)            
-        
-        mainLayout = QtGui.QHBoxLayout(self)
-        
-        self.historyView = QtGui.QMainWindow()
-        self.historyView.setWindowTitle(self.tr(symbolToDownload))
-        canvas = HistoryCandleView(dataForCandle=dataForCandle, width=5, height=4, dpi=100)
-        self.historyView.setCentralWidget(canvas)
-
-        self.historyView.show()                       
-    else:   #none selected and empty table    
-    
-    '''
     app = QtGui.QApplication([])
     def getCandleData():
         xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))
@@ -108,25 +171,9 @@ if __name__ == '__main__':
         dataForCandle = feedsForCandle.GetCandlesFromMongodb(dataSource)
         return dataForCandle    
     
-    candleData = getCandleData()    
-    #w = QtGui.QWidget()
-
-    symbol = 'none to download.'
-    QtGui.QMessageBox.information(None,"Information",str(symbol))      
+    candleData = getCandleData()  
+    myWindow = MyDialog(dataForCandle=candleData)  
+    myWindow.show()    
     
-    
-    #mainLayout = QtGui.QHBoxLayout(self)
-    
-    historyView = QtGui.QMainWindow()
-    historyView.setWindowTitle(str('600028'))
-    canvas = HistoryCandleView(dataForCandle=candleData, width=5, height=4, dpi=100)
-    historyView.setCentralWidget(canvas)
-
-    historyView.show()       
-    
-    
-    
-    
-    #w.show()
     sys.exit(app.exec_())
                  

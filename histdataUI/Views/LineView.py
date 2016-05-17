@@ -36,3 +36,20 @@ class GraphSin(GraphBase2d):
         s = sin(2*pi*t)
         self.axes.plot(t, s)
         
+class MyDialog(QtGui.QDialog):  
+    def __init__(self,dataForCandle=None, parent=None):  
+        super(MyDialog, self).__init__(parent)  
+        # 1) set mainlayout
+        layout = QtGui.QHBoxLayout()  
+        self.setLayout(layout)     
+        # 5) add candleView to mainlayout
+        canvas = GraphSin()        
+        layout.addWidget(canvas)
+if __name__ == '__main__':
+    import os,sys        
+    app = QtGui.QApplication([]) 
+    myWindow = MyDialog()  
+    myWindow.show()    
+    
+    sys.exit(app.exec_())
+                 

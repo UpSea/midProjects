@@ -30,12 +30,8 @@ class mplCandleWidget(FigureCanvas):
             opens = quotes[:,1]
             closes= quotes[:,4]
             highs = quotes[:,2]
-            lows  = quotes[:,3]
-            
-            
+            lows  = quotes[:,3]    
             quotesNew = np.vstack((time,opens,closes,highs,lows))
-            
-            
             mpf.candlestick(ax, quotesNew.T, width,colorup, colordown,alpha)
         ax.xaxis_date()
         ax.autoscale_view()
