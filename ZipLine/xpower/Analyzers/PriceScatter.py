@@ -5,8 +5,8 @@ import matplotlib.finance as mpf
 import numpy as np
 import datetime as dt
 
-import sys
-sys.path.append('/home/mid/PythonProjects/xpower/pyqtgraph-0.9.10')
+import sys,os
+xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'thirdParty','pyqtgraph-0.9.10'))
 import pyqtgraph as pg
 
 from PyQt4 import QtGui,QtCore

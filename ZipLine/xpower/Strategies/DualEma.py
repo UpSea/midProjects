@@ -27,9 +27,25 @@ if __name__ == '__main__':
     params['dataSource'] = dataSource
     params['algo'] = algo  
     
+    from TradingCalendar import shTradingCalendar
+    tradingcalendar = shTradingCalendar    
+    from zipline.finance.trading import TradingEnvironment
+    from loaders.yahooLoader import load_market_data
+    algo['env']=TradingEnvironment(load=load_market_data,
+                                   #bm_symbol='000001',
+                                   exchange_tz="Asia/Shanghai",
+                                   max_date=None,
+                                   env_trading_calendar = tradingcalendar,
+                                   asset_db_path=':memory:')     
 import matplotlib.pyplot as plt
 from Algorithms.DualEma_talib import DualEmaTalib
-from DataSources.GetDataFromMongodb import GetDataFromMongodb
+import os,sys        
+xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata'))
+sys.path.append(xpower)
+
+import feedsForCandle as feedsForCandle
+import feedsForZipline as feedsForZipline
+
 from Analyzers.Analyzer01 import Analyzer01
 from Analyzers.Analyzer02 import Analyzer02
 from Analyzers.Analyzer03 import Analyzer03
@@ -39,9 +55,13 @@ from Analyzers.Analyzer05 import Analyzer05
 dataSource = params['dataSource']
 algo = params['algo']
 
-dataForZipline,dataForCandle = GetDataFromMongodb(dataSource)
+dataForZipline = feedsForZipline.GetFeedsFromMongodb(dataSource)
+dataForCandle = feedsForCandle.GetCandlesFromMongodb(dataSource)
+
 dataUtcTime = dataForZipline.tz_localize('utc')
-algo = DualEmaTalib(instant_fill=algo['instant_fill'],capital_base=algo['capital_base'])
+algo = DualEmaTalib(instant_fill=algo['instant_fill'],
+                    capital_base=algo['capital_base'],
+                    env=algo['env'])
 
 def dumpDict(dictStr):
     """"""

@@ -6,7 +6,7 @@ import numpy as np
 import datetime as dt
 
 import sys,os
-xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'pyqtgraph-0.9.10'))
+xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'thirdParty','pyqtgraph-0.9.10'))
 sys.path.append(xpower)
 import pyqtgraph as pg
 
@@ -372,6 +372,10 @@ class Analyzer05():
         dialog.setWindowTitle(('Strategy Results'))
         # 2) creates widgets 
         #  2.1)candle
+        import os,sys        
+        xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdataUI'))
+        sys.path.append(xpower)
+    
         from Widgets.pgCandleWidgetCross import pgCandleWidgetCross
         from Widgets.pgCrossAddition import pgCrossAddition
         pgCandleView = pgCandleWidgetCross(dataForCandle=KData)        
