@@ -4,11 +4,9 @@ import os
 import matplotlib.pyplot as plt
 from spyderlib.widgets.sourcecode.codeeditor import CodeEditor
 '''mid
-
-
-
+从spyder继承获取文本编辑器
+得到高亮等一系列已有功能
 '''
-
 class EditorView(CodeEditor):
     def __init__(self,parent=None,fileName=None):
         super(EditorView,self).__init__(parent)
