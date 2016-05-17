@@ -93,19 +93,26 @@ class Mongodb(object):
     #----------------------------------------------------------------------
     def retrive(self,symbol,start,end,frequency):
         # 1) retrive data from database
-        symbol = self.find({'symbol':symbol})
+        data = self.find({'symbol':str(symbol)})
         print('----retrived ok')
+        
+        
+        #cursor = tweets.find(fields=['id'])
+        #tweet_fields = ['id']
+        #result = pd.DataFrame(list(data))        
+        
         
         # 2) store to DataFrame
         historyDf = pd.DataFrame()        
         
         # 3) 
-        historyDf = pd.DataFrame(symbol[0])  # mid only one field and it is a dict.
+        historyDf = pd.DataFrame(data[0])  # mid only one field and it is a dict.
         historyDf.index.names = ['Date'] 
         historyDf.columns.names=['OHLC']
         historyDf.sort_index(inplace=True,ascending=True)
     
-        return historyDf.loc[start:end]
+        #return historyDf.loc[start:end]
+        return historyDf[:]
     #----------------------------------------------------------------------
     def retriveSymbolsAll(self):
         """"""

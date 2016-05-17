@@ -241,7 +241,7 @@ class DataManagerDialog(QtGui.QDialog):
             connect = Mongodb('192.168.0.212', 27017)
             connect.use('Tushare')    #database            
             # 2)retrive data from specified collection
-            strStart = '2013-12-01'
+            strStart = u'2013-12-01'
             dateEnd = dt.datetime.now()
             strEnd = dateEnd.strftime('%Y-%m-%d')  
             frequency = 'D'
@@ -254,43 +254,7 @@ class DataManagerDialog(QtGui.QDialog):
         else:   #none selected and empty table
             symbol = 'none to download.'
             QtGui.QMessageBox.information(self,"Information",self.tr(symbol)) 
-    '''
-    #----------------------------------------------------------------------
-    def slotShowInCandleGraphBak(self):
-        """
-        单独窗口嵌入matplotlib图形,未使用，作为有用算法留存
-        """
-        rowSelected = self.tableLocalSymbols.currentRow()
-        if((rowSelected<0) and (self.tableLocalSymbols.rowCount()>0)):
-            rowSelected = 0
-            
-        if(rowSelected>=0):   #a row selected or table is not empty.
-            symbolToDownload = self.tableLocalSymbols.item(rowSelected,0).text()
-            dataConverter = DataConverter()
-            # 1)connect to Mongodb 
-            connect = Mongodb('192.168.1.100', 27017)
-            connect.use('Tushare')    #database            
-            # 2)retrive data from specified collection
-            strStart = '2013-12-01'
-            dateEnd = dt.datetime.now()
-            strEnd = dateEnd.strftime('%Y-%m-%d')  
-            frequency = 'D'
-            connect.setCollection(frequency)    #table
-            history = connect.retrive(symbolToDownload,strStart,strEnd,frequency)
-            dataForCandle = dataConverter.DataFrameToCandle(history)            
-            
-            mainLayout = QtGui.QHBoxLayout(self)
-            
-            self.historyView = QtGui.QMainWindow()
-            self.historyView.setWindowTitle(self.tr(symbolToDownload))
-            canvas = HistoryCandleView(dataForCandle=dataForCandle, width=5, height=4, dpi=100)
-            self.historyView.setCentralWidget(canvas)
 
-            self.historyView.show()                       
-        else:   #none selected and empty table
-            symbol = 'none to download.'
-            QtGui.QMessageBox.information(self,"Information",self.tr(symbol))                   
-    '''
 #----------------------------------------------------------------------
     def slotDownloadAll(self):
         """"""
@@ -371,7 +335,7 @@ class MyDialog(QtGui.QDialog):
 
         fig.tight_layout()
         detailCanvas = FigureCanvas(fig)
-        layoutLeft.addWidget(detailCanvas)
+        #layoutLeft.addWidget(detailCanvas)
         # 4) add button to layoutLeft
         button01 = QtGui.QPushButton('OK01')   
         button02 = QtGui.QPushButton('OK02')
@@ -379,10 +343,10 @@ class MyDialog(QtGui.QDialog):
         layoutLeft.addWidget(button02)        
         # 5) add candleView to mainlayout
         canvas = HistoryCandleView(dataForCandle=dataForCandle,fnUpdateBarInfoCallback=self.updateBarInfo)        
-        layout.addWidget(canvas)
+        #layout.addWidget(canvas)
         
         layout.setStretchFactor(layoutLeft,10)
-        layout.setStretchFactor(canvas,60)
+        #layout.setStretchFactor(canvas,60)
     #----------------------------------------------------------------------
     def updateBarInfo(self,event):
         """"""

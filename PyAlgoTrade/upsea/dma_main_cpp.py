@@ -100,7 +100,7 @@ if __name__ == "__main__":
 
 
     money = moneyFixed.moneyFixed()
-    ex = Expert(toPlot=True, instrument='002732', shortPeriod=20, 
+    ex = Expert(toPlot=True, instrument='002735', shortPeriod=20, 
                longPeriod=40, feedFormat='tushare',
                money = money)
     ex.run()

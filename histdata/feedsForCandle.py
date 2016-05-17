@@ -17,8 +17,17 @@ def DataFrameToCandle(history):
         col4=low
         col5=close
     """     
-    #date = np.array([mpd.date2num(dt.datetime.strptime(dateStr, '%Y-%m-%d')) for dateStr in history.index])         
-    date = np.array([mpd.date2num(pd.to_datetime(dateStr+' 09:30:00+08',format= '%Y-%m-%d %H:%M:%S').tz_localize('utc')) for dateStr in history.index])         
+    #date = np.array([mpd.date2num(dt.datetime.strptime(dateStr, '%Y-%m-%d')) for dateStr in history.index])      
+    import sys
+    if sys.version > '3':
+        PY3 = True
+    else:
+        PY3 = False    
+    if (PY3 == True):
+        date = np.array([mpd.date2num(pd.to_datetime(dateStr+' 09:30:00+08',format= '%Y-%m-%d %H:%M:%S').tz_localize('utc')) for dateStr in history.index])         
+    else:
+        date = np.array([mpd.date2num(pd.to_datetime(dateStr+' 09:30:00+08','%Y-%m-%d %H:%M:%S').tz_localize('utc')) for dateStr in history.index])         
+        
     quotes = np.array(history.iloc[:][['open','high','low','close']])
     rows = quotes.shape[0]
     colls = quotes.shape[1]

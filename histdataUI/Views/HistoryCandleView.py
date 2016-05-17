@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from PyQt4 import QtGui,QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 import matplotlib.finance as mpf
@@ -47,7 +49,7 @@ class HistoryCandleView(FigureCanvas):
             ax.annotate(text,xy=(x,y))   
     #----------------------------------------------------------------------
     def candlePlot(self,ax,quotes, width=0.6,colorup='b', colordown='r',alpha=0.5): 
-        mpf.candlestick_ohlc(ax, quotes, width,colorup, colordown,alpha)
+        mpf.candlestick(ax, quotes, width,colorup, colordown,alpha)
         ax.xaxis_date()
         ax.autoscale_view()
         #self.addText(ax,quotes[:,0],quotes[:,4])
@@ -56,3 +58,75 @@ class HistoryCandleView(FigureCanvas):
             label.set_rotation(30)
             label.set_fontsize(12)   
         ax.grid(True)  
+
+
+
+if __name__ == '__main__':
+    import os,sys        
+    '''
+    if(rowSelected>=0):   #a row selected or table is not empty.
+        symbolToDownload = self.tableLocalSymbols.item(rowSelected,0).text()
+        dataConverter = DataConverter()
+        # 1)connect to Mongodb 
+        connect = Mongodb('192.168.0.212', 27017)
+        connect.use('Tushare')    #database            
+        # 2)retrive data from specified collection
+        strStart = '2013-12-01'
+        dateEnd = dt.datetime.now()
+        strEnd = dateEnd.strftime('%Y-%m-%d')  
+        frequency = 'D'
+        connect.setCollection(frequency)    #table
+        history = connect.retrive(symbolToDownload,strStart,strEnd,frequency)
+        dataForCandle = dataConverter.DataFrameToCandle(history)            
+        
+        mainLayout = QtGui.QHBoxLayout(self)
+        
+        self.historyView = QtGui.QMainWindow()
+        self.historyView.setWindowTitle(self.tr(symbolToDownload))
+        canvas = HistoryCandleView(dataForCandle=dataForCandle, width=5, height=4, dpi=100)
+        self.historyView.setCentralWidget(canvas)
+
+        self.historyView.show()                       
+    else:   #none selected and empty table    
+    
+    '''
+    app = QtGui.QApplication([])
+    def getCandleData():
+        xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))
+        sys.path.append(xpower)
+    
+        import feedsForCandle as feedsForCandle
+    
+        dataSource={}
+        dataSource['ip']='192.168.0.212'
+        dataSource['port']=27017
+        dataSource['database']='Tushare'
+        dataSource['symbol']='600028'
+        dataSource['dateStart']='2013-08-19'
+        dataSource['dateEnd']='2015-08-31'
+        dataSource['frequency']='D'
+        dataForCandle = feedsForCandle.GetCandlesFromMongodb(dataSource)
+        return dataForCandle    
+    
+    candleData = getCandleData()    
+    #w = QtGui.QWidget()
+
+    symbol = 'none to download.'
+    QtGui.QMessageBox.information(None,"Information",str(symbol))      
+    
+    
+    #mainLayout = QtGui.QHBoxLayout(self)
+    
+    historyView = QtGui.QMainWindow()
+    historyView.setWindowTitle(str('600028'))
+    canvas = HistoryCandleView(dataForCandle=candleData, width=5, height=4, dpi=100)
+    historyView.setCentralWidget(canvas)
+
+    historyView.show()       
+    
+    
+    
+    
+    #w.show()
+    sys.exit(app.exec_())
+                 

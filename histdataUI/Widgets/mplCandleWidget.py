@@ -4,6 +4,7 @@ from PyQt4 import QtCore, QtGui
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.finance as mpf
+import numpy   as np
 
 class mplCandleWidget(FigureCanvas):
     """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
@@ -16,7 +17,26 @@ class mplCandleWidget(FigureCanvas):
         FigureCanvas.__init__(self, fig)
         fig.tight_layout()
     def candlePlot(self,ax,quotes, width=0.6,colorup='r', colordown='g',alpha=0.5): 
-        mpf.candlestick_ohlc(ax, quotes, width,colorup, colordown,alpha)
+        if sys.version > '3':
+            PY3 = True
+        else:
+            PY3 = False   
+            
+        if (PY3 == True):        
+            mpf.candlestick_ohlc(ax, quotes, width,colorup, colordown,alpha)
+        else:        
+            #opens, closes, highs, lows,
+            time  = quotes[:,0]
+            opens = quotes[:,1]
+            closes= quotes[:,4]
+            highs = quotes[:,2]
+            lows  = quotes[:,3]
+            
+            
+            quotesNew = np.vstack((time,opens,closes,highs,lows))
+            
+            
+            mpf.candlestick(ax, quotesNew.T, width,colorup, colordown,alpha)
         ax.xaxis_date()
         ax.autoscale_view()
         #self.addText(ax,quotes[:,0],quotes[:,4])
