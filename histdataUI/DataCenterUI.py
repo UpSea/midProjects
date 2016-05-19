@@ -11,7 +11,7 @@ xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histd
 sys.path.append(xpower)
 
 import feedsForCandle as feedsForCandle
-from DataSourceMongodb import Mongodb
+from data.mongodb.DataSourceMongodb import Mongodb
 import matplotlib.dates as mpd
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
@@ -23,30 +23,64 @@ class DataManagerDialog(QtGui.QDialog):
         super(DataManagerDialog,self).__init__(parent)
         self.setWindowTitle(self.tr("DataManager"))
         self.initUI()
-    #----------------------------------------------------------------------    
-    def onActivate(self, text):
         # 显示文本内容，并根据文本长度调整标签控件的大小
         import os,sys
         dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
         sys.path.append(dataRoot)        
         import dataCenter as dataCenter
         #mid data
-        dc = dataCenter.dataCenter()
+        self.dataCenter = dataCenter.dataCenter()        
+    #----------------------------------------------------------------------    
+    def onActivate(self, text):
         #mid feedFormat = tushareCsv|tushare|yahooCsv|yahoo|generic
         #self.feed = fd.getFeeds(feedFormat = text,instrument = self.instrument)
-        
         #---------------------------------------------------------------------
+        codesType = self.codesTypeComboBox.currentText()
+        sourceType = self.sourceTypeComboBox.currentText()
+        self.dfLocalSymbols = self.dataCenter.getCodes(codesType,sourceType)    
+        #self.dfLocalSy     mbols = ts.get_stock_basics()
+        self.dfSymbolsToDownload = pd.DataFrame(columns=['name','dateStart','dateEnd'])        
+        
+      
+        
 
-        
-        
-        self.dfLocalSymbols = dc.retriveCodes(text)    
-        #self.dfLocalSymbols = ts.get_stock_basics()
-        self.dfSymbolsToDownload = pd.DataFrame(columns=['name','dateStart','dateEnd'])
-        
         
         self.updateLocalSymbolsTable()  
         self.updateSymbolsToDownloadTable()          
         QtGui.QMessageBox.information(self, u"信息", text)    
+    def initTopCodesSelector(self,topLeft01Top):
+        # 01)topLeft01------------------
+        # 01.01 mid codes type
+        codesTypeLable = QtGui.QLabel(self.tr("codes type:"))  
+        codesTypeComboBox=QtGui.QComboBox()
+        self.codesTypeComboBox = codesTypeComboBox
+        codesTypeComboBox.insertItem(0,self.tr("tushare"))
+        codesTypeComboBox.insertItem(1,self.tr("sina"))        
+        codesTypeComboBox.insertItem(2,self.tr("datayes"))        
+        codesTypeComboBox.insertItem(3,self.tr("yahoo"))        
+        codesTypeComboBox.activated[str].connect(self.onActivate)        
+        # 01.02 mid source type
+        codesSourceLable = QtGui.QLabel(self.tr("source type:")) 
+        sourceTypeComboBox=QtGui.QComboBox()
+        self.sourceTypeComboBox = sourceTypeComboBox
+        sourceTypeComboBox.insertItem(0,self.tr("mongodb"))        
+        sourceTypeComboBox.insertItem(1,self.tr("remote"))
+        sourceTypeComboBox.insertItem(2,self.tr("csv"))
+        sourceTypeComboBox.activated[str].connect(self.onActivate)        
+        
+        # 01.03 mid codes table last refreshed time
+        codesRefreshedTimeLable = QtGui.QLabel(self.tr("last refreshed:"))           
+    
+        codesRefreshedTimeEdit = QtGui.QLineEdit()
+        codesRefreshedTimeEdit.setEnabled(False)
+        codesRefreshedTimeEdit.setText('2015.16.18 00:00:00')
+    
+        topLeft01Top.addWidget(codesTypeLable)
+        topLeft01Top.addWidget(codesTypeComboBox)
+        topLeft01Top.addWidget(codesSourceLable)
+        topLeft01Top.addWidget(sourceTypeComboBox)
+        topLeft01Top.addWidget(codesRefreshedTimeLable)
+        topLeft01Top.addWidget(codesRefreshedTimeEdit)        
     #----------------------------------------------------------------------    
     def initTopUI(self,topLayout):
         topLeft01 = QtGui.QVBoxLayout(self)
@@ -56,31 +90,11 @@ class DataManagerDialog(QtGui.QDialog):
         topLeft03Bottom = QtGui.QHBoxLayout(self)
         topLeft04 = QtGui.QVBoxLayout(self)   
         
-        
-        # 01)topLeft01------------------
-        remoteDataLable = QtGui.QLabel(self.tr("remote data codes talbe:"))           
-    
-        remoteDataComboBox=QtGui.QComboBox()
-        remoteDataComboBox.insertItem(0,self.tr("tushare"))
-        remoteDataComboBox.insertItem(1,self.tr("sina"))        
-        remoteDataComboBox.insertItem(1,self.tr("datayes"))        
-        remoteDataComboBox.insertItem(1,self.tr("yahoo"))        
-    
-        # 当选择条目时，调用onActivate()方法
-        remoteDataComboBox.activated[str].connect(self.onActivate)        
 
-        codesRefreshedTimeLable = QtGui.QLabel(self.tr("last refreshed:"))           
-    
-        topLeft01Top.addWidget(remoteDataLable)
-        topLeft01Top.addWidget(remoteDataComboBox)
-        topLeft01Top.addWidget(codesRefreshedTimeLable)
-    
-    
-    
-    
-        self.tableLocalSymbols=QtGui.QTableWidget()
-    
+        self.initTopCodesSelector(topLeft01Top)
         topLeft01.addLayout(topLeft01Top)
+        
+        self.tableLocalSymbols=QtGui.QTableWidget()
         topLeft01.addWidget(self.tableLocalSymbols)
         # 02)topLeft02--------------------
         AddOneButton=QtGui.QPushButton(self.tr(">"))

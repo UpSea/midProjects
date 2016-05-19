@@ -1,22 +1,39 @@
 # -*- coding: utf-8 -*-
 import os,sys
 import pandas as pd
+from tusharedb.tushareDataManager import tushareDataCenter
 
 
 class dataCenter():
     def __init__(self):
-        pass
-    def retriveCodes(self,storeType):
-        # 1)connect to Mongodb 
-        codes = None
-        if(storeType == 'tushare'):
-            from mongodb.DataSourceMongodb import Mongodb
-            connect = Mongodb('192.168.0.212', 27017)
-            connect.use('Tushare')    #database
-            frequency = 'D'
-            connect.setCollection(frequency)    #table
-            codes = connect.retriveSymbolsAll()          
-        return codes    
+        dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','tusharedb','csv'))                
+        self.tsCenter = tushareDataCenter(dataPath)    
+                
+    def getCodes(self,codesType,sourceType):
+        if(codesType == 'tushare'):
+            return self.tsCenter.getCodes(sourceType)
+        elif(codesType == 'yahoo'):
+            if(sourceType == 'remote'):
+                pass
+            elif(sourceType == 'mongodb'):
+                pass
+            elif(sourceType == 'csv'):
+                pass 
+        elif(codesType == 'sina'):
+            if(sourceType == 'remote'):
+                pass
+            elif(sourceType == 'mongodb'):
+                pass
+            elif(sourceType == 'csv'):
+                pass             
+        elif(codesType == 'datayes'):
+            if(sourceType == 'remote'):
+                pass
+            elif(sourceType == 'mongodb'):
+                pass
+            elif(sourceType == 'csv'):
+                pass    
+        return None
     def getFeeds(self,feedFormat = "tushareCsv",instrument = ""):  
         if(feedFormat == "yahoo"):
             feed = self.__getFeedFromYahoo(instrument)

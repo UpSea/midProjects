@@ -4,7 +4,7 @@ Created on Tue Jul 28 11:04:32 2015
 
 @author: lenovo
 """
-from itertools import izip
+#from itertools import izip
 #import sys
 import os,sys
 dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir))        
@@ -17,7 +17,6 @@ import tushare as ts
 import numpy as np
 import time,os
 from pandas import DataFrame
-from pyalgotrade import bar        
 
 #reload(sys)
 #sys.setdefaultencoding('utf-8')
@@ -29,42 +28,59 @@ class tushareDataCenter():
         self.codefile = self.dataRoot +os.sep + "code.csv"   
         self.codeinusefile = self.dataRoot + os.sep + "code_inuse.csv"
         self.codenewinusefile = self.dataRoot + os.sep + "code_new_inuse.csv"
-    def downloadAndStoreCodes(self,code):
+        
+        from data.mongodb.DataSourceMongodb import Mongodb
+        connect = Mongodb('192.168.0.212', 27017)
+        connect.use('Tushare')    #database
+        frequency = 'D'
+        connect.setCollection(frequency)    #table
+        self.mongodb = connect
+        
+    def getCodes(self,sourceType):
+        if(sourceType == 'remote'):
+            return self.downloadCodes()
+        elif(sourceType == 'mongodb'):
+            return self.retriveCodesFromMongodb()
+        elif(sourceType == 'csv'):
+            return pd.read_csv(self.codefile,index_col=0,encoding='gbk')
+    def retriveCodesFromMongodb(self):
+        codes = self.mongodb.retriveSymbolsAll()             
+        return codes       
+    def downloadCodes(self):
         dat = ts.get_industry_classified()
-        dat = dat.drop_duplicates('code') 
+        dat = dat.drop_duplicates('code')  
+        return dat
+    def downloadAndStoreCodes(self,code):
+        dat = self.downloadCodes()
         dat.to_csv(self.codefile,encoding='gbk')    
     def exists(self,instrument,frequency):
         from pyalgotrade import bar        
-        try:
-            if frequency == bar.Frequency.DAY:
-                fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
-                if os.path.exists(fileName):
-                    return True
-                else:
-                    return False
-            elif frequency == bar.Frequency.WEEK:
-                fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
-                if os.path.exists(fileName):
-                    return True
-                else:
-                    return False                
-            else:
-                raise Exception("Invalid frequency")
-        except Exception, e:
-            raise e   
-    def downloadAndStoreKDataByCode(self,instrument,_start_,_end_):
-        try:
-            _data_ = ts.get_hist_data(instrument,start=None,end=None)  #默认取3年，start 8-1包括
+        if frequency == 'day':
             fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
-            if _data_ is not None and len(_data_) != 0:
-                if os.path.exists(fileName):
-                    _data_.to_csv(fileName, mode='a', header=None,encoding='gbk')
-                else:
-                    _data_.to_csv(fileName,encoding='gbk')
+            if os.path.exists(fileName):
+                return True
             else:
                 return False
-        except IOError: 
-            pass    #不行的话还是continue
+        elif frequency == 'week':
+            fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
+            if os.path.exists(fileName):
+                return True
+            else:
+                return False                
+        else:
+            raise Exception("Invalid frequency")
+
+    def downloadAndStoreKDataByCode(self,instrument,_start_,_end_):
+        _data_ = ts.get_hist_data(instrument,start=None,end=None)  #默认取3年，start 8-1包括
+        fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
+        if _data_ is not None and len(_data_) != 0:
+            if os.path.exists(fileName):
+                _data_.to_csv(fileName, mode='a', header=None,encoding='gbk')
+            else:
+                _data_.to_csv(fileName,encoding='gbk')
+        else:
+            return False
+
         return True
     def downloadAndStoreAllData(self):
         '''mid 下载代码表及其中所有历史数据
@@ -82,19 +98,17 @@ class tushareDataCenter():
         i = 0
         for code in dat['code'].values:
             i+= 1
-            print i,code
+            #print i,code
             if i > 15:
                 break
-            try:
-                _data_ = ts.get_hist_data(str(code),end=ct._MIDDLE_)
-                if _data_ is not None:
-                    _data_.to_csv((self.dataRoot+os.sep+'day'+os.sep+('%s.csv'%code)),encoding='gbk')
-                    print str(_data_.index[0])+':'+str(_data_.index[-1])
-                    if _data_.index[-1] in ct._start_range and _data_.index[0] in ct._end_range:
-                        inuse.append(code)
-            except IOError: 
-                pass    #不行的话还是continue           
-        print len(inuse)
+            _data_ = ts.get_hist_data(str(code),end=ct._MIDDLE_)
+            if _data_ is not None:
+                _data_.to_csv((self.dataRoot+os.sep+'day'+os.sep+('%s.csv'%code)),encoding='gbk')
+                #print str(_data_.index[0])+':'+str(_data_.index[-1])
+                if _data_.index[-1] in ct._start_range and _data_.index[0] in ct._end_range:
+                    inuse.append(code)
+       
+        #print len(inuse)
         _df_inuse = DataFrame(inuse,columns={'code'})
         _df_inuse.to_csv(self.codeinusefile,encoding='gbk')
     #从网络中更新数据,code 必须为str，dat中的为int
@@ -111,24 +125,22 @@ class tushareDataCenter():
         i=0
         for code in dat['code'].values:
             i+= 1
-            print i,code
+            #print i,code
             if i > 10:
                 break        
-            try:
-                _data_ = ts.get_hist_data(str(code),start=_start_,end=_end_)
-                filename = path+os.sep+'day'+os.sep+('%s.csv'%code)
-                if _data_ is not None and _data_.size != 0:
-                    if os.path.exists(filename):
-                        _data_.to_csv(filename, mode='a', header=None,encoding='gbk')
-                    else:
-                        _data_.to_csv(filename,encoding='gbk')
-                    startRange = pd.date_range(start=_start_,periods=7)
-                    endRange = pd.date_range(end=_end_,periods=7)
-                    if code in inuse['code'].values and _data_.index[0] in endRange and _data_.index[-1] in startRange:
-                        new_inuse.append(code)  
-            except IOError: 
-                pass    #不行的话还是continue           
-        print len(new_inuse)
+            _data_ = ts.get_hist_data(str(code),start=_start_,end=_end_)
+            filename = path+os.sep+'day'+os.sep+('%s.csv'%code)
+            if _data_ is not None and _data_.size != 0:
+                if os.path.exists(filename):
+                    _data_.to_csv(filename, mode='a', header=None,encoding='gbk')
+                else:
+                    _data_.to_csv(filename,encoding='gbk')
+                startRange = pd.date_range(start=_start_,periods=7)
+                endRange = pd.date_range(end=_end_,periods=7)
+                if code in inuse['code'].values and _data_.index[0] in endRange and _data_.index[-1] in startRange:
+                    new_inuse.append(code)  
+        
+        #print len(new_inuse)
         _df_inuse = DataFrame(new_inuse,columns={'code'})
         _df_inuse.to_csv(self.codenewinusefile,encoding='gbk')
                     
@@ -145,37 +157,29 @@ class tushareDataCenter():
         for code in dat['code'].values:
             i+= 1
             #print i,code
-            try:
-                df = pd.read_csv(self.dataRoot+os.sep+'day'+os.sep+('%s.csv'%code),index_col=0,parse_dates=[0],encoding='gbk')  
-                if df is not None:
-                    dic[code] = df
-                    print i,code,type(code)
-            except IOError: 
-                pass    #不行的话还是continue
+            df = pd.read_csv(self.dataRoot+os.sep+'day'+os.sep+('%s.csv'%code),index_col=0,parse_dates=[0],encoding='gbk')  
+            if df is not None:
+                dic[code] = df
+                    #print i,code,type(code)
+
         return dic
 
     #仅适用数据头尾完备的code    
     def retriveCodesInuse(self):
-        try:
-            dat = pd.read_csv(self.codeinusefilepath,index_col=0,parse_dates=[0],encoding='gbk')
-        except Exception: 
-            dat = ts.get_industry_classified()
+        dat = pd.read_csv(self.codeinusefilepath,index_col=0,parse_dates=[0],encoding='gbk')
+        #dat = ts.get_industry_classified()
         dat = dat.drop_duplicates('code')                                                   #去除重复code
         return dat['code'].values 
 
   
-    def retriveDataFrameKData(self,instrument,frequency=bar.Frequency.DAY):
-        if frequency == bar.Frequency.DAY:
+    def retriveDataFrameKData(self,instrument,frequency='day'):
+        if frequency == 'day':
             fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
-        elif frequency == bar.Frequency.WEEK:
+        elif frequency == 'day':
             fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
     
-        try:        
-            dat = pd.read_csv(fileName,index_col=0,encoding='gbk')
-            #dat = pd.read_csv(fileName,index_col=0,parse_dates=[0],encoding='gbk')  #parse_dates直接转换数据类型 string->datastamp
-        except Exception,e:
-            dat = None            
-            raise e
+        dat = pd.read_csv(fileName,index_col=0,encoding='gbk')
+        #dat = pd.read_csv(fileName,index_col=0,parse_dates=[0],encoding='gbk')  #parse_dates直接转换数据类型 string->datastamp
         
         return dat.sort_index(axis=0,ascending=True)
     def get_macd(self,df):
@@ -201,11 +205,15 @@ class tushareDataCenter():
                     {"color":"black","linestyle":"-","label":"DIFF"},
                     {"color":"red","linestyle":"-","label":"MACD"},
                     {"color":"orange","linestyle":"-","label":"BAR"}]
+        """
         for d,opt in izip(my_dfs, my_opts):
             d.plot( **opt)
         plt.grid()
         plt.legend(loc=0)
-        plt.show()  
+        plt.show()          
+        
+        """
+
     #选择下跌行情中天量成交和高换手率，后期加入小盘股等指标，scope 为近15日
     #scope =15,看最近15天的情况，v_times 为当日成交量为前一日的倍数，t_percent为当日换手率
     def bigVolume(self,scope=15,v_times=5,t_percent=20):
@@ -213,18 +221,16 @@ class tushareDataCenter():
         rs_list = []
         i=0
         for code in inuse['code'].values:
-            try:
-                _data_ = pd.read_csv(self.dataRoot+os.sep+'day'+os.sep+('%s.csv'%code),index_col=0,parse_dates=[0],encoding='gbk')
-                dd = (_data_['volume']/_data_['volume'].shift(1)>v_times) & (_data_['turnover']>t_percent)
-                dd = dd & (_data_['close']<22)
-                if dd[-scope:].any():
-                    i+=1
-                    if i<5:
-                        _data_['close'].plot()
-                    rs_list.append(code)
-                    print i,code
-            except IOError: 
-                pass    #不行的话还是continue        
+            _data_ = pd.read_csv(self.dataRoot+os.sep+'day'+os.sep+('%s.csv'%code),index_col=0,parse_dates=[0],encoding='gbk')
+            dd = (_data_['volume']/_data_['volume'].shift(1)>v_times) & (_data_['turnover']>t_percent)
+            dd = dd & (_data_['close']<22)
+            if dd[-scope:].any():
+                i+=1
+                if i<5:
+                    _data_['close'].plot()
+                rs_list.append(code)
+                #print i,code
+      
     def change_type_to_yahoo(self):
         '''mid
         此方法将所有来自tushare的数据转化为同yahoo数据格式，以方便用于pyalgotrade调用
@@ -235,7 +241,7 @@ class tushareDataCenter():
         i=0
         for code in inuse['code'].values:
             i+= 1
-            print i,code
+            #print i,code
             _data_ = pd.read_csv('d:/data/%s.csv'%code,index_col=0,parse_dates=[0],encoding='gbk')  #默认取3年，start 8-1包括
             _data_=_data_.rename(columns=re_columns)
             _data_.index.name = 'Date'
@@ -252,7 +258,7 @@ class tushareDataCenter():
             return results.params[0]
         value1=[0.5,1.0,1.5,2.0,2.5,3.0]
         value2=[1.75,2.45,3.81,4.80,7.00,8.60]
-        print get_beta(value1,value2) 
+        #print get_beta(value1,value2) 
         
 if __name__ == "__main__":
     tsCenter = tushareDataCenter()

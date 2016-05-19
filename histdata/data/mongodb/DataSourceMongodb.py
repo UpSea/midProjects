@@ -126,3 +126,6 @@ class Mongodb(object):
             counts = len(high.keys())
             dfSymbols.loc[symbol]=[counts,dateStart,dateEnd]
         return dfSymbols
+    def retriveCodes(self):
+        
+        return None

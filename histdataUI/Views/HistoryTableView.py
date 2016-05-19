@@ -4,7 +4,7 @@ import datetime as dt
 import os,sys
 xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata','mongodb'))
 sys.path.append(xpower)
-from DataSourceMongodb import Mongodb
+from data.mongodb.DataSourceMongodb import Mongodb
 import numpy as np
 
 class HistoryTableView(QtGui.QTableWidget):
