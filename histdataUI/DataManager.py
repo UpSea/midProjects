@@ -11,7 +11,7 @@ xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histd
 sys.path.append(xpower)
 
 import feedsForCandle as feedsForCandle
-from DataSourceMongodb import Mongodb
+from data.mongodb.DataSourceMongodb import Mongodb
 import matplotlib.dates as mpd
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt

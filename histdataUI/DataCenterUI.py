@@ -229,7 +229,7 @@ class DataManagerDialog(QtGui.QDialog):
         
         
         self.tableLocalSymbols.clear()
-        header = ["sybol","name","counts","start","end"]
+        header = ["code","name","counts","start","end"]
         self.tableLocalSymbols.setColumnCount(len(header))
         self.tableLocalSymbols.setRowCount(len(self.dfLocalSymbols))
         self.tableLocalSymbols.setHorizontalHeaderLabels(header)     #mid should be after .setColumnCount()

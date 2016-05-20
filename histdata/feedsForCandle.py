@@ -38,7 +38,7 @@ def DataFrameToCandle(history):
     return quotesWithDate.T    
 
 def GetCandlesFromMongodb(params):
-    from mongodb.DataSourceMongodb import Mongodb
+    from data.mongodb.DataSourceMongodb import Mongodb
     import datetime as dt    
     ip = params['ip']
     port = params['port']

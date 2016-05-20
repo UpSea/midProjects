@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 '''
 mid 201512011843
-此类用于操作通过PyMongo操作Mongodb
+此类用于通过PyMongo操作Mongodb
 
 包含外部数据源操作时，建立新类，加入新数据源的操作方法。
 如此，可针对每个外部数据源新建处理类，减少在此类中判断的复杂度。
@@ -19,65 +19,64 @@ import tushare as ts
 import pandas as pd
 
 class Mongodb(object):  
-    def __init__(self, host, port):
-        #conn 类型<class 'pymongo.connection.Connection'>
+    def __init__(self, host='192.168.0.212', port=27017):
         try:
             self.conn = pymongo.MongoClient(host, port)
         except  Error:
             print ('connect to %s:%s fail' %(host, port))
             exit(0)
-
     def __del__(self):
         self.conn.close()
-
+    def testConnect(self):
+        # mid 
+        conn = self.conn
+        for databaseName in conn.database_names():
+            print('databaseName:',databaseName)    
+            if(databaseName == 'local'):
+                continue
+            database = conn[databaseName]
+            for collectionName in database.collection_names():
+                print('----collectionName:',collectionName)
+                collection = database[collectionName]
+                for item in collection.find():
+                    print('--------item:',item)        
     def use(self, dbname):
-        # 这种[]获取方式同样适用于shell,下面的collection也一样
-        #db 类型<class 'pymongo.database.Database'>
         self.db = self.conn[dbname]
-
+        #self.db = self.dbname
     def setCollection(self, collection):
         if not self.db:
-            print ('don\'t assign database')
+            print ('should use database first.')
             exit(0)
         else:
             self.coll = self.db[collection]
-
+            #self.coll = self.db.collection
     def find(self, query = {}):
-        #注意这里query是dict类型
+        # mid query是dict类型
         if type(query) is not dict:
             print ('the type of query isn\'t dict')
             exit(0)
         try:
-            #result类型<class 'pymongo.cursor.Cursor'>
             if not self.coll:
-                print ('don\'t assign collection')
+                print ('should setCollection first.')
             else:
                 result = self.coll.find(query)
         except NameError:
             print ('some fields name are wrong in ',query)
             exit(0)
         return result
-
     def insert(self, data):
-        if type(data) is not dict:
-            print ('the type of insert data isn\'t dict')
-            exit(0)
-        #insert会返回新插入数据的_id
         self.coll.insert(data)
-
-    def remove(self, data):
-        if type(data) is not dict:
-            print ('the type of remove data isn\'t dict')
-            exit(0)
-        #remove无返回值
+    def remove(self, data = None):
         self.coll.remove(data)
-
-    def update(self, data, setdata):
+    def update(self,data, setdata):
         if type(data) is not dict or type(setdata) is not dict:
             print ('the type of update and data isn\'t dict')
             exit(0)
-        #update无返回值
-        self.coll.update(data,{'$set':setdata})
+        All = True
+        if(All):
+            self.coll.update_many(data,{'$set':setdata})
+        else:
+            self.coll.update_one(data,{'$set':setdata})
     #----------------------------------------------------------------------
     def downloadAndStoreHistory(self,symbol,start,end,frequency):
         """"""
@@ -129,3 +128,38 @@ class Mongodb(object):
     def retriveCodes(self):
         
         return None
+if __name__ == "__main__":
+    # mid create a new connect to mongodb and test it.
+    connect = Mongodb()
+    connect.testConnect()
+    # mid 1)if find 'midtest',delete it.
+    
+    
+    #mid 2)create 'midtest'
+    databaseName = 'midtest'  
+    connect.use(databaseName)
+    #mid 3)create collection 'midClassmate'
+    collectionName = 'midClassmate'
+    connect.setCollection(collectionName)
+    #mid 4)insert one item
+    post = {"id": "1","author": "Mike"}
+    new_posts = [{"id": "2","author": "Mike"},
+                 {"id": "3","author": "Eliot"}]
+    connect.insert(post)
+    connect.insert(new_posts)    
+    #mid 5)update one item
+    data = {'id':'1'}
+    setdata = {"author":"upsea"}
+    connect.update(data, setdata)
+    
+    #a = connect.find_one({"author":"Mike"}) #根据条件查询posts中数据
+    items = connect.find({"author":"Mike"}).sort('author')  #--默认为升序    
+    for item in items:
+        print('--------item:',item)     
+    #mid 4)delete one item
+    data = {'id':'1'}
+    setdata = {"author":"upsea"}
+    connect.remove(data)       
+    #mid 5)delete all
+    connect.remove()          
+    

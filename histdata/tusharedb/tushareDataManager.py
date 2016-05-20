@@ -30,7 +30,7 @@ class tushareDataCenter():
         self.codenewinusefile = self.dataRoot + os.sep + "code_new_inuse.csv"
         
         from data.mongodb.DataSourceMongodb import Mongodb
-        connect = Mongodb('192.168.0.212', 27017)
+        connect = Mongodb()
         connect.use('Tushare')    #database
         frequency = 'D'
         connect.setCollection(frequency)    #table
