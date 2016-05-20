@@ -68,7 +68,7 @@ class tushareDataCenter():
                     dictList.append(codesDict[code])          
                 self.mongodb.insert(dictList)  
             elif(storage == 'csv'):
-                codes.to_csv(self.codefile,encoding='gbk')    
+                codes.to_csv(self.codefile,encoding='gbk',index=False)    
             return codes
         elif(sourceType == 'mongodb'):
             self.mongodb.setCollection('codes')
@@ -78,7 +78,8 @@ class tushareDataCenter():
             codes = self.retriveCodesFromCsv()
             return codes
     def retriveCodesFromCsv(self):
-        dfCodes = pd.read_csv(self.codefile,index_col=1,encoding='gbk')
+        dfCodes = pd.read_csv(self.codefile,index_col=False,encoding='gbk',dtype={0:np.str,1:np.str})
+        dfCodes.index = dfCodes['code']
         return dfCodes
     def retriveCodesFromMongodb(self):
         codes = self.mongodb.retriveSymbolsAll()             

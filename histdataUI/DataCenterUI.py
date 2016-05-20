@@ -43,7 +43,7 @@ class DataManagerDialog(QtGui.QDialog):
             QtGui.QMessageBox.information(self,codesType + ' codesTable data.',  'from '+sourceType+'\nis not prepared.')
             return
         #self.dfLocalSy     mbols = ts.get_stock_basics()
-        self.dfSymbolsToDownload = pd.DataFrame(columns=['name','dateFrom','dateTo'])        
+        self.dfSymbolsToDownload = pd.DataFrame(columns=['name','c_name','dateFrom','dateTo'])        
         
         QtGui.QMessageBox.information(self,codesType + ' codesTable data.',  'from '+sourceType+' gotten.')    
 
@@ -83,7 +83,29 @@ class DataManagerDialog(QtGui.QDialog):
         topLeft01Top.addWidget(sourceTypeComboBox)
         topLeft01Top.addWidget(codesRefreshedTimeLable)
         topLeft01Top.addWidget(codesRefreshedTimeEdit)        
-    #----------------------------------------------------------------------    
+    #----------------------------------------------------------------------   
+    def onVerSectionClicked(self,index):
+        print (index)
+    def onHorSectionClicked(self,index):
+        print (index) 
+        #self.tableLocalSymbols.resizeColumnsToContents()#根据内容调整行的宽度
+        #self.tableLocalSymbols.resizeRowToContents()#根据内容调整列的宽度度
+        #self.tableLocalSymbols.item(row,col).setTextAlignment(Qt.AlignCenter)#设置字体居中        
+              
+    def onDoubleClicked(self , row,column ):
+        print ('******row : ' , row , ' column : ' , column , ' ***********')
+        codesColumnIndex = 0
+        codesItem = self.tableLocalSymbols.item(row,codesColumnIndex)
+        print (codesItem.text())        
+        print (self.tableLocalSymbols.currentItem().text())
+    def onClicked(self  ):
+        print ('******row : ' , self.tableLocalSymbols.currentRow(), ' ***********')
+        
+        rows = self.tableLocalSymbols.rowCount()
+
+        #for rows_index in range(rows):
+            ##print items[item_index].text()
+            #print (self.tableLocalSymbols.item(rows_index,0).text())    
     def initTopUI(self,topLayout):
         topLeft01 = QtGui.QVBoxLayout(self)
         topLeft01Top = QtGui.QHBoxLayout(self)
@@ -97,8 +119,18 @@ class DataManagerDialog(QtGui.QDialog):
         topLeft01.addLayout(topLeft01Top)
         
         self.tableLocalSymbols=QtGui.QTableWidget()
+        self.tableLocalSymbols.horizontalHeader().setStretchLastSection(True)                   #mid 可以设置最后一览大小自适应
         topLeft01.addWidget(self.tableLocalSymbols)
-        # 02)topLeft02--------------------
+        self.tableLocalSymbols.verticalHeader().sectionClicked.connect(self.onVerSectionClicked)#表头单击信号
+        self.tableLocalSymbols.horizontalHeader().sectionClicked.connect(self.onHorSectionClicked)#表头单击信号     
+        
+        #self.connect(self.tableLocalSymbols, QtCore.SIGNAL("itemClicked(QTableWidgetItem* item)"), self.testRow2)
+        # QtCore.QObject.connect(self.table, QtCore.SIGNAL("cellActivated ( int row, int column )"), self.testRow)
+        #self.connect(self.tableLocalSymbols, QtCore.SIGNAL("cellDoubleClicked ( int row, int column )"), self.testRow)
+        # QtCore.QObject.connect(self.table, QtCore.SIGNAL("cellDoubleClicked ( int row, int column )"), self.testRow)        # 02)topLeft02--------------------
+        self.tableLocalSymbols.itemClicked.connect(self.onClicked)
+        self.tableLocalSymbols.cellDoubleClicked.connect(self.onDoubleClicked)
+        
         AddOneButton=QtGui.QPushButton(self.tr(">"))
         AddAllButton=QtGui.QPushButton(self.tr(">>>"))  
         DeleteOneButton=QtGui.QPushButton(self.tr("<"))
@@ -107,6 +139,11 @@ class DataManagerDialog(QtGui.QDialog):
         topLeft02.addWidget(AddAllButton)
         topLeft02.addWidget(DeleteOneButton)
         topLeft02.addWidget(DeleteAllButton)
+        self.connect(AddOneButton,QtCore.SIGNAL("clicked()"),self.slotAddOne)
+        self.connect(AddAllButton,QtCore.SIGNAL("clicked()"),self.slotAddAll)
+        self.connect(DeleteOneButton,QtCore.SIGNAL("clicked()"),self.slotDeleteOne)
+        self.connect(DeleteAllButton,QtCore.SIGNAL("clicked()"),self.slotDeleteAll)
+        
         # 03topLeft03-------------------
         labelNewToDownload = QtGui.QLabel(self.tr('New Symbol:'))
         self.editSymbolToAdd = QtGui.QLineEdit()
@@ -240,11 +277,12 @@ class DataManagerDialog(QtGui.QDialog):
             code = self.dfLocalSymbols.index[row]
             
             #symbol = QtGui.QLabel(self.tr(code))
-            symbol = QtGui.QLabel(str(code))
+            symbol = str(code)
             codeName = self.dfLocalSymbols.loc[code,'name']
             codeClass = self.dfLocalSymbols.loc[code,'c_name']
                                
-            self.tableLocalSymbols.setCellWidget(row,0,symbol)
+            #self.tableLocalSymbols.setCellWidget(row,0,symbol)
+            self.tableLocalSymbols.setItem(row,0,QtGui.QTableWidgetItem(symbol))
             self.tableLocalSymbols.setItem(row,1,QtGui.QTableWidgetItem(codeName))
             self.tableLocalSymbols.setItem(row,2,QtGui.QTableWidgetItem(codeClass))
     def updateSymbolsToDownloadTable(self):
@@ -265,6 +303,7 @@ class DataManagerDialog(QtGui.QDialog):
         for row in np.arange(0,len(self.dfSymbolsToDownload)):
             symbol = self.dfSymbolsToDownload.index[row]
             name = str(self.dfSymbolsToDownload.loc[symbol,'name'])
+            c_name = str(self.dfSymbolsToDownload.loc[symbol,'c_name'])
             
             timeStart = QtGui.QCalendarWidget()
             timeStart=QtGui.QDateTimeEdit()
@@ -279,8 +318,31 @@ class DataManagerDialog(QtGui.QDialog):
                                
             self.tableSymbolsToDownload.setItem(row,0,QtGui.QTableWidgetItem(symbol))
             self.tableSymbolsToDownload.setItem(row,1,QtGui.QTableWidgetItem(name))
-            self.tableSymbolsToDownload.setCellWidget(row,2,timeStart)
-            self.tableSymbolsToDownload.setCellWidget(row,3,timeEnd)    
+            self.tableSymbolsToDownload.setItem(row,2,QtGui.QTableWidgetItem(c_name))
+            self.tableSymbolsToDownload.setCellWidget(row,3,timeStart)
+            self.tableSymbolsToDownload.setCellWidget(row,4,timeEnd)    
+    #----------------------------------------------------------------------
+    def slotAddOne(self):
+        rowSelected = self.tableLocalSymbols.currentRow()
+        if((rowSelected<0) and (self.tableLocalSymbols.rowCount()>0)):
+            rowSelected = 0
+            
+        if(rowSelected>=0):   #a row selected or table is not empty.
+            code = self.tableLocalSymbols.item(rowSelected,0).text()
+            name = self.tableLocalSymbols.item(rowSelected,1).text()
+            c_name = self.tableLocalSymbols.item(rowSelected,2).text()
+            
+            
+            self.dfSymbolsToDownload.loc[code,'name'] = name
+            self.dfSymbolsToDownload.loc[code,'c_name'] = c_name
+            
+            self.updateSymbolsToDownloadTable()
+    def slotAddAll(self):
+        pass
+    def slotDeleteOne(self):
+        pass
+    def slotDeleteAll(self):
+        pass
     #----------------------------------------------------------------------
     def slotAddNewSymbol(self):
         """"""
