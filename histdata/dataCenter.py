@@ -6,7 +6,7 @@ from tusharedb.tushareDataManager import tushareDataCenter
 
 class dataCenter():
     def __init__(self):
-        dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','tusharedb','csv'))                
+        dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','csv','tusharedb'))                
         self.tsCenter = tushareDataCenter(dataPath)    
                 
     def getCodes(self,codesType,sourceType):

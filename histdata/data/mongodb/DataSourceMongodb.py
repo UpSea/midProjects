@@ -64,8 +64,11 @@ class Mongodb(object):
             print ('some fields name are wrong in ',query)
             exit(0)
         return result
-    def insert(self, data):
-        self.coll.insert(data)
+    def insert(self, data):      
+        if (isinstance (data,list)):
+            self.coll.insert_many(data)
+        else:
+            self.coll.insert_one(data)
     def remove(self, data = None):
         self.coll.remove(data)
     def update(self,data, setdata):
@@ -115,8 +118,10 @@ class Mongodb(object):
     #----------------------------------------------------------------------
     def retriveSymbolsAll(self):
         """"""
+        self.setCollection('D')
         dfSymbols = pd.DataFrame(columns=['counts','dateStart','dateEnd'])
         symbols = self.find({})
+        
         for item in symbols:
             symbol = item["symbol"]        
             high = item["high"]
@@ -126,8 +131,18 @@ class Mongodb(object):
             dfSymbols.loc[symbol]=[counts,dateStart,dateEnd]
         return dfSymbols
     def retriveCodes(self):
-        
-        return None
+        self.setCollection('codes')
+        codes = self.find({})
+        if(True):#mid better performance
+            dfCodes = pd.DataFrame(list(codes), columns = ['code','name','c_name'])  
+            dfCodes.index = dfCodes['code']
+        else:
+            for item in codes:
+                code = item['code']
+                name = item['name']
+                className = item['c_name']
+                dfCodes.loc[code] = [name,className]
+        return dfCodes
 if __name__ == "__main__":
     # mid create a new connect to mongodb and test it.
     connect = Mongodb()

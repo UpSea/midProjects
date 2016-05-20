@@ -37,17 +37,19 @@ class DataManagerDialog(QtGui.QDialog):
         #---------------------------------------------------------------------
         codesType = self.codesTypeComboBox.currentText()
         sourceType = self.sourceTypeComboBox.currentText()
-        self.dfLocalSymbols = self.dataCenter.getCodes(codesType,sourceType)    
+        if(codesType == 'tushare'):
+            self.dfLocalSymbols = self.dataCenter.getCodes(codesType,sourceType)
+        else:
+            QtGui.QMessageBox.information(self,codesType + ' codesTable data.',  'from '+sourceType+'\nis not prepared.')
+            return
         #self.dfLocalSy     mbols = ts.get_stock_basics()
-        self.dfSymbolsToDownload = pd.DataFrame(columns=['name','dateStart','dateEnd'])        
+        self.dfSymbolsToDownload = pd.DataFrame(columns=['name','dateFrom','dateTo'])        
         
-      
-        
+        QtGui.QMessageBox.information(self,codesType + ' codesTable data.',  'from '+sourceType+' gotten.')    
 
-        
         self.updateLocalSymbolsTable()  
-        self.updateSymbolsToDownloadTable()          
-        QtGui.QMessageBox.information(self, u"信息", text)    
+        self.updateSymbolsToDownloadTable() 
+        
     def initTopCodesSelector(self,topLeft01Top):
         # 01)topLeft01------------------
         # 01.01 mid codes type
@@ -229,23 +231,22 @@ class DataManagerDialog(QtGui.QDialog):
         
         
         self.tableLocalSymbols.clear()
-        header = ["code","name","counts","start","end"]
+        header = ["code","name","class","listed date","stop date","trade days"]
         self.tableLocalSymbols.setColumnCount(len(header))
         self.tableLocalSymbols.setRowCount(len(self.dfLocalSymbols))
         self.tableLocalSymbols.setHorizontalHeaderLabels(header)     #mid should be after .setColumnCount()
         
         for row in np.arange(0,len(self.dfLocalSymbols)):
             code = self.dfLocalSymbols.index[row]
-            symbol = QtGui.QLabel(self.tr(code))
-            counts = str(self.dfLocalSymbols.loc[code,'counts'])
-            dateStart = self.dfLocalSymbols.loc[code,'dateStart']
-            dateEnd = self.dfLocalSymbols.loc[code,'dateEnd']
+            
+            #symbol = QtGui.QLabel(self.tr(code))
+            symbol = QtGui.QLabel(str(code))
+            codeName = self.dfLocalSymbols.loc[code,'name']
+            codeClass = self.dfLocalSymbols.loc[code,'c_name']
                                
-            self.tableLocalSymbols.setItem(row,0,QtGui.QTableWidgetItem(code))
-            self.tableLocalSymbols.setCellWidget(row,1,symbol)
-            self.tableLocalSymbols.setItem(row,2,QtGui.QTableWidgetItem(counts))
-            self.tableLocalSymbols.setItem(row,3,QtGui.QTableWidgetItem(dateStart))
-            self.tableLocalSymbols.setItem(row,4,QtGui.QTableWidgetItem(dateEnd))
+            self.tableLocalSymbols.setCellWidget(row,0,symbol)
+            self.tableLocalSymbols.setItem(row,1,QtGui.QTableWidgetItem(codeName))
+            self.tableLocalSymbols.setItem(row,2,QtGui.QTableWidgetItem(codeClass))
     def updateSymbolsToDownloadTable(self):
         ''''''
         self.tableSymbolsToDownload.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)  

@@ -6,6 +6,7 @@ Created on Tue Jul 28 11:04:32 2015
 """
 #from itertools import izip
 #import sys
+from PyQt4 import QtGui,QtCore
 import os,sys
 dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir))        
 sys.path.append(dataRoot) 
@@ -35,14 +36,50 @@ class tushareDataCenter():
         frequency = 'D'
         connect.setCollection(frequency)    #table
         self.mongodb = connect
-        
+    def getCodesStorage(self):  
+        selectorMsgBox=QtGui.QMessageBox()  
+        selectorMsgBox.setWindowTitle("select codes storage.")  
+        mongodbButton=selectorMsgBox.addButton("mongodb",QtGui.QMessageBox.ActionRole)  
+        csvButton=selectorMsgBox.addButton("csv",QtGui.QMessageBox.ActionRole)  
+        cancelButton=selectorMsgBox.addButton("do not store",QtGui.QMessageBox.ActionRole)  
+
+        selectorMsgBox.setText("select codes storage!")  
+        selectorMsgBox.exec_()  
+
+        button=selectorMsgBox.clickedButton()  
+        if button==mongodbButton:  
+            return 'mongodb' 
+        elif button==csvButton:  
+            return 'csv' 
+        elif button==cancelButton:  
+            return 'cancel'    
     def getCodes(self,sourceType):
         if(sourceType == 'remote'):
-            return self.downloadCodes()
+            codes = self.downloadCodes()
+            codes.index = codes['code']
+            
+            storage = self.getCodesStorage()
+            if(storage == 'mongodb'):
+                self.mongodb.setCollection('codes')
+                self.mongodb.remove()          
+                codesDict = codes.T.to_dict()
+                dictList = list()
+                for code in codesDict:
+                    dictList.append(codesDict[code])          
+                self.mongodb.insert(dictList)  
+            elif(storage == 'csv'):
+                codes.to_csv(self.codefile,encoding='gbk')    
+            return codes
         elif(sourceType == 'mongodb'):
-            return self.retriveCodesFromMongodb()
+            self.mongodb.setCollection('codes')
+            codes = self.mongodb.retriveCodes()
+            return codes
         elif(sourceType == 'csv'):
-            return pd.read_csv(self.codefile,index_col=0,encoding='gbk')
+            codes = self.retriveCodesFromCsv()
+            return codes
+    def retriveCodesFromCsv(self):
+        dfCodes = pd.read_csv(self.codefile,index_col=1,encoding='gbk')
+        return dfCodes
     def retriveCodesFromMongodb(self):
         codes = self.mongodb.retriveSymbolsAll()             
         return codes       
