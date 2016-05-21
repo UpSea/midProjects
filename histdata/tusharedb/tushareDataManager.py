@@ -149,6 +149,28 @@ class tushareDataCenter():
         #print len(inuse)
         _df_inuse = DataFrame(inuse,columns={'code'})
         _df_inuse.to_csv(self.codeinusefile,encoding='gbk')
+    def downloadHistData(self,codeList = None,periodType = 'D',_start_ ='2013-08-01',_end_ = '2016-05-20'):
+        dic = {}
+        for code in codeList:
+            _data_ = ts.get_hist_data(str(code),start=_start_,end=_end_)
+            if _data_ is not None and _data_.size != 0:
+                dic[code] = _data_
+                #print i,code,type(code)
+        
+        #mid ---------------------------------------------------------------------
+        storage = self.getCodesStorage()
+        if(storage == 'mongodb'):
+            self.mongodb.setCollection('D')
+            for code in dic:
+                quotesDict = dic[code].to_dict()
+                quotesDict['symbol'] = code
+                self.mongodb.insert(quotesDict)            
+        elif(storage == 'csv'):
+            for code in dic:
+                dic[code].to_csv(self.codefile,encoding='gbk',index=False) 
+        #mid ----------------------------------------------------------------------
+        return dic
+            
     #从网络中更新数据,code 必须为str，dat中的为int
     def downloadAndStoreOrAppendAllData(self,_start_ ='2015-08-01',_end_ = ct._TODAY_):
         '''mid 对代码表文件中的代码对应的最新历史数据进行下载
@@ -181,7 +203,7 @@ class tushareDataCenter():
         #print len(new_inuse)
         _df_inuse = DataFrame(new_inuse,columns={'code'})
         _df_inuse.to_csv(self.codenewinusefile,encoding='gbk')
-                    
+    
     def retriveAllData(self):      
         '''mid加载所有本地数据
         1.数据结构为dict

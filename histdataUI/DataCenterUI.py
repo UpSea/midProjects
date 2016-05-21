@@ -29,7 +29,9 @@ class DataManagerDialog(QtGui.QDialog):
         sys.path.append(dataRoot)        
         import dataCenter as dataCenter
         #mid data
-        self.dataCenter = dataCenter.dataCenter()        
+        self.dataCenter = dataCenter.dataCenter()   
+        self.dfLocalSymbols = pd.DataFrame(columns=['code','name','c_name'])
+        self.dfSymbolsToDownload = pd.DataFrame(columns=['code','name','c_name','dateFrom','dateTo'])
     #----------------------------------------------------------------------    
     def onActivate(self, text):
         #mid feedFormat = tushareCsv|tushare|yahooCsv|yahoo|generic
@@ -42,10 +44,8 @@ class DataManagerDialog(QtGui.QDialog):
         else:
             QtGui.QMessageBox.information(self,codesType + ' codesTable data.',  'from '+sourceType+'\nis not prepared.')
             return
-        #self.dfLocalSy     mbols = ts.get_stock_basics()
-        self.dfSymbolsToDownload = pd.DataFrame(columns=['name','c_name','dateFrom','dateTo'])        
-        
-        QtGui.QMessageBox.information(self,codesType + ' codesTable data.',  'from '+sourceType+' gotten.')    
+        #self.dfLocalSy     mbols = ts.get_stock_basics()        
+        #QtGui.QMessageBox.information(self,codesType + ' codesTable data.',  'from '+sourceType+' gotten.')    
 
         self.updateLocalSymbolsTable()  
         self.updateSymbolsToDownloadTable() 
@@ -91,13 +91,10 @@ class DataManagerDialog(QtGui.QDialog):
         #self.tableLocalSymbols.resizeColumnsToContents()#根据内容调整行的宽度
         #self.tableLocalSymbols.resizeRowToContents()#根据内容调整列的宽度度
         #self.tableLocalSymbols.item(row,col).setTextAlignment(Qt.AlignCenter)#设置字体居中        
-              
-    def onDoubleClicked(self , row,column ):
-        print ('******row : ' , row , ' column : ' , column , ' ***********')
-        codesColumnIndex = 0
-        codesItem = self.tableLocalSymbols.item(row,codesColumnIndex)
-        print (codesItem.text())        
-        print (self.tableLocalSymbols.currentItem().text())
+    def onTableSymbolsToDownloadDoubleClicked(self, rowSelected,column ):
+        self.slotDeleteOne()
+    def onTableLocalSymbolsDoubleClicked(self , rowSelected,column ):
+        self.slotAddOne()   
     def onClicked(self  ):
         print ('******row : ' , self.tableLocalSymbols.currentRow(), ' ***********')
         
@@ -129,16 +126,18 @@ class DataManagerDialog(QtGui.QDialog):
         #self.connect(self.tableLocalSymbols, QtCore.SIGNAL("cellDoubleClicked ( int row, int column )"), self.testRow)
         # QtCore.QObject.connect(self.table, QtCore.SIGNAL("cellDoubleClicked ( int row, int column )"), self.testRow)        # 02)topLeft02--------------------
         self.tableLocalSymbols.itemClicked.connect(self.onClicked)
-        self.tableLocalSymbols.cellDoubleClicked.connect(self.onDoubleClicked)
+        self.tableLocalSymbols.cellDoubleClicked.connect(self.onTableLocalSymbolsDoubleClicked)
         
         AddOneButton=QtGui.QPushButton(self.tr(">"))
         AddAllButton=QtGui.QPushButton(self.tr(">>>"))  
         DeleteOneButton=QtGui.QPushButton(self.tr("<"))
         DeleteAllButton=QtGui.QPushButton(self.tr("<<<"))  
-        topLeft02.addWidget(AddOneButton)
-        topLeft02.addWidget(AddAllButton)
+        
+        topLeft02.addWidget(AddOneButton) 
         topLeft02.addWidget(DeleteOneButton)
+        topLeft02.addWidget(AddAllButton)
         topLeft02.addWidget(DeleteAllButton)
+        
         self.connect(AddOneButton,QtCore.SIGNAL("clicked()"),self.slotAddOne)
         self.connect(AddAllButton,QtCore.SIGNAL("clicked()"),self.slotAddAll)
         self.connect(DeleteOneButton,QtCore.SIGNAL("clicked()"),self.slotDeleteOne)
@@ -158,10 +157,11 @@ class DataManagerDialog(QtGui.QDialog):
         topLeft03.addWidget(labelSymbolsToDownload)
         topLeft03.addWidget(self.tableSymbolsToDownload)   
         topLeft03.addLayout(topLeft03Bottom)
-    
+        
+        self.tableSymbolsToDownload.cellDoubleClicked.connect(self.onTableSymbolsToDownloadDoubleClicked)
         self.connect(addNewSymbol,QtCore.SIGNAL("clicked()"),self.slotAddNewSymbol)
         # 04)topLeft04----------------------
-        DownloadOneButton=QtGui.QPushButton(self.tr("DownloadOne"))
+        DownloadOneButton=QtGui.QPushButton(self.tr("DownloadSelected"))
         DownloadAllButton=QtGui.QPushButton(self.tr("DownloadAll")) 
         lablePeriod = QtGui.QLabel(self.tr("Period")) 
         lableTimeStart = QtGui.QLabel(self.tr("Time start")) 
@@ -188,7 +188,7 @@ class DataManagerDialog(QtGui.QDialog):
         topLeft04.addWidget(DownloadOneButton)
         topLeft04.addWidget(DownloadAllButton)      
     
-        self.connect(DownloadOneButton,QtCore.SIGNAL("clicked()"),self.slotDownloadOne)
+        self.connect(DownloadOneButton,QtCore.SIGNAL("clicked()"),self.slotDownloadSelected)
         self.connect(DownloadAllButton,QtCore.SIGNAL("clicked()"),self.slotDownloadAll)        
         
         # top---------------------------------------------------------------------
@@ -259,7 +259,10 @@ class DataManagerDialog(QtGui.QDialog):
         #mainLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)        
     #----------------------------------------------------------------------
     def updateLocalSymbolsTable(self):
-        """"""
+        """mid
+        dfLocalSymbols.index = 'code'
+        dfLocalSymbols.columns = ['code','name','c_name',...]
+        """
         self.tableLocalSymbols.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)  
         self.tableLocalSymbols.setEditTriggers(QtGui.QTableWidget.NoEditTriggers)  
         self.tableLocalSymbols.setSelectionBehavior(QtGui.QTableWidget.SelectRows)  
@@ -273,20 +276,29 @@ class DataManagerDialog(QtGui.QDialog):
         self.tableLocalSymbols.setRowCount(len(self.dfLocalSymbols))
         self.tableLocalSymbols.setHorizontalHeaderLabels(header)     #mid should be after .setColumnCount()
         
-        for row in np.arange(0,len(self.dfLocalSymbols)):
-            code = self.dfLocalSymbols.index[row]
-            
-            #symbol = QtGui.QLabel(self.tr(code))
-            symbol = str(code)
-            codeName = self.dfLocalSymbols.loc[code,'name']
-            codeClass = self.dfLocalSymbols.loc[code,'c_name']
-                               
-            #self.tableLocalSymbols.setCellWidget(row,0,symbol)
-            self.tableLocalSymbols.setItem(row,0,QtGui.QTableWidgetItem(symbol))
-            self.tableLocalSymbols.setItem(row,1,QtGui.QTableWidgetItem(codeName))
-            self.tableLocalSymbols.setItem(row,2,QtGui.QTableWidgetItem(codeClass))
+        
+        if(True):
+            for row in range(len(self.dfLocalSymbols.index)):
+                for column in range(len(self.dfLocalSymbols.columns)):
+                    self.tableLocalSymbols.setItem(row,column,QtGui.QTableWidgetItem(str(self.dfLocalSymbols.iget_value(row, column))))        
+        else: #mid the above codes have better performance than the below.
+            for row in np.arange(0,len(self.dfLocalSymbols)):
+                code = self.dfLocalSymbols.index[row]
+                
+                #symbol = QtGui.QLabel(self.tr(code))
+                symbol = str(code)
+                codeName = self.dfLocalSymbols.loc[code,'name']
+                codeClass = self.dfLocalSymbols.loc[code,'c_name']
+                                   
+                #self.tableLocalSymbols.setCellWidget(row,0,symbol)
+                self.tableLocalSymbols.setItem(row,0,QtGui.QTableWidgetItem(symbol))
+                self.tableLocalSymbols.setItem(row,1,QtGui.QTableWidgetItem(codeName))
+                self.tableLocalSymbols.setItem(row,2,QtGui.QTableWidgetItem(codeClass))
     def updateSymbolsToDownloadTable(self):
-        ''''''
+        """mid
+        dfSymbolsToDownload.index = 'code'
+        dfSymbolsToDownload.columns = ['code','name','c_name',...]
+        """        
         self.tableSymbolsToDownload.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)  
         self.tableSymbolsToDownload.setEditTriggers(QtGui.QTableWidget.NoEditTriggers)  
         self.tableSymbolsToDownload.setSelectionBehavior(QtGui.QTableWidget.SelectRows)  
@@ -295,32 +307,49 @@ class DataManagerDialog(QtGui.QDialog):
         
         
         self.tableSymbolsToDownload.clear()
-        header = ["sybol","name","start","end"]
+        header = ["code","name","class","dateFrom","dateTo"]
         self.tableSymbolsToDownload.setColumnCount(len(header))
         self.tableSymbolsToDownload.setRowCount(len(self.dfSymbolsToDownload))
         self.tableSymbolsToDownload.setHorizontalHeaderLabels(header)     #mid should be after .setColumnCount()
         
-        for row in np.arange(0,len(self.dfSymbolsToDownload)):
-            symbol = self.dfSymbolsToDownload.index[row]
-            name = str(self.dfSymbolsToDownload.loc[symbol,'name'])
-            c_name = str(self.dfSymbolsToDownload.loc[symbol,'c_name'])
-            
-            timeStart = QtGui.QCalendarWidget()
-            timeStart=QtGui.QDateTimeEdit()
-            timeStart.setDateTime(QtCore.QDateTime.currentDateTime())
-            timeStart.setDisplayFormat("yyyy-MM-dd hh:mm:ss")
-            timeStart.setCalendarPopup(True)  
-            lableTimeEnd = QtGui.QLabel(self.tr("Time end"))  
-            timeEnd=QtGui.QDateTimeEdit()
-            timeEnd.setDateTime(QtCore.QDateTime.currentDateTime())
-            timeEnd.setDisplayFormat("yyyy-MM-dd hh:mm:ss")
-            timeEnd.setCalendarPopup(True)               
-                               
-            self.tableSymbolsToDownload.setItem(row,0,QtGui.QTableWidgetItem(symbol))
-            self.tableSymbolsToDownload.setItem(row,1,QtGui.QTableWidgetItem(name))
-            self.tableSymbolsToDownload.setItem(row,2,QtGui.QTableWidgetItem(c_name))
-            self.tableSymbolsToDownload.setCellWidget(row,3,timeStart)
-            self.tableSymbolsToDownload.setCellWidget(row,4,timeEnd)    
+        if(True):
+            for row in range(len(self.dfSymbolsToDownload.index)):
+                for column in range(len(self.dfSymbolsToDownload.columns)):
+                    self.tableSymbolsToDownload.setItem(row,column,QtGui.QTableWidgetItem(str(self.dfSymbolsToDownload.iget_value(row, column))))        
+                    
+                #timeStart = QtGui.QCalendarWidget()
+                timeStart=QtGui.QDateTimeEdit()
+                timeStart.setDateTime(QtCore.QDateTime.currentDateTime())
+                timeStart.setDisplayFormat("yyyy-MM-dd hh:mm:ss")
+                timeStart.setCalendarPopup(True)  
+                timeEnd=QtGui.QDateTimeEdit()
+                timeEnd.setDateTime(QtCore.QDateTime.currentDateTime())
+                timeEnd.setDisplayFormat("yyyy-MM-dd hh:mm:ss")
+                timeEnd.setCalendarPopup(True)                 
+                self.tableSymbolsToDownload.setCellWidget(row,3,timeStart)
+                self.tableSymbolsToDownload.setCellWidget(row,4,timeEnd)                  
+        else: #mid the above codes have better performance than the below.        
+            for row in np.arange(0,len(self.dfSymbolsToDownload)):
+                symbol = self.dfSymbolsToDownload.index[row]
+                name = str(self.dfSymbolsToDownload.loc[symbol,'name'])
+                c_name = str(self.dfSymbolsToDownload.loc[symbol,'c_name'])
+                
+                timeStart = QtGui.QCalendarWidget()
+                timeStart=QtGui.QDateTimeEdit()
+                timeStart.setDateTime(QtCore.QDateTime.currentDateTime())
+                timeStart.setDisplayFormat("yyyy-MM-dd hh:mm:ss")
+                timeStart.setCalendarPopup(True)  
+                lableTimeEnd = QtGui.QLabel(self.tr("Time end"))  
+                timeEnd=QtGui.QDateTimeEdit()
+                timeEnd.setDateTime(QtCore.QDateTime.currentDateTime())
+                timeEnd.setDisplayFormat("yyyy-MM-dd hh:mm:ss")
+                timeEnd.setCalendarPopup(True)               
+                                   
+                self.tableSymbolsToDownload.setItem(row,0,QtGui.QTableWidgetItem(symbol))
+                self.tableSymbolsToDownload.setItem(row,1,QtGui.QTableWidgetItem(name))
+                self.tableSymbolsToDownload.setItem(row,2,QtGui.QTableWidgetItem(c_name))
+                self.tableSymbolsToDownload.setCellWidget(row,3,timeStart)
+                self.tableSymbolsToDownload.setCellWidget(row,4,timeEnd)    
     #----------------------------------------------------------------------
     def slotAddOne(self):
         rowSelected = self.tableLocalSymbols.currentRow()
@@ -332,26 +361,37 @@ class DataManagerDialog(QtGui.QDialog):
             name = self.tableLocalSymbols.item(rowSelected,1).text()
             c_name = self.tableLocalSymbols.item(rowSelected,2).text()
             
-            
+            self.dfSymbolsToDownload.loc[code,'code'] = code            
             self.dfSymbolsToDownload.loc[code,'name'] = name
             self.dfSymbolsToDownload.loc[code,'c_name'] = c_name
             
             self.updateSymbolsToDownloadTable()
-    def slotAddAll(self):
-        pass
+
     def slotDeleteOne(self):
-        pass
+        rowSelected = self.tableSymbolsToDownload.currentRow()
+        if((rowSelected<0) and (self.tableSymbolsToDownload.rowCount()>0)):
+            rowSelected = 0
+            
+        if(rowSelected>=0):   #a row selected or table is not empty.
+            
+            code = self.tableSymbolsToDownload.item(rowSelected,0).text()
+            self.dfSymbolsToDownload.drop(code,inplace=True)
+            
+            self.updateSymbolsToDownloadTable()
     def slotDeleteAll(self):
         pass
+    def slotAddAll(self):
+        pass    
     #----------------------------------------------------------------------
     def slotAddNewSymbol(self):
         """"""
-        text = self.editSymbolToAdd.text()
-        if(len(text)==0 and (not text.isnumeric())):
+        code = self.editSymbolToAdd.text()
+        if(len(code)==0 and (not code.isnumeric())):
             symbol = 'none to download.'
             QtGui.QMessageBox.information(self,"Information",self.tr(symbol))   
         else:
-            self.dfSymbolsToDownload.loc[text] = None
+            self.dfSymbolsToDownload.loc[code,'code'] = code
+            #self.dfSymbolsToDownload.loc[text] = None
             self.updateSymbolsToDownloadTable()
         #QtGui.QMessageBox.information(self,"Information",self.tr("You are right!"+text))
     #----------------------------------------------------------------------
@@ -411,7 +451,7 @@ class DataManagerDialog(QtGui.QDialog):
             symbol = 'none to download.'
         QtGui.QMessageBox.information(self,"Information",self.tr(symbol))
     #----------------------------------------------------------------------
-    def slotDownloadOne(self):
+    def slotDownloadSelected(self):
         """"""
         rowSelected = self.tableSymbolsToDownload.currentRow()
         if((rowSelected<0) and (self.tableSymbolsToDownload.rowCount()>0)):
@@ -419,20 +459,19 @@ class DataManagerDialog(QtGui.QDialog):
             
         if(rowSelected>=0):   #a row selected or table is not empty.
             symbolToDownload = self.tableSymbolsToDownload.item(rowSelected,0).text()
-    
-            # 2)download history data
+            
+            providerType='tushare'
+            periodType='D'
+            codeList=[symbolToDownload]
             strStart = '2010-01-01'
             dateEnd = datetime.now()
             strEnd = dateEnd.strftime('%Y-%m-%d')  
-            frequency = 'D'
-        
-            # 1)connect to Tushare data collection
-            connect = Mongodb('192.168.1.100', 27017)
-            connect.use('Tushare')    #database
-            connect.setCollection(frequency)    #table
-        
-            countsDownloaded = connect.downloadAndStoreHistory(symbolToDownload,strStart,strEnd,frequency)            
+            frequency = 'D'            
             
+            # 2)download history data
+            dataDict = self.dataCenter.downloadHistData(providerType=providerType,periodType=periodType,_codeList_=codeList)
+            
+            countsDownloaded = len(dataDict)
             if(countsDownloaded<=0):
                 QtGui.QMessageBox.information(self,"Information",self.tr('None downloaded.')) 
             else:

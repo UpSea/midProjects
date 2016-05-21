@@ -34,6 +34,15 @@ class dataCenter():
             elif(sourceType == 'csv'):
                 pass    
         return None
+    def downloadHistData(self,providerType='tushare',periodType='D',_codeList_=None):
+        if(providerType == 'tushare'):
+            return self.tsCenter.downloadHistData(codeList = _codeList_,periodType = periodType)
+        elif(providerType == 'yahoo'):
+            pass
+        elif(providerType == 'datayes'):
+            pass
+        elif(providerType == 'sina'):
+            pass
     def getFeeds(self,feedFormat = "tushareCsv",instrument = ""):  
         if(feedFormat == "yahoo"):
             feed = self.__getFeedFromYahoo(instrument)
