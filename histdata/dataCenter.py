@@ -34,9 +34,10 @@ class dataCenter():
             elif(sourceType == 'csv'):
                 pass    
         return None
-    def downloadHistData(self,providerType='tushare',periodType='D',_codeList_=None):
+    def downloadHistData(self,providerType='tushare',storageType = 'mongodb',periodType='D',codeList=None,timeStart='',timeEnd=''):
         if(providerType == 'tushare'):
-            return self.tsCenter.downloadHistData(codeList = _codeList_,periodType = periodType)
+            return self.tsCenter.downloadHistData(storageType=storageType,timeStart=timeStart,timeEnd=timeEnd,
+                                                  codeList = codeList,periodType = periodType)
         elif(providerType == 'yahoo'):
             pass
         elif(providerType == 'datayes'):

@@ -149,23 +149,23 @@ class tushareDataCenter():
         #print len(inuse)
         _df_inuse = DataFrame(inuse,columns={'code'})
         _df_inuse.to_csv(self.codeinusefile,encoding='gbk')
-    def downloadHistData(self,codeList = None,periodType = 'D',_start_ ='2013-08-01',_end_ = '2016-05-20'):
+    def downloadHistData(self,codeList = None,periodType = 'D',timeStart ='2000-01-01',timeEnd = '2016-05-20',storageType =  'mongodb'):
         dic = {}
         for code in codeList:
-            _data_ = ts.get_hist_data(str(code),start=_start_,end=_end_)
+            _data_ = ts.get_hist_data(str(code),start=timeStart,end=timeEnd)
             if _data_ is not None and _data_.size != 0:
                 dic[code] = _data_
                 #print i,code,type(code)
         
         #mid ---------------------------------------------------------------------
-        storage = self.getCodesStorage()
-        if(storage == 'mongodb'):
+        #storage = self.getCodesStorage()
+        if(storageType == 'mongodb'):
             self.mongodb.setCollection('D')
             for code in dic:
                 quotesDict = dic[code].to_dict()
                 quotesDict['symbol'] = code
                 self.mongodb.insert(quotesDict)            
-        elif(storage == 'csv'):
+        elif(storageType == 'csv'):
             for code in dic:
                 dic[code].to_csv(self.codefile,encoding='gbk',index=False) 
         #mid ----------------------------------------------------------------------

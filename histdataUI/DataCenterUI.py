@@ -31,7 +31,7 @@ class DataManagerDialog(QtGui.QDialog):
         #mid data
         self.dataCenter = dataCenter.dataCenter()   
         self.dfLocalSymbols = pd.DataFrame(columns=['code','name','c_name'])
-        self.dfSymbolsToDownload = pd.DataFrame(columns=['code','name','c_name','dateFrom','dateTo'])
+        self.dfSymbolsToDownload = pd.DataFrame(columns=['code','name','c_name'])
     #----------------------------------------------------------------------    
     def onActivate(self, text):
         #mid feedFormat = tushareCsv|tushare|yahooCsv|yahoo|generic
@@ -50,10 +50,11 @@ class DataManagerDialog(QtGui.QDialog):
         self.updateLocalSymbolsTable()  
         self.updateSymbolsToDownloadTable() 
         
-    def initTopCodesSelector(self,topLeft01Top):
+    def initTopCodesSourceSelector(self,topLeft01):
         # 01)topLeft01------------------
+        topLeft01Top = QtGui.QHBoxLayout(self)        
         # 01.01 mid codes type
-        codesTypeLable = QtGui.QLabel(self.tr("codes type:"))  
+        codesTypeLable = QtGui.QLabel(self.tr("codes source type:"))  
         codesTypeComboBox=QtGui.QComboBox()
         self.codesTypeComboBox = codesTypeComboBox
         codesTypeComboBox.insertItem(0,self.tr("tushare"))
@@ -62,7 +63,7 @@ class DataManagerDialog(QtGui.QDialog):
         codesTypeComboBox.insertItem(3,self.tr("yahoo"))        
         codesTypeComboBox.activated[str].connect(self.onActivate)        
         # 01.02 mid source type
-        codesSourceLable = QtGui.QLabel(self.tr("source type:")) 
+        codesSourceLable = QtGui.QLabel(self.tr("storage type:")) 
         sourceTypeComboBox=QtGui.QComboBox()
         self.sourceTypeComboBox = sourceTypeComboBox
         sourceTypeComboBox.insertItem(0,self.tr("mongodb"))        
@@ -82,7 +83,9 @@ class DataManagerDialog(QtGui.QDialog):
         topLeft01Top.addWidget(codesSourceLable)
         topLeft01Top.addWidget(sourceTypeComboBox)
         topLeft01Top.addWidget(codesRefreshedTimeLable)
-        topLeft01Top.addWidget(codesRefreshedTimeEdit)        
+        topLeft01Top.addWidget(codesRefreshedTimeEdit)     
+        
+        topLeft01.addLayout(topLeft01Top)
     #----------------------------------------------------------------------   
     def onVerSectionClicked(self,index):
         print (index)
@@ -103,21 +106,9 @@ class DataManagerDialog(QtGui.QDialog):
         #for rows_index in range(rows):
             ##print items[item_index].text()
             #print (self.tableLocalSymbols.item(rows_index,0).text())    
-    def initTopUI(self,topLayout):
-        topLeft01 = QtGui.QVBoxLayout(self)
-        topLeft01Top = QtGui.QHBoxLayout(self)
-        topLeft02 = QtGui.QVBoxLayout(self)
-        topLeft03 = QtGui.QVBoxLayout(self)
-        topLeft03Bottom = QtGui.QHBoxLayout(self)
-        topLeft04 = QtGui.QVBoxLayout(self)   
-        
-
-        self.initTopCodesSelector(topLeft01Top)
-        topLeft01.addLayout(topLeft01Top)
-        
+    def initCodesTable(self,topLeft01):        
         self.tableLocalSymbols=QtGui.QTableWidget()
         self.tableLocalSymbols.horizontalHeader().setStretchLastSection(True)                   #mid 可以设置最后一览大小自适应
-        topLeft01.addWidget(self.tableLocalSymbols)
         self.tableLocalSymbols.verticalHeader().sectionClicked.connect(self.onVerSectionClicked)#表头单击信号
         self.tableLocalSymbols.horizontalHeader().sectionClicked.connect(self.onHorSectionClicked)#表头单击信号     
         
@@ -128,75 +119,148 @@ class DataManagerDialog(QtGui.QDialog):
         self.tableLocalSymbols.itemClicked.connect(self.onClicked)
         self.tableLocalSymbols.cellDoubleClicked.connect(self.onTableLocalSymbolsDoubleClicked)
         
+        topLeft01.addWidget(self.tableLocalSymbols)
+    def initLayoutCodeMover(self):
+        layoutCodeMover = QtGui.QVBoxLayout(self)        
+        
         AddOneButton=QtGui.QPushButton(self.tr(">"))
         AddAllButton=QtGui.QPushButton(self.tr(">>>"))  
         DeleteOneButton=QtGui.QPushButton(self.tr("<"))
         DeleteAllButton=QtGui.QPushButton(self.tr("<<<"))  
-        
-        topLeft02.addWidget(AddOneButton) 
-        topLeft02.addWidget(DeleteOneButton)
-        topLeft02.addWidget(AddAllButton)
-        topLeft02.addWidget(DeleteAllButton)
         
         self.connect(AddOneButton,QtCore.SIGNAL("clicked()"),self.slotAddOne)
         self.connect(AddAllButton,QtCore.SIGNAL("clicked()"),self.slotAddAll)
         self.connect(DeleteOneButton,QtCore.SIGNAL("clicked()"),self.slotDeleteOne)
         self.connect(DeleteAllButton,QtCore.SIGNAL("clicked()"),self.slotDeleteAll)
         
-        # 03topLeft03-------------------
-        labelNewToDownload = QtGui.QLabel(self.tr('New Symbol:'))
+        layoutCodeMover.addWidget(AddOneButton) 
+        layoutCodeMover.addWidget(DeleteOneButton)
+        layoutCodeMover.addWidget(AddAllButton)
+        layoutCodeMover.addWidget(DeleteAllButton)
+        return layoutCodeMover
+    
+    def initLayoutDataSourceSelector(self):
+        # 01)topLeft01------------------
+        topLeft01Top = QtGui.QHBoxLayout(self)        
+        # 01.01 mid codes type
+        codesTypeLable = QtGui.QLabel(self.tr("remote data source type:"))  
+        dataSourceTypeComboBox=QtGui.QComboBox()
+        self.remoteDataSourceTypeComboBox = dataSourceTypeComboBox
+        self.dataSourceTypeComboBox = dataSourceTypeComboBox
+        dataSourceTypeComboBox.insertItem(0,self.tr("tushare"))
+        dataSourceTypeComboBox.insertItem(1,self.tr("sina"))        
+        dataSourceTypeComboBox.insertItem(2,self.tr("datayes"))        
+        dataSourceTypeComboBox.insertItem(3,self.tr("yahoo"))        
+        # 01.02 mid source type
+        codesSourceLable = QtGui.QLabel(self.tr("local storage type:")) 
+        sourceTypeComboBox=QtGui.QComboBox()
+        self.localStorageTypeComboBox = sourceTypeComboBox
+        self.sourceTypeComboBox = sourceTypeComboBox
+        sourceTypeComboBox.insertItem(0,self.tr("mongodb"))        
+        sourceTypeComboBox.insertItem(1,self.tr("csv"))
+    
+        topLeft01Top.addWidget(codesTypeLable)
+        topLeft01Top.addWidget(dataSourceTypeComboBox)
+        topLeft01Top.addWidget(codesSourceLable)   
+        topLeft01Top.addWidget(sourceTypeComboBox)
+        
+        return topLeft01Top
+    def initLayoutCodesTableToDownload(self):
+        layoutCodesToDownload = QtGui.QVBoxLayout(self)
+        
+        initLayoutDataSourceSelector = self.initLayoutDataSourceSelector()
+        layoutCodesToDownload.addLayout(initLayoutDataSourceSelector)
+        
+        self.tableSymbolsToDownload=QtGui.QTableWidget()
+        layoutCodesToDownload.addWidget(self.tableSymbolsToDownload)   
+        self.tableSymbolsToDownload.cellDoubleClicked.connect(self.onTableSymbolsToDownloadDoubleClicked)
+                
+        return layoutCodesToDownload
+    def initDownloaderParams(self):
+        layoutDownloadParams = QtGui.QVBoxLayout(self)           
+        
+        layoutAddNewSymbol = QtGui.QHBoxLayout(self)
+        
+        labelNewToDownload = QtGui.QLabel(self.tr('New symbol to download:'))
         self.editSymbolToAdd = QtGui.QLineEdit()
         addNewSymbol = QtGui.QPushButton(self.tr('Add'))   
-        topLeft03Bottom.addWidget(labelNewToDownload)
-        topLeft03Bottom.addWidget(self.editSymbolToAdd)
-        topLeft03Bottom.addWidget(addNewSymbol)   
-    
-        labelSymbolsToDownload=QtGui.QLabel(self.tr("SymbolsToDownload:"))
-        self.tableSymbolsToDownload=QtGui.QTableWidget()
-    
-        topLeft03.addWidget(labelSymbolsToDownload)
-        topLeft03.addWidget(self.tableSymbolsToDownload)   
-        topLeft03.addLayout(topLeft03Bottom)
+        layoutAddNewSymbol.addWidget(labelNewToDownload)
+        layoutAddNewSymbol.addWidget(self.editSymbolToAdd)
+        layoutAddNewSymbol.addWidget(addNewSymbol)         
+        self.connect(addNewSymbol,QtCore.SIGNAL("clicked()"),self.slotAddNewSymbol)        
         
-        self.tableSymbolsToDownload.cellDoubleClicked.connect(self.onTableSymbolsToDownloadDoubleClicked)
-        self.connect(addNewSymbol,QtCore.SIGNAL("clicked()"),self.slotAddNewSymbol)
-        # 04)topLeft04----------------------
-        DownloadOneButton=QtGui.QPushButton(self.tr("DownloadSelected"))
-        DownloadAllButton=QtGui.QPushButton(self.tr("DownloadAll")) 
-        lablePeriod = QtGui.QLabel(self.tr("Period")) 
-        lableTimeStart = QtGui.QLabel(self.tr("Time start")) 
+        
+        layoutParameters = QtGui.QGridLayout(self)
+        
+        lablePeriod = QtGui.QLabel(self.tr("Period:")) 
+        periodComboBox=QtGui.QComboBox()
+        self.periodComboBox = periodComboBox
+        periodComboBox.insertItem(0,self.tr("D"))
+        periodComboBox.insertItem(1,self.tr("min"))
+        
+        lableTimeStart = QtGui.QLabel(self.tr("Time start:")) 
         timeStart = QtGui.QCalendarWidget()
         timeStart=QtGui.QDateTimeEdit()
-        timeStart.setDateTime(QtCore.QDateTime.currentDateTime())
+        self.timeStartTimeEdit = timeStart
+        timeStart.setDateTime(QtCore.QDateTime.fromString('2010-01-01 02:00:00','yyyy-MM-dd hh:mm:ss'))
         timeStart.setDisplayFormat("yyyy-MM-dd hh:mm:ss")
         timeStart.setCalendarPopup(True)  
         lableTimeEnd = QtGui.QLabel(self.tr("Time end"))  
         timeEnd=QtGui.QDateTimeEdit()
+        self.timeEndTimeEdit = timeEnd
         timeEnd.setDateTime(QtCore.QDateTime.currentDateTime())
-        timeEnd.setDisplayFormat("yyyy-MM-dd hh:mm:ss")
-        timeEnd.setCalendarPopup(True)        
-        periodComboBox=QtGui.QComboBox()
-        periodComboBox.insertItem(0,self.tr("D"))
-        periodComboBox.insertItem(1,self.tr("min"))
-    
-        topLeft04.addWidget(lablePeriod)
-        topLeft04.addWidget(periodComboBox)
-        topLeft04.addWidget(lableTimeStart)
-        topLeft04.addWidget(timeStart)
-        topLeft04.addWidget(lableTimeEnd)
-        topLeft04.addWidget(timeEnd)
-        topLeft04.addWidget(DownloadOneButton)
-        topLeft04.addWidget(DownloadAllButton)      
-    
-        self.connect(DownloadOneButton,QtCore.SIGNAL("clicked()"),self.slotDownloadSelected)
-        self.connect(DownloadAllButton,QtCore.SIGNAL("clicked()"),self.slotDownloadAll)        
         
-        # top---------------------------------------------------------------------
-        topLayout.addLayout(topLeft01)
-        topLayout.addLayout(topLeft02)
-        topLayout.addLayout(topLeft03)
-        topLayout.addLayout(topLeft04)    
-    def initBottomUI(self,bottomLayout):
+        timeEnd.setDisplayFormat("yyyy-MM-dd hh:mm:ss")
+        timeEnd.setCalendarPopup(True)                
+        
+        layoutParameters.addWidget(lablePeriod,1,0)
+        layoutParameters.addWidget(periodComboBox,1,1)  
+        layoutParameters.addWidget(lableTimeStart,2,0)  
+        layoutParameters.addWidget(timeStart,2,1)  
+        layoutParameters.addWidget(lableTimeEnd,3,0)  
+        layoutParameters.addWidget(timeEnd,3,1)          
+        
+        DownloadOneButton=QtGui.QPushButton(self.tr("DownloadSelected"))
+        DownloadAllButton=QtGui.QPushButton(self.tr("DownloadAll")) 
+        self.connect(DownloadOneButton,QtCore.SIGNAL("clicked()"),self.slotDownloadSelected)
+        self.connect(DownloadAllButton,QtCore.SIGNAL("clicked()"),self.slotDownloadAll)
+
+
+        layoutDownloadParams.addLayout(layoutParameters)
+
+        layoutDownloadParams.addLayout(layoutAddNewSymbol)
+        layoutDownloadParams.addWidget(DownloadOneButton)
+        layoutDownloadParams.addWidget(DownloadAllButton)
+        
+        return layoutDownloadParams
+    def initLayoutCodesSource(self):
+        layoutCodesSource = QtGui.QVBoxLayout(self)
+        self.initTopCodesSourceSelector(layoutCodesSource)
+        self.initCodesTable(layoutCodesSource)  
+        return layoutCodesSource
+    def initTopUI(self):
+        topLayout = QtGui.QHBoxLayout(self)     #mid remote data 
+        
+        #mid 1) codesSource 
+        layoutCodesSource = self.initLayoutCodesSource()   
+        #mid 2) 
+        layoutCodeMover =  self.initLayoutCodeMover()
+        #mid 3)
+        layoutCodesToDownload = self.initLayoutCodesTableToDownload()
+        #mid 4)
+        layoutDownloadParams = self.initDownloaderParams()        
+
+        #mid asignment
+        topLayout.addLayout(layoutCodesSource)
+        topLayout.addLayout(layoutCodeMover)
+        topLayout.addLayout(layoutCodesToDownload)
+        topLayout.addLayout(layoutDownloadParams)    
+        
+        return topLayout
+    def initBottomUI(self):
+        bottomLayout = QtGui.QHBoxLayout(self)  #mid local data
+        
+        
         bottomLeft01 = QtGui.QVBoxLayout(self)  
         bottomLeft02 = QtGui.QVBoxLayout(self)  
     
@@ -230,7 +294,9 @@ class DataManagerDialog(QtGui.QDialog):
         # bottom--------------------------------------------------------------------
         bottomLayout.addLayout(bottomLeft01)
         bottomLayout.addLayout(bottomLeft02)
-        bottomLayout.addLayout(bottomLeft03)           
+        bottomLayout.addLayout(bottomLeft03)  
+        
+        return bottomLayout
     #----------------------------------------------------------------------
     def initUI(self):
         """mid
@@ -248,11 +314,9 @@ class DataManagerDialog(QtGui.QDialog):
 	4.本地数据展示(table,graph)
         """
         mainLayout = QtGui.QVBoxLayout(self)   
-        topLayout = QtGui.QHBoxLayout(self)     #mid remote data 
         
-        bottomLayout = QtGui.QHBoxLayout(self)  #mid local data
-        self.initTopUI(topLayout)
-        self.initBottomUI(bottomLayout)
+        topLayout = self.initTopUI()
+        bottomLayout = self.initBottomUI()
         # all----------------------------------------------------------------------
         mainLayout.addLayout(topLayout)
         mainLayout.addLayout(bottomLayout)
@@ -307,7 +371,7 @@ class DataManagerDialog(QtGui.QDialog):
         
         
         self.tableSymbolsToDownload.clear()
-        header = ["code","name","class","dateFrom","dateTo"]
+        header = ["code","name","class"]
         self.tableSymbolsToDownload.setColumnCount(len(header))
         self.tableSymbolsToDownload.setRowCount(len(self.dfSymbolsToDownload))
         self.tableSymbolsToDownload.setHorizontalHeaderLabels(header)     #mid should be after .setColumnCount()
@@ -315,19 +379,7 @@ class DataManagerDialog(QtGui.QDialog):
         if(True):
             for row in range(len(self.dfSymbolsToDownload.index)):
                 for column in range(len(self.dfSymbolsToDownload.columns)):
-                    self.tableSymbolsToDownload.setItem(row,column,QtGui.QTableWidgetItem(str(self.dfSymbolsToDownload.iget_value(row, column))))        
-                    
-                #timeStart = QtGui.QCalendarWidget()
-                timeStart=QtGui.QDateTimeEdit()
-                timeStart.setDateTime(QtCore.QDateTime.currentDateTime())
-                timeStart.setDisplayFormat("yyyy-MM-dd hh:mm:ss")
-                timeStart.setCalendarPopup(True)  
-                timeEnd=QtGui.QDateTimeEdit()
-                timeEnd.setDateTime(QtCore.QDateTime.currentDateTime())
-                timeEnd.setDisplayFormat("yyyy-MM-dd hh:mm:ss")
-                timeEnd.setCalendarPopup(True)                 
-                self.tableSymbolsToDownload.setCellWidget(row,3,timeStart)
-                self.tableSymbolsToDownload.setCellWidget(row,4,timeEnd)                  
+                    self.tableSymbolsToDownload.setItem(row,column,QtGui.QTableWidgetItem(str(self.dfSymbolsToDownload.iget_value(row, column))))                         
         else: #mid the above codes have better performance than the below.        
             for row in np.arange(0,len(self.dfSymbolsToDownload)):
                 symbol = self.dfSymbolsToDownload.index[row]
@@ -339,7 +391,6 @@ class DataManagerDialog(QtGui.QDialog):
                 timeStart.setDateTime(QtCore.QDateTime.currentDateTime())
                 timeStart.setDisplayFormat("yyyy-MM-dd hh:mm:ss")
                 timeStart.setCalendarPopup(True)  
-                lableTimeEnd = QtGui.QLabel(self.tr("Time end"))  
                 timeEnd=QtGui.QDateTimeEdit()
                 timeEnd.setDateTime(QtCore.QDateTime.currentDateTime())
                 timeEnd.setDisplayFormat("yyyy-MM-dd hh:mm:ss")
@@ -441,41 +492,66 @@ class DataManagerDialog(QtGui.QDialog):
         else:   #none selected and empty table
             symbol = 'none to download.'
             QtGui.QMessageBox.information(self,"Information",self.tr(symbol)) 
-
+    def messageBoxAfterDownloaded(self,dataDict):
+        countsDownloaded = len(dataDict)
+        if(countsDownloaded<=0):
+            QtGui.QMessageBox.information(self,"Information",self.tr('None downloaded.')) 
+        else:
+            strCodesDownloaded = '\n'
+            for code in dataDict:
+                strCodesDownloaded = strCodesDownloaded + code + '\n'
+            QtGui.QMessageBox.information(self,"Information",self.tr(str(countsDownloaded)+' downloaded.'+'\ncodes list:'+strCodesDownloaded))         
 #----------------------------------------------------------------------
     def slotDownloadAll(self):
         """"""
         if(len(self.dfSymbolsToDownload)>0):
-            symbol = self.dfSymbolsToDownload.index[0]
+            symbols = self.dfSymbolsToDownload['code']
+            codeList=symbols.tolist()
+
+            remoteDataSourceType = self.remoteDataSourceTypeComboBox.currentText()
+            localStorageType = self.localStorageTypeComboBox.currentText()            
+            
+            periodType = self.periodComboBox.currentText()
+            
+            
+            timeStart = self.timeStartTimeEdit.dateTime().toPyDateTime()
+            strStart = timeStart.strftime('%Y-%m-%d')
+            
+            timeEnd = datetime.now()
+            strEnd = timeEnd.strftime('%Y-%m-%d')  
+                        
+            # 2)download history data
+            dataDict = self.dataCenter.downloadHistData(providerType=remoteDataSourceType,storageType=localStorageType,periodType=periodType,
+                                                        codeList=codeList,timeStart=strStart,timeEnd=strEnd)
+            self.messageBoxAfterDownloaded(dataDict)             
         else:
             symbol = 'none to download.'
-        QtGui.QMessageBox.information(self,"Information",self.tr(symbol))
+            QtGui.QMessageBox.information(self,"Information",self.tr(symbol))
     #----------------------------------------------------------------------
     def slotDownloadSelected(self):
         """"""
         rowSelected = self.tableSymbolsToDownload.currentRow()
         if((rowSelected<0) and (self.tableSymbolsToDownload.rowCount()>0)):
             rowSelected = 0
-            
         if(rowSelected>=0):   #a row selected or table is not empty.
             symbolToDownload = self.tableSymbolsToDownload.item(rowSelected,0).text()
-            
-            providerType='tushare'
-            periodType='D'
             codeList=[symbolToDownload]
-            strStart = '2010-01-01'
-            dateEnd = datetime.now()
-            strEnd = dateEnd.strftime('%Y-%m-%d')  
-            frequency = 'D'            
+
+            remoteDataSourceType = self.remoteDataSourceTypeComboBox.currentText()
+            localStorageType = self.localStorageTypeComboBox.currentText()            
             
+            periodType = self.periodComboBox.currentText()
+            
+            timeStart = self.timeStartTimeEdit.dateTime().toPyDateTime()
+            strStart = timeStart.strftime('%Y-%m-%d')
+            
+            timeEnd = datetime.now()
+            strEnd = timeEnd.strftime('%Y-%m-%d')  
+                        
             # 2)download history data
-            dataDict = self.dataCenter.downloadHistData(providerType=providerType,periodType=periodType,_codeList_=codeList)
-            
-            countsDownloaded = len(dataDict)
-            if(countsDownloaded<=0):
-                QtGui.QMessageBox.information(self,"Information",self.tr('None downloaded.')) 
-            else:
-                QtGui.QMessageBox.information(self,"Information",self.tr(str(countsDownloaded)+' downloaded.')) 
+            dataDict = self.dataCenter.downloadHistData(providerType=remoteDataSourceType,storageType=localStorageType,periodType=periodType,
+                                                        codeList=codeList,timeStart=strStart,timeEnd=strEnd)
+            self.messageBoxAfterDownloaded(dataDict)
         else:   #none selected and empty table
             symbol = 'none to download.'
             QtGui.QMessageBox.information(self,"Information",self.tr(symbol))     
