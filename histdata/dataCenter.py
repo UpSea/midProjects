@@ -8,7 +8,18 @@ class dataCenter():
     def __init__(self):
         dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','csv','tusharedb'))                
         self.tsCenter = tushareDataCenter(dataPath)    
-                
+    def retriveHistData(self,symbol = ''):
+        return self.tsCenter.retriveHistData(storageType = 'mongodb',symbol = symbol)
+
+    def getLocalAvailableDataSymbols(self,dataType = 'tushare',storageType = 'mongodb',periodType = "D"):
+        if(dataType == 'tushare'):
+            return self.tsCenter.retriveAvailableSymbols(storageType=storageType,periodType = periodType)
+        elif(dataType == 'yahoo'):
+            pass        
+        elif(dataType == 'sina'):
+            pass
+        else:
+            pass
     def getCodes(self,codesType,sourceType):
         if(codesType == 'tushare'):
             return self.tsCenter.getCodes(sourceType)

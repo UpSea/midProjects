@@ -93,7 +93,7 @@ class Mongodb(object):
         else:
             return -1
     #----------------------------------------------------------------------
-    def retrive(self,symbol,start,end,frequency):
+    def retrive(self,symbol='',start='',end='',frequency=''):
         # 1) retrive data from database
         data = self.find({'symbol':str(symbol)})
         print('----retrived ok')
@@ -119,7 +119,7 @@ class Mongodb(object):
     def retriveSymbolsAll(self):
         """"""
         self.setCollection('D')
-        dfSymbols = pd.DataFrame(columns=['counts','dateStart','dateEnd'])
+        dfSymbols = pd.DataFrame(columns=['code','counts','dateStart','dateEnd'])
         symbols = self.find({})
         
         for item in symbols:
@@ -128,7 +128,7 @@ class Mongodb(object):
             dateStart = min(high.keys())
             dateEnd = max(high.keys())
             counts = len(high.keys())
-            dfSymbols.loc[symbol]=[counts,dateStart,dateEnd]
+            dfSymbols.loc[symbol]=[symbol,counts,dateStart,dateEnd]
         return dfSymbols
     def retriveCodes(self):
         self.setCollection('codes')

@@ -52,7 +52,19 @@ class tushareDataCenter():
         elif button==csvButton:  
             return 'csv' 
         elif button==cancelButton:  
-            return 'cancel'    
+            return 'cancel'  
+    def retriveAvailableSymbols(self,storageType = 'mongodb' , periodType = 'D'):
+        if(storageType == 'mongodb'):
+            if(periodType == 'D'):
+                self.mongodb.setCollection('D')
+                codes = self.mongodb.retriveSymbolsAll()             
+                return codes    
+            elif(periodType == 'min'):
+                pass
+            else:
+                pass
+        elif(storageType == 'csv'):
+            pass          
     def getCodes(self,sourceType):
         if(sourceType == 'remote'):
             codes = self.downloadCodes()
@@ -167,7 +179,8 @@ class tushareDataCenter():
                 self.mongodb.insert(quotesDict)            
         elif(storageType == 'csv'):
             for code in dic:
-                dic[code].to_csv(self.codefile,encoding='gbk',index=False) 
+                dic[code].to_csv((self.dataRoot+os.sep+'day'+os.sep+('%s.csv'%code)),encoding='gbk')
+                
         #mid ----------------------------------------------------------------------
         return dic
             
@@ -231,7 +244,11 @@ class tushareDataCenter():
         dat = dat.drop_duplicates('code')                                                   #去除重复code
         return dat['code'].values 
 
-  
+    def retriveHistData(self,storageType = 'mongodb',symbol = ''):
+        if(storageType == 'mongodb'):
+            return self.mongodb.retrive(symbol = symbol)
+        elif(storageType == 'csv'):
+            self.retriveDataFrameKData(symbol)
     def retriveDataFrameKData(self,instrument,frequency='day'):
         if frequency == 'day':
             fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))

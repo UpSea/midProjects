@@ -155,7 +155,6 @@ class DataManagerDialog(QtGui.QDialog):
         codesSourceLable = QtGui.QLabel(self.tr("local storage type:")) 
         sourceTypeComboBox=QtGui.QComboBox()
         self.localStorageTypeComboBox = sourceTypeComboBox
-        self.sourceTypeComboBox = sourceTypeComboBox
         sourceTypeComboBox.insertItem(0,self.tr("mongodb"))        
         sourceTypeComboBox.insertItem(1,self.tr("csv"))
     
@@ -257,27 +256,41 @@ class DataManagerDialog(QtGui.QDialog):
         topLayout.addLayout(layoutDownloadParams)    
         
         return topLayout
-    def initBottomUI(self):
-        bottomLayout = QtGui.QHBoxLayout(self)  #mid local data
+    def initLayoutSymbolsSelector(self):
+        layoutSymbolsSelector = QtGui.QHBoxLayout(self)
+
+        label7=QtGui.QLabel(self.tr("locally available symbols:"))
+        labelStorageType = QtGui.QLabel(self.tr("storage type:"))
+        labelPeriodType = QtGui.QLabel(self.tr("period type:"))
         
+        storageComboBox=QtGui.QComboBox()
+        self.localSymbolsPeriodComboBox = storageComboBox
+        storageComboBox.insertItem(0,self.tr("mongodb"))
+        storageComboBox.insertItem(1,self.tr("csv")) 
+        storageComboBox.insertItem(2,self.tr("all")) 
         
+        periodComboBox=QtGui.QComboBox()
+        self.localSymbolsPeriodComboBox = periodComboBox
+        periodComboBox.insertItem(0,self.tr("D"))
+        periodComboBox.insertItem(1,self.tr("min"))  
+        periodComboBox.insertItem(2,self.tr("all"))  
+        
+        layoutSymbolsSelector.addWidget(label7)
+        layoutSymbolsSelector.addWidget(labelStorageType)
+        layoutSymbolsSelector.addWidget(storageComboBox)
+        layoutSymbolsSelector.addWidget(labelPeriodType)
+        layoutSymbolsSelector.addWidget(periodComboBox)        
+        
+        return layoutSymbolsSelector
+    def initLayoutLocalDataSource(self):      
         bottomLeft01 = QtGui.QVBoxLayout(self)  
-        bottomLeft02 = QtGui.QVBoxLayout(self)  
-    
-        # 05)bottomLeft01----------------------
-        label7=QtGui.QLabel(self.tr("Current local symbol description"))
-        descTextEdit=QtGui.QTextEdit()        
-        bottomLeft01.addWidget(label7)
-        bottomLeft01.addWidget(descTextEdit)        
-        # 05)bottomLeft02---------------------
-        label7=QtGui.QLabel(self.tr("Current symbol to download description:"))
-        descTextEdit=QtGui.QTextEdit() 
-        bottomLeft02.addWidget(label7)
-        bottomLeft02.addWidget(descTextEdit)
-    
-    
+        # 05)symbols selector
+        layoutSymbolsSelector = self.initLayoutSymbolsSelector()
+        
+        self.tableLocalAvailableSymbols = QtGui.QTableWidget()
+
         # 06)bottomLeft03
-        bottomLeft03 = QtGui.QVBoxLayout(self)
+        bottomLeft03 = QtGui.QHBoxLayout(self)
     
         DeleteOneFromDBButton=QtGui.QPushButton(self.tr("DeleteOneFromDB"))
         DeleteAllFromDBButton=QtGui.QPushButton(self.tr("DeleteAllFromDB"))      
@@ -289,12 +302,34 @@ class DataManagerDialog(QtGui.QDialog):
         bottomLeft03.addWidget(ShowInTableButton)
         bottomLeft03.addWidget(ShowInGraphButton)
         self.connect(ShowInTableButton,QtCore.SIGNAL("clicked()"),self.slotShowInTable)
-        self.connect(ShowInGraphButton,QtCore.SIGNAL("clicked()"),self.slotShowInCandleGraph)         
+        self.connect(ShowInGraphButton,QtCore.SIGNAL("clicked()"),self.slotShowInCandleGraph)  
+        
+        bottomLeft01.addLayout(layoutSymbolsSelector)
+        bottomLeft01.addWidget(self.tableLocalAvailableSymbols)
+        bottomLeft01.addLayout(bottomLeft03)
+        return bottomLeft01
+    def initLayoutLocalDataVisualizer(self):
+        bottomLeft02 = QtGui.QVBoxLayout(self)  
+    
+     
+        # 05)bottomLeft02---------------------
+        label7=QtGui.QLabel(self.tr("Current symbol to download description:"))
+        descTextEdit=QtGui.QTextEdit() 
+        bottomLeft02.addWidget(label7)
+        bottomLeft02.addWidget(descTextEdit)  
+        
+        return bottomLeft02
+    def initBottomUI(self):
+        bottomLayout = QtGui.QHBoxLayout(self)  #mid local data
+        
+        #mid 1) local data selector
+        layoutLocalDataSource = self.initLayoutLocalDataSource()
+        
+        layoutLocalDataVisualizer = self.initLayoutLocalDataVisualizer()
     
         # bottom--------------------------------------------------------------------
-        bottomLayout.addLayout(bottomLeft01)
-        bottomLayout.addLayout(bottomLeft02)
-        bottomLayout.addLayout(bottomLeft03)  
+        bottomLayout.addLayout(layoutLocalDataSource)
+        bottomLayout.addLayout(layoutLocalDataVisualizer)
         
         return bottomLayout
     #----------------------------------------------------------------------
@@ -321,6 +356,48 @@ class DataManagerDialog(QtGui.QDialog):
         mainLayout.addLayout(topLayout)
         mainLayout.addLayout(bottomLayout)
         #mainLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)        
+    #----------------------------------------------------------------------
+    def updateLocalAvailableSymbolsTable(self):
+        """mid
+        dfLocalSymbols.index = 'code'
+        dfLocalSymbols.columns = ['code','name','c_name',...]
+        """
+        dfLocalSymbols = self.dataCenter.getLocalAvailableDataSymbols(dataType = 'tushare',storageType = 'mongodb',periodType = "D")
+        
+        
+        
+        
+        self.tableLocalAvailableSymbols.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)  
+        self.tableLocalAvailableSymbols.setEditTriggers(QtGui.QTableWidget.NoEditTriggers)  
+        self.tableLocalAvailableSymbols.setSelectionBehavior(QtGui.QTableWidget.SelectRows)  
+        self.tableLocalAvailableSymbols.setSelectionMode(QtGui.QTableWidget.SingleSelection)  
+        self.tableLocalAvailableSymbols.setAlternatingRowColors(True)         
+        
+        
+        self.tableLocalAvailableSymbols.clear()
+        header = ["code","counts","date from","date to"]
+        self.tableLocalAvailableSymbols.setColumnCount(len(header))
+        self.tableLocalAvailableSymbols.setRowCount(len(dfLocalSymbols))
+        self.tableLocalAvailableSymbols.setHorizontalHeaderLabels(header)     #mid should be after .setColumnCount()
+        
+        
+        if(True):
+            for row in range(len(dfLocalSymbols.index)):
+                for column in range(len(dfLocalSymbols.columns)):
+                    self.tableLocalAvailableSymbols.setItem(row,column,QtGui.QTableWidgetItem(str(dfLocalSymbols.iget_value(row, column))))        
+        else: #mid the above codes have better performance than the below.
+            for row in np.arange(0,len(dfLocalSymbols)):
+                code = dfLocalSymbols.index[row]
+                
+                #symbol = QtGui.QLabel(self.tr(code))
+                symbol = str(code)
+                codeName = dfLocalSymbols.loc[code,'name']
+                codeClass = dfLocalSymbols.loc[code,'c_name']
+                                   
+                #self.tableLocalSymbols.setCellWidget(row,0,symbol)
+                self.tableLocalAvailableSymbols.setItem(row,0,QtGui.QTableWidgetItem(symbol))
+                self.tableLocalAvailableSymbols.setItem(row,1,QtGui.QTableWidgetItem(codeName))
+                self.tableLocalAvailableSymbols.setItem(row,2,QtGui.QTableWidgetItem(codeClass))    
     #----------------------------------------------------------------------
     def updateLocalSymbolsTable(self):
         """mid
@@ -469,12 +546,15 @@ class DataManagerDialog(QtGui.QDialog):
         self.tableHistory.setWindowTitle("history")
         self.tableHistory.show()        
     def slotShowInCandleGraph(self):
-        rowSelected = self.tableLocalSymbols.currentRow()
-        if((rowSelected<0) and (self.tableLocalSymbols.rowCount()>0)):
+        
+        
+        
+        rowSelected = self.tableLocalAvailableSymbols.currentRow()
+        if((rowSelected<0) and (self.tableLocalAvailableSymbols.rowCount()>0)):
             rowSelected = 0
             
         if(rowSelected>=0):   #a row selected or table is not empty.
-            symbolToDownload = self.tableLocalSymbols.item(rowSelected,0).text()
+            symbolToDownload = self.tableLocalAvailableSymbols.item(rowSelected,0).text()
             # 1)connect to Mongodb 
             connect = Mongodb('192.168.0.212', 27017)
             connect.use('Tushare')    #database            
@@ -484,11 +564,15 @@ class DataManagerDialog(QtGui.QDialog):
             strEnd = dateEnd.strftime('%Y-%m-%d')  
             frequency = 'D'
             connect.setCollection(frequency)    #table
-            history = connect.retrive(symbolToDownload,strStart,strEnd,frequency)
+            #history = connect.retrive(symbolToDownload,strStart,strEnd,frequency)
+            
+            
+            history = self.dataCenter.retriveHistData(symbolToDownload)
+            
             dataForCandle = feedsForCandle.DataFrameToCandle(history)            
             
-            self.myWindow = MyDialog(dataForCandle=dataForCandle)  
-            self.myWindow.show()                        
+            self.myWindowfff = MyDialog(dataForCandle=dataForCandle)  
+            self.myWindowfff.show()                        
         else:   #none selected and empty table
             symbol = 'none to download.'
             QtGui.QMessageBox.information(self,"Information",self.tr(symbol)) 
@@ -523,10 +607,13 @@ class DataManagerDialog(QtGui.QDialog):
             # 2)download history data
             dataDict = self.dataCenter.downloadHistData(providerType=remoteDataSourceType,storageType=localStorageType,periodType=periodType,
                                                         codeList=codeList,timeStart=strStart,timeEnd=strEnd)
-            self.messageBoxAfterDownloaded(dataDict)             
+            self.messageBoxAfterDownloaded(dataDict)   
+            
         else:
             symbol = 'none to download.'
             QtGui.QMessageBox.information(self,"Information",self.tr(symbol))
+        self.updateLocalAvailableSymbolsTable()
+        
     #----------------------------------------------------------------------
     def slotDownloadSelected(self):
         """"""
