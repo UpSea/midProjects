@@ -32,6 +32,8 @@ class DataManagerDialog(QtGui.QDialog):
         self.dataCenter = dataCenter.dataCenter()   
         self.dfLocalSymbols = pd.DataFrame(columns=['code','name','c_name'])
         self.dfSymbolsToDownload = pd.DataFrame(columns=['code','name','c_name'])
+    def onLocalSymbolSelectorActivate(self,text):
+        self.updateLocalAvailableSymbolsTable()
     #----------------------------------------------------------------------    
     def onActivate(self, text):
         #mid feedFormat = tushareCsv|tushare|yahooCsv|yahoo|generic
@@ -260,11 +262,18 @@ class DataManagerDialog(QtGui.QDialog):
         layoutSymbolsSelector = QtGui.QHBoxLayout(self)
 
         label7=QtGui.QLabel(self.tr("locally available symbols:"))
+        labelSourceType = QtGui.QLabel('source Type:')
         labelStorageType = QtGui.QLabel(self.tr("storage type:"))
         labelPeriodType = QtGui.QLabel(self.tr("period type:"))
         
-        storageComboBox=QtGui.QComboBox()
-        self.localSymbolsPeriodComboBox = storageComboBox
+        datasourceComboBox = QtGui.QComboBox()
+        self.localDatasourceComboBox = datasourceComboBox
+        datasourceComboBox.insertItem(0,'tushare')
+        datasourceComboBox.insertItem(1,'sina')
+        datasourceComboBox.insertItem(2,'yahoo')
+        
+        storageComboBox = QtGui.QComboBox()
+        self.localSymbolsStorageComboBox = storageComboBox
         storageComboBox.insertItem(0,self.tr("mongodb"))
         storageComboBox.insertItem(1,self.tr("csv")) 
         storageComboBox.insertItem(2,self.tr("all")) 
@@ -275,9 +284,21 @@ class DataManagerDialog(QtGui.QDialog):
         periodComboBox.insertItem(1,self.tr("min"))  
         periodComboBox.insertItem(2,self.tr("all"))  
         
+        datasourceComboBox.activated[str].connect(self.onLocalSymbolSelectorActivate)        
+        storageComboBox.activated[str].connect(self.onLocalSymbolSelectorActivate)        
+        periodComboBox.activated[str].connect(self.onLocalSymbolSelectorActivate)        
+        
+        
+        
+        
         layoutSymbolsSelector.addWidget(label7)
+        
+        layoutSymbolsSelector.addWidget(labelSourceType)
+        layoutSymbolsSelector.addWidget(datasourceComboBox)
+        
         layoutSymbolsSelector.addWidget(labelStorageType)
-        layoutSymbolsSelector.addWidget(storageComboBox)
+        layoutSymbolsSelector.addWidget(storageComboBox)      
+        
         layoutSymbolsSelector.addWidget(labelPeriodType)
         layoutSymbolsSelector.addWidget(periodComboBox)        
         
@@ -302,8 +323,8 @@ class DataManagerDialog(QtGui.QDialog):
         bottomLeft03.addWidget(ShowInTableButton)
         bottomLeft03.addWidget(ShowInGraphButton)
         self.connect(ShowInTableButton,QtCore.SIGNAL("clicked()"),self.slotShowInTable)
-        self.connect(ShowInGraphButton,QtCore.SIGNAL("clicked()"),self.slotShowInCandleGraph)  
-        
+        self.connect(ShowInGraphButton,QtCore.SIGNAL("clicked()"),self.slotShowInCandleGraph) 
+                
         bottomLeft01.addLayout(layoutSymbolsSelector)
         bottomLeft01.addWidget(self.tableLocalAvailableSymbols)
         bottomLeft01.addLayout(bottomLeft03)
@@ -362,10 +383,12 @@ class DataManagerDialog(QtGui.QDialog):
         dfLocalSymbols.index = 'code'
         dfLocalSymbols.columns = ['code','name','c_name',...]
         """
-        dfLocalSymbols = self.dataCenter.getLocalAvailableDataSymbols(dataType = 'tushare',storageType = 'mongodb',periodType = "D")
+        datasource = self.localDatasourceComboBox.currentText()
+        storageType = self.localStorageTypeComboBox.currentText()
+        period = self.localSymbolsPeriodComboBox.currentText()        
         
-        
-        
+        dfLocalSymbols = self.dataCenter.getLocalAvailableDataSymbols(dataType = datasource,storageType = storageType,periodType = period)
+
         
         self.tableLocalAvailableSymbols.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)  
         self.tableLocalAvailableSymbols.setEditTriggers(QtGui.QTableWidget.NoEditTriggers)  
@@ -377,6 +400,11 @@ class DataManagerDialog(QtGui.QDialog):
         self.tableLocalAvailableSymbols.clear()
         header = ["code","counts","date from","date to"]
         self.tableLocalAvailableSymbols.setColumnCount(len(header))
+        
+        if(dfLocalSymbols is None):
+            self.tableLocalAvailableSymbols.setRowCount(0)
+            return        
+        
         self.tableLocalAvailableSymbols.setRowCount(len(dfLocalSymbols))
         self.tableLocalAvailableSymbols.setHorizontalHeaderLabels(header)     #mid should be after .setColumnCount()
         
@@ -546,36 +574,46 @@ class DataManagerDialog(QtGui.QDialog):
         self.tableHistory.setWindowTitle("history")
         self.tableHistory.show()        
     def slotShowInCandleGraph(self):
-        
-        
-        
         rowSelected = self.tableLocalAvailableSymbols.currentRow()
         if((rowSelected<0) and (self.tableLocalAvailableSymbols.rowCount()>0)):
             rowSelected = 0
             
         if(rowSelected>=0):   #a row selected or table is not empty.
+            datasource = self.localDatasourceComboBox.currentText()
+            storageType = self.localStorageTypeComboBox.currentText()
             symbolToDownload = self.tableLocalAvailableSymbols.item(rowSelected,0).text()
-            # 1)connect to Mongodb 
-            connect = Mongodb('192.168.0.212', 27017)
-            connect.use('Tushare')    #database            
-            # 2)retrive data from specified collection
-            strStart = u'2013-12-01'
-            dateEnd = dt.datetime.now()
-            strEnd = dateEnd.strftime('%Y-%m-%d')  
-            frequency = 'D'
-            connect.setCollection(frequency)    #table
-            #history = connect.retrive(symbolToDownload,strStart,strEnd,frequency)
+            period = self.localSymbolsPeriodComboBox.currentText()
+            #history = self.dataCenter.retriveHistData(symbolToDownload)
             
-            
-            history = self.dataCenter.retriveHistData(symbolToDownload)
-            
-            dataForCandle = feedsForCandle.DataFrameToCandle(history)            
-            
-            self.myWindowfff = MyDialog(dataForCandle=dataForCandle)  
-            self.myWindowfff.show()                        
+            dataForCandle = self.dataCenter.retriveCandleData(datasource = datasource,storageType = storageType,symbol = symbolToDownload)     
+            self.showCandle(dataForCandle)
+            #self.myWindowfff = MyDialog(dataForCandle=dataForCandle)  
+            #self.myWindowfff.show()                        
         else:   #none selected and empty table
             symbol = 'none to download.'
             QtGui.QMessageBox.information(self,"Information",self.tr(symbol)) 
+    def showCandle(self,dataForCandle):
+        import os,sys
+        xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),'Widgets'))
+        sys.path.append(xpower)
+        from Widgets.pgCandleWidgetCross import pgCandleWidgetCross
+        dialog = QtGui.QDialog()
+        self.pgCandleView = dialog
+        layout = QtGui.QHBoxLayout()
+        layoutLeft = QtGui.QVBoxLayout()
+        layout.addLayout(layoutLeft)
+        dialog.setLayout(layout)        
+        dialog.setWindowTitle(('ComboView'))
+        # 2) creates widgets 
+        editor = QtGui.QTextEdit()
+        editor.setText("<span style='font-size: 15pt' style='color: red'>x = %0.1f,y = %0.1f</span>"% (2.0,2.0))
+    
+        candle = pgCandleWidgetCross(dataForCandle=dataForCandle)  
+        #candle = pgCrossAddition()
+        # 3)arrange widgets
+        layout.addWidget(editor)
+        layout.addWidget(candle)
+        dialog.showMaximized()           
     def messageBoxAfterDownloaded(self,dataDict):
         countsDownloaded = len(dataDict)
         if(countsDownloaded<=0):

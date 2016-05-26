@@ -93,8 +93,9 @@ class Mongodb(object):
         else:
             return -1
     #----------------------------------------------------------------------
-    def retrive(self,symbol='',start='',end='',frequency=''):
+    def retrive(self,symbol='',start='',end='',period='D'):
         # 1) retrive data from database
+        self.setCollection(period)
         data = self.find({'symbol':str(symbol)})
         print('----retrived ok')
         

@@ -7,10 +7,16 @@ from tusharedb.tushareDataManager import tushareDataCenter
 class dataCenter():
     def __init__(self):
         dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','csv','tusharedb'))                
-        self.tsCenter = tushareDataCenter(dataPath)    
+        self.tsCenter = tushareDataCenter(dataPath)
+    def retriveCandleData(self,datasource = 'tushare',storageType = 'mongodb',symbol = '',period = 'D'):
+        if (datasource == 'tushare'):
+            return self.tsCenter.retriveCandleData(storageType = storageType,symbol = symbol,period = period)
+        elif (datasource == 'yahoo'):
+            pass
+        elif (datasource == 'sina'):
+            pass
     def retriveHistData(self,symbol = ''):
         return self.tsCenter.retriveHistData(storageType = 'mongodb',symbol = symbol)
-
     def getLocalAvailableDataSymbols(self,dataType = 'tushare',storageType = 'mongodb',periodType = "D"):
         if(dataType == 'tushare'):
             return self.tsCenter.retriveAvailableSymbols(storageType=storageType,periodType = periodType)

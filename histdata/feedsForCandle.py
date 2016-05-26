@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.dates as mpd
 import datetime as dt
+'''
+
 def DataFrameToCandle(history):
     """
     将日期字符串转化为Datetime，再转化为narray，只用于绘制candle
@@ -58,3 +60,6 @@ def GetCandlesFromMongodb(params):
     history = connect.retrive(symbol,strStart,strEnd,frequency)
       
     return DataFrameToCandle(history)
+
+
+'''

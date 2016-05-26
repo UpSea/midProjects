@@ -243,13 +243,57 @@ class tushareDataCenter():
         #dat = ts.get_industry_classified()
         dat = dat.drop_duplicates('code')                                                   #去除重复code
         return dat['code'].values 
-
+    def __DataFrameToCandle__(self,history):
+        """
+        将日期字符串转化为Datetime，再转化为narray，只用于绘制candle
+        输入：
+            pandas.DataFrame。
+            Index=Str
+        输出：
+            numpy.narray
+            col1=date
+            col2=open
+            col3=high
+            col4=low
+            col5=close
+        """     
+        import pandas as pd
+        import numpy as np
+        import matplotlib.dates as mpd
+        import datetime as dt        
+        #date = np.array([mpd.date2num(dt.datetime.strptime(dateStr, '%Y-%m-%d')) for dateStr in history.index])      
+        import sys
+        if sys.version > '3':
+            PY3 = True
+        else:
+            PY3 = False    
+        if (PY3 == True):
+            date = np.array([mpd.date2num(pd.to_datetime(dateStr+' 09:30:00+08',format= '%Y-%m-%d %H:%M:%S').tz_localize('utc')) for dateStr in history.index])         
+        else:
+            date = np.array([mpd.date2num(pd.to_datetime(dateStr+' 09:30:00+08','%Y-%m-%d %H:%M:%S').tz_localize('utc')) for dateStr in history.index])         
+            
+        quotes = np.array(history.iloc[:][['open','high','low','close']])
+        rows = quotes.shape[0]
+        colls = quotes.shape[1]
+        quotesWithDate = np.append(date,quotes.reshape(rows*colls,1,order='F')).reshape(colls+1,rows)
+        # %%
+        if len(quotesWithDate) == 0:
+            raise SystemExit    
+        return quotesWithDate.T      
+    def retriveCandleData(self,storageType = 'mongodb',symbol = '',period = 'D'):
+        if(storageType == 'mongodb'):
+            dfKData = self.mongodb.retrive(symbol = symbol,period = period)
+            return self.__DataFrameToCandle__(dfKData)
+        elif(storageType == 'csv'):
+            pass
+        else:
+            pass
     def retriveHistData(self,storageType = 'mongodb',symbol = ''):
         if(storageType == 'mongodb'):
             return self.mongodb.retrive(symbol = symbol)
         elif(storageType == 'csv'):
-            self.retriveDataFrameKData(symbol)
-    def retriveDataFrameKData(self,instrument,frequency='day'):
+            self.__retriveDataFrameKData__(symbol)
+    def __retriveDataFrameKData__(self,instrument,frequency='day'):
         if frequency == 'day':
             fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
         elif frequency == 'day':
