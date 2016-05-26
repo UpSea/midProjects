@@ -141,7 +141,7 @@ class Mongodb(object):
         '''
         self.setCollection('codes')
         codes = self.find({})
-        if(False):#mid better performance
+        if(True):#mid better performance
             dfCodes = pd.DataFrame(list(codes), columns = ['code','name','c_name'])  
             dfCodes.index = dfCodes['code']
         else:
@@ -152,8 +152,8 @@ class Mongodb(object):
                 originName = item['name']
                 originClass = item['c_name']
                 
-                name = item['name'].encode('utf-8')
-                className = item['c_name'].encode('utf-8')
+                #name = item['name'].encode('utf-8')
+                #className = item['c_name'].encode('utf-8')
                 
                 dfCodes.loc[code] = [code,originName,originClass]
         return dfCodes
