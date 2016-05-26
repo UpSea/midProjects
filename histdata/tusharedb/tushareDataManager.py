@@ -165,7 +165,7 @@ class tushareDataCenter():
         dic = {}
         for code in codeList:
             _data_ = ts.get_hist_data(str(code),start=timeStart,end=timeEnd)
-            if _data_ is not None and _data_.size != 0:
+            if _data_ is not None:
                 dic[code] = _data_
                 #print i,code,type(code)
         

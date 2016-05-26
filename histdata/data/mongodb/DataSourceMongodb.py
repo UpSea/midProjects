@@ -132,17 +132,30 @@ class Mongodb(object):
             dfSymbols.loc[symbol]=[symbol,counts,dateStart,dateEnd]
         return dfSymbols
     def retriveCodes(self):
+        '''mid
+        decode的作用是将其他编码的字符串转换成unicode编码，
+        如str1.decode('gb2312')，表示将gb2312编码的字符串str1转换成unicode编码。
+
+        encode的作用是将unicode编码转换成其他编码的字符串，
+        如str2.encode('gb2312')，表示将unicode编码的字符串str2转换成gb2312编码。
+        '''
         self.setCollection('codes')
         codes = self.find({})
-        if(True):#mid better performance
+        if(False):#mid better performance
             dfCodes = pd.DataFrame(list(codes), columns = ['code','name','c_name'])  
             dfCodes.index = dfCodes['code']
         else:
+            dfCodes = pd.DataFrame(columns=['code','name','c_name'])
             for item in codes:
                 code = item['code']
-                name = item['name']
-                className = item['c_name']
-                dfCodes.loc[code] = [name,className]
+                
+                originName = item['name']
+                originClass = item['c_name']
+                
+                name = item['name'].encode('utf-8')
+                className = item['c_name'].encode('utf-8')
+                
+                dfCodes.loc[code] = [code,originName,originClass]
         return dfCodes
 if __name__ == "__main__":
     # mid create a new connect to mongodb and test it.

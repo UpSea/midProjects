@@ -10,6 +10,11 @@ sys.path.append(xpower)
 xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata'))
 sys.path.append(xpower)
 
+if sys.version > '3':
+    PY3 = True
+else:
+    PY3 = False     
+
 import feedsForCandle as feedsForCandle
 from data.mongodb.DataSourceMongodb import Mongodb
 import matplotlib.dates as mpd
@@ -442,14 +447,19 @@ class DataManagerDialog(QtGui.QDialog):
         self.tableLocalSymbols.clear()
         header = ["code","name","class","listed date","stop date","trade days"]
         self.tableLocalSymbols.setColumnCount(len(header))
+        
+        if(self.tableLocalSymbols is None):
+            self.tableLocalSymbols.setRowCount(0)
+            return  
+        
         self.tableLocalSymbols.setRowCount(len(self.dfLocalSymbols))
         self.tableLocalSymbols.setHorizontalHeaderLabels(header)     #mid should be after .setColumnCount()
         
-        
-        if(True):
+        if (PY3 == True):#mid 这种填充方式虽然快，但是，当item有中文编码时，在py2下会出现问题
             for row in range(len(self.dfLocalSymbols.index)):
                 for column in range(len(self.dfLocalSymbols.columns)):
-                    self.tableLocalSymbols.setItem(row,column,QtGui.QTableWidgetItem(str(self.dfLocalSymbols.iget_value(row, column))))        
+                    strItem = str(self.dfLocalSymbols.iget_value(row, column))
+                    self.tableLocalSymbols.setItem(row,column,QtGui.QTableWidgetItem(strItem))        
         else: #mid the above codes have better performance than the below.
             for row in np.arange(0,len(self.dfLocalSymbols)):
                 code = self.dfLocalSymbols.index[row]
@@ -481,15 +491,15 @@ class DataManagerDialog(QtGui.QDialog):
         self.tableSymbolsToDownload.setRowCount(len(self.dfSymbolsToDownload))
         self.tableSymbolsToDownload.setHorizontalHeaderLabels(header)     #mid should be after .setColumnCount()
         
-        if(True):
+        if (PY3 == True):#mid 这种填充方式虽然快，但是，当item有中文编码时，在py2下会出现问题
             for row in range(len(self.dfSymbolsToDownload.index)):
                 for column in range(len(self.dfSymbolsToDownload.columns)):
                     self.tableSymbolsToDownload.setItem(row,column,QtGui.QTableWidgetItem(str(self.dfSymbolsToDownload.iget_value(row, column))))                         
         else: #mid the above codes have better performance than the below.        
             for row in np.arange(0,len(self.dfSymbolsToDownload)):
                 symbol = self.dfSymbolsToDownload.index[row]
-                name = str(self.dfSymbolsToDownload.loc[symbol,'name'])
-                c_name = str(self.dfSymbolsToDownload.loc[symbol,'c_name'])
+                name = self.dfSymbolsToDownload.loc[symbol,'name']
+                c_name = self.dfSymbolsToDownload.loc[symbol,'c_name']
                 
                 timeStart = QtGui.QCalendarWidget()
                 timeStart=QtGui.QDateTimeEdit()
@@ -516,6 +526,8 @@ class DataManagerDialog(QtGui.QDialog):
             code = self.tableLocalSymbols.item(rowSelected,0).text()
             name = self.tableLocalSymbols.item(rowSelected,1).text()
             c_name = self.tableLocalSymbols.item(rowSelected,2).text()
+            
+            code = str(code)
             
             self.dfSymbolsToDownload.loc[code,'code'] = code            
             self.dfSymbolsToDownload.loc[code,'name'] = name
