@@ -70,7 +70,7 @@ def download_weekly_bars(instrument, fromYear,toYear, csvFile):
     f.write(bars)
     f.close()
 
-def build_feed(instruments, fromYear, toYear, storage, frequency=bar.Frequency.DAY, timezone=None, skipErrors=False):
+def build_feed(instruments, fromYear, toYear, storage, frequency='D', timezone=None, skipErrors=False):
     """Build and load a :class:`pyalgotrade.barfeed.yahoofeed.Feed` using CSV files downloaded from Yahoo! Finance.
     CSV files are downloaded if they haven't been downloaded before.
 

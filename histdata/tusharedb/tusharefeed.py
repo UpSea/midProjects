@@ -180,5 +180,5 @@ class Feed(dataFrameBarFeed):
         dataFrameBarFeed.addBarsFromDataFrame(self, instrument,rowParser,dataFrame)
     def addBarsFromCSV(self,tsCenter,instrument):
         from tushareDataManager import tushareDataCenter
-        dat = tsCenter.retriveDataFrameKData(instrument,bar.Frequency.DAY)
+        dat = tsCenter.retriveHistData(storageType = 'csv',symbol = instrument)
         self.addBarsFromDataFrame(instrument, dat)

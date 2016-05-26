@@ -69,7 +69,7 @@ class feeds():
         '''
         import tusharedb.tusharefinance as tusharefinance
         import sys,os
-        dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','tusharedb','csv'))          
+        dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','csv','tusharedb'))          
         feed = tusharefinance.build_feed([instrument], 2015, 2015, dataPath)    
         return feed        
         

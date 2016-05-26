@@ -5,6 +5,11 @@ import pandas as pd
 from datetime import datetime
 import datetime as dt
 import os,sys
+import os,sys
+xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),'Widgets'))
+sys.path.append(xpower)
+from Widgets.pgCandleWidgetCross import pgCandleWidgetCross
+
 xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata','mongodb'))
 sys.path.append(xpower)
 xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata'))
@@ -26,9 +31,6 @@ from Views.HistoryTableView import HistoryTableView
 class DataManagerDialog(QtGui.QDialog):
     def __init__(self,parent=None):
         super(DataManagerDialog,self).__init__(parent)
-        self.setWindowTitle(self.tr("DataManager"))
-        self.initUI()
-        # 显示文本内容，并根据文本长度调整标签控件的大小
         import os,sys
         dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
         sys.path.append(dataRoot)        
@@ -37,6 +39,9 @@ class DataManagerDialog(QtGui.QDialog):
         self.dataCenter = dataCenter.dataCenter()   
         self.dfLocalSymbols = pd.DataFrame(columns=['code','name','c_name'])
         self.dfSymbolsToDownload = pd.DataFrame(columns=['code','name','c_name'])
+        
+        self.setWindowTitle(self.tr("DataManager"))
+        self.initUI()    
     def onLocalSymbolSelectorActivate(self,text):
         self.updateLocalAvailableSymbolsTable()
     #----------------------------------------------------------------------    
@@ -337,12 +342,16 @@ class DataManagerDialog(QtGui.QDialog):
     def initLayoutLocalDataVisualizer(self):
         bottomLeft02 = QtGui.QVBoxLayout(self)  
     
-     
         # 05)bottomLeft02---------------------
         label7=QtGui.QLabel(self.tr("Current symbol to download description:"))
-        descTextEdit=QtGui.QTextEdit() 
+        
+        dataForCandle = self.dataCenter.retriveCandleData(datasource = 'tushare',storageType = 'mongodb',symbol = '600028')     
+        candle = pgCandleWidgetCross(dataForCandle=dataForCandle)          
+        
+        
+        
         bottomLeft02.addWidget(label7)
-        bottomLeft02.addWidget(descTextEdit)  
+        bottomLeft02.addWidget(candle)  
         
         return bottomLeft02
     def initBottomUI(self):
@@ -379,7 +388,7 @@ class DataManagerDialog(QtGui.QDialog):
         topLayout = self.initTopUI()
         bottomLayout = self.initBottomUI()
         # all----------------------------------------------------------------------
-        mainLayout.addLayout(topLayout)
+        #mainLayout.addLayout(topLayout)
         mainLayout.addLayout(bottomLayout)
         #mainLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)        
     #----------------------------------------------------------------------
@@ -598,17 +607,13 @@ class DataManagerDialog(QtGui.QDialog):
             #history = self.dataCenter.retriveHistData(symbolToDownload)
             
             dataForCandle = self.dataCenter.retriveCandleData(datasource = datasource,storageType = storageType,symbol = symbolToDownload)     
-            self.showCandle(dataForCandle)
+            self.__showCandle__(dataForCandle)
             #self.myWindowfff = MyDialog(dataForCandle=dataForCandle)  
             #self.myWindowfff.show()                        
         else:   #none selected and empty table
             symbol = 'none to download.'
             QtGui.QMessageBox.information(self,"Information",self.tr(symbol)) 
-    def showCandle(self,dataForCandle):
-        import os,sys
-        xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),'Widgets'))
-        sys.path.append(xpower)
-        from Widgets.pgCandleWidgetCross import pgCandleWidgetCross
+    def __showCandle__(self,dataForCandle):
         dialog = QtGui.QDialog()
         self.pgCandleView = dialog
         layout = QtGui.QHBoxLayout()
@@ -623,7 +628,7 @@ class DataManagerDialog(QtGui.QDialog):
         candle = pgCandleWidgetCross(dataForCandle=dataForCandle)  
         #candle = pgCrossAddition()
         # 3)arrange widgets
-        layout.addWidget(editor)
+        #layout.addWidget(editor)
         layout.addWidget(candle)
         dialog.showMaximized()           
     def messageBoxAfterDownloaded(self,dataDict):

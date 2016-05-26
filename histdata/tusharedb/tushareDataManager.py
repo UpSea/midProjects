@@ -105,7 +105,7 @@ class tushareDataCenter():
         dat.to_csv(self.codefile,encoding='gbk')    
     def exists(self,instrument,frequency):
         from pyalgotrade import bar        
-        if frequency == 'day':
+        if frequency == 'D':
             fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
             if os.path.exists(fileName):
                 return True
@@ -292,7 +292,7 @@ class tushareDataCenter():
         if(storageType == 'mongodb'):
             return self.mongodb.retrive(symbol = symbol)
         elif(storageType == 'csv'):
-            self.__retriveDataFrameKData__(symbol)
+            return self.__retriveDataFrameKData__(symbol)
     def __retriveDataFrameKData__(self,instrument,frequency='day'):
         if frequency == 'day':
             fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
