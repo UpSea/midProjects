@@ -42,26 +42,27 @@ sys.path.append(windowsRoot)
 from Widgets.pgCandleWidgetCross import pgCandleWidgetCross
 from Views.HistoryCandleView import HistoryCandleView
 from Views.HistoryTableView import HistoryTableView
-class dataVisualizerLayout(QtGui.QHBoxLayout):
+class dataVisualizerLayout(QtGui.QVBoxLayout):
     def __init__(self,parent=None):
-        self.parent = parent
+        self.parent = None
         super(dataVisualizerLayout,self).__init__()        
         #mid data
         self.dataCenter = dataCenter.dataCenter()           
         #mid 1) local data selector
-        layoutLocalDataSource = self.initLayoutLocalDataSource()
-        
-        layoutLocalDataVisualizer = self.initLayoutLocalDataVisualizer()
-
+        layoutLocalDataSource = self.createDataSourceSelectorLayout()
+        layoutLocalDataVisualizer = self.createDataVisualizerLayout()
         # bottom--------------------------------------------------------------------
         self.addLayout(layoutLocalDataSource)
         self.addLayout(layoutLocalDataVisualizer)
         self.setStretch(0, 1)
-        self.setStretch(1, 4)        
-    def initLayoutSymbolsSelector(self):
+        self.setStretch(1, 4)
+        self.updateLocalAvailableSymbolsTable()
+    def createDataSourceSelectorLayout(self):
+        '''mid
+        创建数据来源选择组合框组，横向排列
+        '''
         layoutSymbolsSelector = QtGui.QHBoxLayout(self.parent)
 
-        label7=QtGui.QLabel(self.tr("locally available symbols:"))
         labelSourceType = QtGui.QLabel('source Type:')
         labelStorageType = QtGui.QLabel(self.tr("storage type:"))
         labelPeriodType = QtGui.QLabel(self.tr("period type:"))
@@ -87,12 +88,7 @@ class dataVisualizerLayout(QtGui.QHBoxLayout):
         datasourceComboBox.activated[str].connect(self.onLocalSymbolSelectorActivate)        
         storageComboBox.activated[str].connect(self.onLocalSymbolSelectorActivate)        
         periodComboBox.activated[str].connect(self.onLocalSymbolSelectorActivate)        
-        
-        
-        
-        
-        layoutSymbolsSelector.addWidget(label7)
-        
+    
         layoutSymbolsSelector.addWidget(labelSourceType)
         layoutSymbolsSelector.addWidget(datasourceComboBox)
         
@@ -102,6 +98,9 @@ class dataVisualizerLayout(QtGui.QHBoxLayout):
         layoutSymbolsSelector.addWidget(labelPeriodType)
         layoutSymbolsSelector.addWidget(periodComboBox)        
         
+        layoutSymbolsSelector.addWidget(QtGui.QLineEdit())
+        
+        layoutSymbolsSelector.setStretch(6,1)
         return layoutSymbolsSelector
     def onLocalSymbolSelectorActivate(self,text):
         self.updateLocalAvailableSymbolsTable()    
@@ -155,15 +154,8 @@ class dataVisualizerLayout(QtGui.QHBoxLayout):
                 self.tableLocalAvailableSymbols.setItem(row,2,QtGui.QTableWidgetItem(codeClass))    
     
 
-    #----------------------------------------------------------------------    
-    def initLayoutLocalDataSource(self):      
-        bottomLeft01 = QtGui.QVBoxLayout(self.parent)  
-        # 05)symbols selector
-        layoutSymbolsSelector = self.initLayoutSymbolsSelector()
-        
-        self.tableLocalAvailableSymbols = QtGui.QTableWidget()
-
-        # 06)bottomLeft03
+    #----------------------------------------------------------------------  
+    def createDataControlButtonLayout(self):
         bottomLeft03 = QtGui.QHBoxLayout(self.parent)
     
         DeleteOneFromDBButton=QtGui.QPushButton(self.tr("DeleteOneFromDB"))
@@ -176,26 +168,31 @@ class dataVisualizerLayout(QtGui.QHBoxLayout):
         bottomLeft03.addWidget(ShowInTableButton)
         bottomLeft03.addWidget(ShowInGraphButton)
         self.connect(ShowInTableButton,QtCore.SIGNAL("clicked()"),self.slotShowInTable)
-        self.connect(ShowInGraphButton,QtCore.SIGNAL("clicked()"),self.slotShowInCandleGraph) 
-                
-        bottomLeft01.addLayout(layoutSymbolsSelector)
-        bottomLeft01.addWidget(self.tableLocalAvailableSymbols)
-        bottomLeft01.addLayout(bottomLeft03)
-        return bottomLeft01
-    def initLayoutLocalDataVisualizer(self):
-        bottomLeft02 = QtGui.QVBoxLayout(self.parent)  
-    
-        # 05)bottomLeft02---------------------
-        label7=QtGui.QLabel(self.tr("Current symbol graphview:"))
+        self.connect(ShowInGraphButton,QtCore.SIGNAL("clicked()"),self.slotShowInCandleGraph)
+        return bottomLeft03
+    def createTableLayout(self):
+        # 06)bottomLeft03
+        localSymbolTable = QtGui.QVBoxLayout(self.parent)
         
+        self.tableLocalAvailableSymbols = QtGui.QTableWidget()
+        localSymbolTable.addWidget(self.tableLocalAvailableSymbols)  
+        
+        localSymbolTable.addLayout(self.createDataControlButtonLayout())
+        
+        return localSymbolTable
+    def createDataVisualizerLayout(self):
+        bottomLeft02 = QtGui.QHBoxLayout(self.parent)  
+    
+        # 05)bottomLeft02---------------------        
         dataForCandle = self.dataCenter.retriveCandleData(datasource = 'tushare',storageType = 'mongodb',symbol = '600028')     
         candle = pgCandleWidgetCross(dataForCandle=dataForCandle)          
+    
+        bottomLeft02.addLayout(self.createTableLayout())        
         
-        
-        
-        bottomLeft02.addWidget(label7)
         bottomLeft02.addWidget(candle)  
         
+        bottomLeft02.setStretch(0,1)
+        bottomLeft02.setStretch(1,3.5)
         return bottomLeft02    
 
     def slotShowInTable(self):

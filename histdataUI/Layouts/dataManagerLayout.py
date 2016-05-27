@@ -44,7 +44,7 @@ from Views.HistoryCandleView import HistoryCandleView
 from Views.HistoryTableView import HistoryTableView
 class dataManagerLayout(QtGui.QHBoxLayout):
     def __init__(self,parent=None):
-        self.parent = parent
+        self.parent = None
         super(dataManagerLayout,self).__init__()       
         #mid data
         self.dataCenter = dataCenter.dataCenter()           
@@ -69,12 +69,22 @@ class dataManagerLayout(QtGui.QHBoxLayout):
         self.addLayout(layoutCodeMover)
         self.addLayout(layoutCodesToDownload)
         self.addLayout(layoutDownloadParams)  
+        
+        self.updateLocalSymbolsTable()
     #----------------------------------------------------------------------
     def updateLocalSymbolsTable(self):
         """mid
         dfLocalSymbols.index = 'code'
         dfLocalSymbols.columns = ['code','name','c_name',...]
         """
+        codesType = self.codesTypeComboBox.currentText()
+        sourceType = self.sourceTypeComboBox.currentText()
+        if(codesType == 'tushare'):
+            self.dfLocalSymbols = self.dataCenter.getCodes(codesType,sourceType)
+        else:
+            QtGui.QMessageBox.information(self,codesType + ' codesTable data.',  'from '+sourceType+'\nis not prepared.')
+            return
+        
         self.tableLocalSymbols.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)  
         self.tableLocalSymbols.setEditTriggers(QtGui.QTableWidget.NoEditTriggers)  
         self.tableLocalSymbols.setSelectionBehavior(QtGui.QTableWidget.SelectRows)  
@@ -239,22 +249,7 @@ class dataManagerLayout(QtGui.QHBoxLayout):
             #print (self.tableLocalSymbols.item(rows_index,0).text())    
     
     def onActivate(self, text):
-        #mid feedFormat = tushareCsv|tushare|yahooCsv|yahoo|generic
-        #self.feed = fd.getFeeds(feedFormat = text,instrument = self.instrument)
-        #---------------------------------------------------------------------
-        codesType = self.codesTypeComboBox.currentText()
-        sourceType = self.sourceTypeComboBox.currentText()
-        if(codesType == 'tushare'):
-            self.dfLocalSymbols = self.dataCenter.getCodes(codesType,sourceType)
-        else:
-            QtGui.QMessageBox.information(self,codesType + ' codesTable data.',  'from '+sourceType+'\nis not prepared.')
-            return
-        #self.dfLocalSy     mbols = ts.get_stock_basics()        
-        #QtGui.QMessageBox.information(self,codesType + ' codesTable data.',  'from '+sourceType+' gotten.')    
-
-        self.updateLocalSymbolsTable()  
-        self.updateSymbolsToDownloadTable() 
-        
+        self.updateLocalSymbolsTable()          
     def onVerSectionClicked(self,index):
         print (index)
     def onHorSectionClicked(self,index):
@@ -316,47 +311,19 @@ class dataManagerLayout(QtGui.QHBoxLayout):
         layoutCodesSource = QtGui.QVBoxLayout()
         self.initTopCodesSourceSelector(layoutCodesSource)
         self.initCodesTable(layoutCodesSource)  
-        return layoutCodesSource    
-    def initLayoutDataSourceSelector(self):
-        # 01)topLeft01------------------
-        topLeft01Top = QtGui.QHBoxLayout()        
-        # 01.01 mid codes type
-        codesTypeLable = QtGui.QLabel(self.tr("remote data source type:"))  
-        dataSourceTypeComboBox=QtGui.QComboBox()
-        self.remoteDataSourceTypeComboBox = dataSourceTypeComboBox
-        self.dataSourceTypeComboBox = dataSourceTypeComboBox
-        dataSourceTypeComboBox.insertItem(0,self.tr("tushare"))
-        dataSourceTypeComboBox.insertItem(1,self.tr("sina"))        
-        dataSourceTypeComboBox.insertItem(2,self.tr("datayes"))        
-        dataSourceTypeComboBox.insertItem(3,self.tr("yahoo"))        
-        # 01.02 mid source type
-        codesSourceLable = QtGui.QLabel(self.tr("local storage type:")) 
-        sourceTypeComboBox=QtGui.QComboBox()
-        self.localStorageTypeComboBox = sourceTypeComboBox
-        sourceTypeComboBox.insertItem(0,self.tr("mongodb"))        
-        sourceTypeComboBox.insertItem(1,self.tr("csv"))
-    
-        topLeft01Top.addWidget(codesTypeLable)
-        topLeft01Top.addWidget(dataSourceTypeComboBox)
-        topLeft01Top.addWidget(codesSourceLable)   
-        topLeft01Top.addWidget(sourceTypeComboBox)
-        
-        return topLeft01Top
+        return layoutCodesSource 
     
     def initLayoutCodesTableToDownload(self):
         layoutCodesToDownload = QtGui.QVBoxLayout()
-        
-        initLayoutDataSourceSelector = self.initLayoutDataSourceSelector()
-        layoutCodesToDownload.addLayout(initLayoutDataSourceSelector)
-        
+                
         self.tableSymbolsToDownload=QtGui.QTableWidget()
+        layoutCodesToDownload.addWidget(QtGui.QLabel('Codes to download:'))
         layoutCodesToDownload.addWidget(self.tableSymbolsToDownload)   
         self.tableSymbolsToDownload.cellDoubleClicked.connect(self.onTableSymbolsToDownloadDoubleClicked)
                 
         return layoutCodesToDownload
-    def initDownloaderParams(self):
-        layoutDownloadParams = QtGui.QVBoxLayout()           
-        
+    
+    def createAddNewLayout(self):
         layoutAddNewSymbol = QtGui.QHBoxLayout()
         
         labelNewToDownload = QtGui.QLabel(self.tr('New symbol to download:'))
@@ -365,11 +332,11 @@ class dataManagerLayout(QtGui.QHBoxLayout):
         layoutAddNewSymbol.addWidget(labelNewToDownload)
         layoutAddNewSymbol.addWidget(self.editSymbolToAdd)
         layoutAddNewSymbol.addWidget(addNewSymbol)         
-        self.connect(addNewSymbol,QtCore.SIGNAL("clicked()"),self.slotAddNewSymbol)        
-        
-        
+        self.connect(addNewSymbol,QtCore.SIGNAL("clicked()"),self.slotAddNewSymbol)  
+        return layoutAddNewSymbol
+    def createParamsLayout(self):
         layoutParameters = QtGui.QGridLayout()
-        
+       
         lablePeriod = QtGui.QLabel(self.tr("Period:")) 
         periodComboBox=QtGui.QComboBox()
         self.periodComboBox = periodComboBox
@@ -389,26 +356,59 @@ class dataManagerLayout(QtGui.QHBoxLayout):
         timeEnd.setDateTime(QtCore.QDateTime.currentDateTime())
         
         timeEnd.setDisplayFormat("yyyy-MM-dd hh:mm:ss")
-        timeEnd.setCalendarPopup(True)                
+        timeEnd.setCalendarPopup(True)            
         
-        layoutParameters.addWidget(lablePeriod,1,0)
-        layoutParameters.addWidget(periodComboBox,1,1)  
-        layoutParameters.addWidget(lableTimeStart,2,0)  
-        layoutParameters.addWidget(timeStart,2,1)  
-        layoutParameters.addWidget(lableTimeEnd,3,0)  
-        layoutParameters.addWidget(timeEnd,3,1)          
+        
+        
+        # 01.01 mid codes type
+        codesTypeLable = QtGui.QLabel(self.tr("remote data source type:"))  
+        dataSourceTypeComboBox=QtGui.QComboBox()
+        self.remoteDataSourceTypeComboBox = dataSourceTypeComboBox
+        self.dataSourceTypeComboBox = dataSourceTypeComboBox
+        dataSourceTypeComboBox.insertItem(0,self.tr("tushare"))
+        dataSourceTypeComboBox.insertItem(1,self.tr("sina"))        
+        dataSourceTypeComboBox.insertItem(2,self.tr("datayes"))        
+        dataSourceTypeComboBox.insertItem(3,self.tr("yahoo"))        
+        # 01.02 mid source type
+        codesSourceLable = QtGui.QLabel(self.tr("local storage type:")) 
+        sourceTypeComboBox=QtGui.QComboBox()
+        self.localStorageTypeComboBox = sourceTypeComboBox
+        sourceTypeComboBox.insertItem(0,self.tr("mongodb"))        
+        sourceTypeComboBox.insertItem(1,self.tr("csv"))        
+        
+        
+        layoutParameters.addWidget(codesTypeLable,0,0)   
+        layoutParameters.addWidget(dataSourceTypeComboBox,0,1)   
+        layoutParameters.addWidget(codesSourceLable,1,0)   
+        layoutParameters.addWidget(sourceTypeComboBox,1,1)          
+        
+        layoutParameters.addWidget(lablePeriod,2,0)
+        layoutParameters.addWidget(periodComboBox,2,1)  
+        layoutParameters.addWidget(lableTimeStart,3,0)  
+        layoutParameters.addWidget(timeStart,3,1)  
+        layoutParameters.addWidget(lableTimeEnd,4,0)  
+        layoutParameters.addWidget(timeEnd,4,1)   
+        
+ 
+        return layoutParameters
+    def createDownloadButtonLayout(self):
+        downloadButtons = QtGui.QHBoxLayout()
         
         DownloadOneButton=QtGui.QPushButton(self.tr("DownloadSelected"))
         DownloadAllButton=QtGui.QPushButton(self.tr("DownloadAll")) 
         self.connect(DownloadOneButton,QtCore.SIGNAL("clicked()"),self.slotDownloadSelected)
         self.connect(DownloadAllButton,QtCore.SIGNAL("clicked()"),self.slotDownloadAll)
+        downloadButtons.addWidget(DownloadOneButton)
+        downloadButtons.addWidget(DownloadAllButton)    
+        return downloadButtons
+    def initDownloaderParams(self):
+        layoutDownloadParams = QtGui.QVBoxLayout()     
 
+        layoutDownloadParams.addLayout(self.createParamsLayout())
 
-        layoutDownloadParams.addLayout(layoutParameters)
-
-        layoutDownloadParams.addLayout(layoutAddNewSymbol)
-        layoutDownloadParams.addWidget(DownloadOneButton)
-        layoutDownloadParams.addWidget(DownloadAllButton)
+        layoutDownloadParams.addLayout(self.createAddNewLayout())
+        
+        layoutDownloadParams.addLayout(self.createDownloadButtonLayout())
         
         return layoutDownloadParams    
     def slotDownloadAll(self):
@@ -484,5 +484,5 @@ if __name__ == '__main__':
             cw.setLayout(dataManagerLayout(self))   
     app = QtGui.QApplication(sys.argv)
     mainWin = MainWindow()
-    mainWin.showMaximized()
+    mainWin.show()
     sys.exit(app.exec_())

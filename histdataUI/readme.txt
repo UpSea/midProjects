@@ -2,9 +2,7 @@ Views文件夹下的文件涉及matplotlib嵌入qt窗体，在py3下可以，在
 
 Widgets文件夹下的不涉及以上嵌入问题，在py3和py2下都能运行。
 
-
-DataManager.py是原先实验性质的在py3下编写的数据管理界面，图形化用了Views下面的东西，而且功能也不完善
-计划这个文件原样保留，作为示例程序存在，另外再写一个主要使用Widgets下文件的管理界面
+Layouts文件夹下的文件为一些基本的layout组件
 
 DataCenterUI.py
 1.下载多个网络数据源数据到本地
@@ -20,3 +18,10 @@ DataCenterUI.py
 3.检索本地不同数据源的数据并显示
 	1.table方式
 	2.Candle方式
+
+DataCenterUI为数据管理程序的界面
+当前有三个版本
+
+最新的版本号大
+
+1.0版本使用了新加入独立的Loyouts，使程序界面更容易自定义

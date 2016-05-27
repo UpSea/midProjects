@@ -405,7 +405,7 @@ class DataManagerDialog(QtGui.QDialog):
         topLayout = self.initTopUI()
         bottomLayout = self.initBottomUI()
         # all----------------------------------------------------------------------
-        #mainLayout.addLayout(topLayout)
+        mainLayout.addLayout(topLayout)
         mainLayout.addLayout(bottomLayout)
         #mainLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)   
         self.setLayout(mainLayout)

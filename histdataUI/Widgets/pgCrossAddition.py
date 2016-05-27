@@ -53,14 +53,16 @@ class pgCrossAddition(pg.PlotWidget):
                                       %0.3f\
                                     </span>\
                                 </div>'\
-                                    % (mousePoint.y()))            
-            self.textDate.setHtml(
-                                '<div style="text-align: center">\
-                                    <span style="color: red; font-size: 10pt;">\
-                                      %s\
-                                    </span>\
-                                </div>'\
-                                    % (dt.datetime.strftime(mpd.num2date(mousePoint.x()).astimezone(pytz.timezone('utc')),'%Y-%m-%d %H:%M:%S%Z')))                                           
+                                    % (mousePoint.y()))   
+            strTime = mpd.num2date(mousePoint.x()).astimezone(pytz.timezone('utc'))
+            if(strTime.year >=1900):
+                self.textDate.setHtml(
+                                    '<div style="text-align: center">\
+                                        <span style="color: red; font-size: 10pt;">\
+                                          %s\
+                                        </span>\
+                                    </div>'\
+                                        % (dt.datetime.strftime(strTime,'%Y-%m-%d %H:%M:%S%Z')))                                           
             # 0)get environments
             rect = self.sceneBoundingRect()
             topLeft = self.plotItem.vb.mapSceneToView(QtCore.QPointF(rect.left()+35,rect.top())) 
