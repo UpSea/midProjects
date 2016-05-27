@@ -7,7 +7,7 @@ class MyButton(QtGui.QPushButton):
 app = QtGui.QApplication([])
 w = QtGui.QWidget()
 def showMsg():
-    QtGui.QMessageBox.information(w, u"信息", u"ok")
+    QtGui.QMessageBox.information(w,u"信息", u"ok")
 btn = MyButton(u"点我", w)
 w.connect(btn, QtCore.SIGNAL("myclicked()"), showMsg)
 w.show()

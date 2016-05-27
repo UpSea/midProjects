@@ -1,33 +1,50 @@
 # -*- coding: utf-8 -*-
+'''mid
+此文件为数据管理程序主界面
+用于对历史数据进行检查核对
+
+功能：
+    1.展示本地数据KLine图形
+    2.下载远程数据到本地
+窗口布局：
+    1.数据展示主窗口
+        左侧为本地数据列表
+        右侧为KLine
+        左下侧为本地数据操作命令按钮
+    2.数据下载管理子窗口
+        左侧为代码表
+        右侧为待下载代码
+程序结构：
+    为了能够方便的被各种窗体调用嵌入，各个窗体都定义为layout
+'''
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt4 import QtGui,QtCore
+from datetime import datetime
+import os,sys
 import numpy as np
 import pandas as pd
-from datetime import datetime
 import datetime as dt
-import os,sys
-import os,sys
+import matplotlib.dates as mpd
+import matplotlib.pyplot as plt
+
+if sys.version > '3':
+    PY3 = True
+else:
+    PY3 = False    
+    
 xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),'Widgets'))
 sys.path.append(xpower)
-from Widgets.pgCandleWidgetCross import pgCandleWidgetCross
-
 xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata','mongodb'))
 sys.path.append(xpower)
 xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata'))
 sys.path.append(xpower)
 
-if sys.version > '3':
-    PY3 = True
-else:
-    PY3 = False     
-
 import feedsForCandle as feedsForCandle
 from data.mongodb.DataSourceMongodb import Mongodb
-import matplotlib.dates as mpd
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-import matplotlib.pyplot as plt
-
+from Widgets.pgCandleWidgetCross import pgCandleWidgetCross
 from Views.HistoryCandleView import HistoryCandleView
 from Views.HistoryTableView import HistoryTableView
+
 class DataManagerDialog(QtGui.QDialog):
     def __init__(self,parent=None):
         super(DataManagerDialog,self).__init__(parent)
@@ -343,7 +360,7 @@ class DataManagerDialog(QtGui.QDialog):
         bottomLeft02 = QtGui.QVBoxLayout(self)  
     
         # 05)bottomLeft02---------------------
-        label7=QtGui.QLabel(self.tr("Current symbol to download description:"))
+        label7=QtGui.QLabel(self.tr("Current symbol graphview:"))
         
         dataForCandle = self.dataCenter.retriveCandleData(datasource = 'tushare',storageType = 'mongodb',symbol = '600028')     
         candle = pgCandleWidgetCross(dataForCandle=dataForCandle)          
@@ -356,16 +373,17 @@ class DataManagerDialog(QtGui.QDialog):
         return bottomLeft02
     def initBottomUI(self):
         bottomLayout = QtGui.QHBoxLayout(self)  #mid local data
-        
+      
         #mid 1) local data selector
         layoutLocalDataSource = self.initLayoutLocalDataSource()
         
         layoutLocalDataVisualizer = self.initLayoutLocalDataVisualizer()
-    
+
         # bottom--------------------------------------------------------------------
         bottomLayout.addLayout(layoutLocalDataSource)
         bottomLayout.addLayout(layoutLocalDataVisualizer)
-        
+        bottomLayout.setStretch(0, 1)
+        bottomLayout.setStretch(1, 2)          
         return bottomLayout
     #----------------------------------------------------------------------
     def initUI(self):
@@ -384,13 +402,13 @@ class DataManagerDialog(QtGui.QDialog):
 	4.本地数据展示(table,graph)
         """
         mainLayout = QtGui.QVBoxLayout(self)   
-        
         topLayout = self.initTopUI()
         bottomLayout = self.initBottomUI()
         # all----------------------------------------------------------------------
         #mainLayout.addLayout(topLayout)
         mainLayout.addLayout(bottomLayout)
-        #mainLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)        
+        #mainLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)   
+        self.setLayout(mainLayout)
     #----------------------------------------------------------------------
     def updateLocalAvailableSymbolsTable(self):
         """mid
