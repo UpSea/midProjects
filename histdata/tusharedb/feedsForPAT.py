@@ -13,18 +13,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-.. 
+"""mid
+从csv数据获取PAT feeds。
 u用以转换dataFrame到feed，相当于以pandas dataframe 为桥，不再以csv为桥。下一步增加方法直接从数据库中读
 """
-from pyalgotrade.barfeed import common
-from pyalgotrade.utils import dt
 from pyalgotrade import bar
 from pyalgotrade import dataseries
 from pyalgotrade.barfeed import membf
-
-import datetime
+from pyalgotrade.barfeed import common
 from pyalgotrade.barfeed.csvfeed import RowParser
+from pyalgotrade.utils import dt
+
+import os
+import datetime
 
 
 ######################################################################
@@ -68,15 +69,7 @@ class dataFrameBarFeed(membf.BarFeed):
                 loadedBars.append(bar_)
         self.addBarsFromSequence(instrument, loadedBars)
         
-def parse_date(date):
-    # Sample: 2005-12-30
-    # This custom parsing works faster than:
-    # datetime.datetime.strptime(date, "%Y-%m-%d")
-    year = int(date[0:4])
-    month = int(date[5:7])
-    day = int(date[8:10])
-    ret = datetime.datetime(year, month, day)
-    return ret
+
 
 
 class RowParser(RowParser):
@@ -85,9 +78,17 @@ class RowParser(RowParser):
         self.__frequency = frequency
         self.__timezone = timezone
         self.__sanitize = sanitize
-
+    def parse_date(self,date):
+        # Sample: 2005-12-30
+        # This custom parsing works faster than:
+        # datetime.datetime.strptime(date, "%Y-%m-%d")
+        year = int(date[0:4])
+        month = int(date[5:7])
+        day = int(date[8:10])
+        ret = datetime.datetime(year, month, day)
+        return ret
     def __parseDate(self, dateString):
-        ret = parse_date(dateString)
+        ret = self.parse_date(dateString)
         # Time on Yahoo! Finance CSV files is empty. If told to set one, do it.
         if self.__dailyBarTime is not None:
             ret = datetime.datetime.combine(ret, self.__dailyBarTime)
@@ -182,3 +183,66 @@ class Feed(dataFrameBarFeed):
         from tushareDataManager import tushareDataCenter
         dat = tsCenter.retriveHistData(storageType = 'csv',symbol = instrument)
         self.addBarsFromDataFrame(instrument, dat)
+        
+    def build_feed(self,instruments, fromYear, toYear, storage, frequency='D', timezone=None, skipErrors=False):
+        """Build and load a :class:`pyalgotrade.barfeed.yahoofeed.Feed` using CSV files downloaded from Yahoo! Finance.
+        CSV files are downloaded if they haven't been downloaded before.
+    
+        :param instruments: Instrument identifiers.
+        :type instruments: list.
+        :param fromYear: The first year.
+        :type fromYear: int.
+        :param toYear: The last year.
+        :type toYear: int.
+        :param storage: The path were the files will be loaded from, or downloaded to.
+        :type storage: string.
+        :param frequency: The frequency of the bars. Only **pyalgotrade.bar.Frequency.DAY** or **pyalgotrade.bar.Frequency.WEEK**
+            are supported.
+        :param timezone: The default timezone to use to localize bars. Check :mod:`pyalgotrade.marketsession`.
+        :type timezone: A pytz timezone.
+        :param skipErrors: True to keep on loading/downloading files in case of errors.
+        :type skipErrors: boolean.
+        :rtype: :class:`pyalgotrade.barfeed.yahoofeed.Feed`.
+        """
+        import pandas as pd
+        import pyalgotrade.logger
+        
+        #------
+        from tushareDataManager import tushareDataCenter
+        tsCenter = tushareDataCenter(storage)    
+        
+        logger = pyalgotrade.logger.getLogger("tusharefinance")
+    
+        if not os.path.exists(storage):
+            logger.info("Creating %s directory" % (storage))
+            os.mkdir(storage)
+    
+        for instrument in instruments:
+                    
+            if(not tsCenter.exists(instrument,frequency)):
+                logger.info("Downloading %s from %d to %d" % (instrument, fromYear,toYear))
+                try:
+                    if frequency == bar.Frequency.DAY:
+                        if tsCenter.downloadAndStoreKDataByCode(instrument,fromYear,toYear):
+                            logger.info("Downloading successed.")
+                        else:
+                            logger.info("Downloading failed.")
+                    elif frequency == bar.Frequency.WEEK:
+                        if(tsCenter.downloadAndStoreKDataByCode(instrument,fromYear,toYear)):
+                            logger.info("Downloading successed.")
+                        else:
+                            logger.info("Downloading failed.")
+                    else:
+                        raise Exception("Invalid frequency")
+                except Exception, e:
+                    if skipErrors:
+                        logger.error(str(e))
+                        continue
+                    else:
+                        raise e
+            else:
+                logger.info("\n%s already existed." % (instrument))
+            self.addBarsFromCSV(tsCenter,instrument)   
+            #dat = tsCenter.retriveKDataByCode(instrument,bar.Frequency.DAY)
+            #ret.addBarsFromDataFrame(instrument, dat)               
+        return self    

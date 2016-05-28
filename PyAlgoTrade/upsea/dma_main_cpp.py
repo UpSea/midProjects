@@ -9,8 +9,8 @@ from pyalgotrade.stratanalyzer import trades
 import os,sys
 dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
 sys.path.append(dataRoot)        
-import feedsForPAT as feedsForPAT
-
+#import feedsForPAT as feedsForPAT
+import dataCenter as dataCenter 
 import pandas as pd
 #from BollingerBands import BBands
 import strategies.dma_crossover as dma_crossover
@@ -24,9 +24,9 @@ class Expert():
         self.toPlot = toPlot
         
         #mid data
-        fd = feedsForPAT.feeds()
+        self.dataCenter = dataCenter.dataCenter()           
         #mid feedFormat = tushareCsv|tushare|yahooCsv|yahoo|generic
-        self.feed = fd.getFeeds(feedFormat = feedFormat,instrument = self.instrument)
+        self.feed = self.dataCenter.getFeedsForPAT(feedFormat = feedFormat,instrument = self.instrument)
         
         #mid money
         self.money = money

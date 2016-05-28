@@ -316,7 +316,10 @@ class tushareDataCenter():
             a[i][3] = a[i-1][3]*8/10+a[i][2]*2/10 #MACD
             a[i][4]=2*(a[i][2]-a[i][3])
         return DataFrame(a,index = df.index,columns = _columns_) 
-
+    def buildFeedForPAT(self,instruments, fromYear, toYear, storage, frequency='D', timezone=None, skipErrors=False):
+        import feedsForPAT as feedsForPAT   
+        feed = feedsForPAT.Feed()
+        return feed.build_feed(instruments, fromYear, toYear, storage)           
     #df为原dataframe da为macd
     def plt_macd(self,df,da):
         my_dfs = [df['open'], da['EMA_12'], da['EMA_26'], da['DIFF'], da['MACD'], da['BAR'],] # or in your case [ df,do]

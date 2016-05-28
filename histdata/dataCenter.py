@@ -2,8 +2,7 @@
 import os,sys
 import pandas as pd
 from tusharedb.tushareDataManager import tushareDataCenter
-
-
+        
 class dataCenter():
     def __init__(self):
         dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','csv','tusharedb'))                
@@ -61,7 +60,14 @@ class dataCenter():
             pass
         elif(providerType == 'sina'):
             pass
-    def getFeeds(self,feedFormat = "tushareCsv",instrument = ""):  
+    def getFeedsForZipline(self,feedFormat = "tushareCsv",instrument = ""):
+        '''mid
+        提供回测数据给zipline的唯一接口
+        '''
+    def getFeedsForPAT(self,feedFormat = "tushareCsv",instrument = ""):
+        '''mid
+        提供回测数据给PAT调用的唯一接口
+        '''
         if(feedFormat == "yahoo"):
             feed = self.__getFeedFromYahoo(instrument)
         elif(feedFormat == "yahooCsv"):
@@ -69,10 +75,12 @@ class dataCenter():
         elif(feedFormat == "tushareCsv"):
             feed = self.__getFeedFromTushareCsv(instrument)
         elif(feedFormat == "tushare"):
-            feed = self.__getFeedFromTushare(instrument)
+            import sys,os
+            dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','csv','tusharedb'))                
+            feed = self.tsCenter.buildFeedForPAT([instrument], 2015, 2015, dataPath)
         elif(feedFormat == "generic"):
             feed = self.__getFeedFromGenericCsv(instrument)
-        return feed
+        return feed           
     def __getFeedFromGenericCsv(self,instrument):
         '''mid
         使用系统自定义的与数据提供者的数据格式相互独立的csv格式储存的文件
@@ -92,12 +100,12 @@ class dataCenter():
         '''mid
         直接读取某个tushare格式的csv文件到pandas，再解析为feed格式返回
         '''
-        import tusharedb.tusharefeed as tusharefeed        
+        import tusharedb.feedsForPAT as feedsForPAT        
         dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','tusharedb','csv'))        
         filename = dataRoot+os.sep+'day'+os.sep+('%s.csv'%instrument)          
     
         dat = pd.read_csv(filename,index_col=0,encoding='gbk')
-        feed = tusharefeed.Feed()
+        feed = feedsForPAT.Feed()
         feed.addBarsFromDataFrame(instrument, dat)   
         return feed
     def __getFeedFromYahooCsv(self,instrument,fromYear = 2014,toYear = 2016):   
@@ -116,15 +124,4 @@ class dataCenter():
         import sys,os
         dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','yahoodb','csv'))          
         feed = yahoofinance.build_feed([instrument], 2015, 2015, dataPath)    
-        return feed
-    def __getFeedFromTushare(self,instrument):
-        '''mid
-        通过tusharedatamanager查询某个csv文件是否存在，如果不存在则通过tushare模块下载
-        将已存在的csv文件通过tusharedatamanager读入dataframe，再解析为feed格式返回
-        '''
-        import tusharedb.tusharefinance as tusharefinance
-        import sys,os
-        dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','tusharedb','csv'))          
-        feed = tusharefinance.build_feed([instrument], 2015, 2015, dataPath)    
-        return feed        
-        
+        return feed    
