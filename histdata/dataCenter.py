@@ -1,19 +1,42 @@
 # -*- coding: utf-8 -*-
 import os,sys
 import pandas as pd
+import numpy as np
 from tusharedb.tushareDataManager import tushareDataCenter
         
 class dataCenter():
     def __init__(self):
         dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','csv','tusharedb'))                
         self.tsCenter = tushareDataCenter(dataPath)
+    def retriveCandleData(self,params = None):
+        '''mid
+        return data used to draw candle
+        
+        '''
+        dataProvider = params['dataProvider']
+        storageFormat = params['storageFormat']
+        
+        symbol = params['symbol']
+        strStart = params['dateStart']
+        strEnd = params['dateEnd']
+        frequency = params['frequency']        
+
+        if(dataProvider == "tushare"):
+            return self.tsCenter.retriveCandleData(storageType = storageFormat,symbol = symbol,period = frequency)
+
+        elif(dataProvider == 'yahoo'):
+            pass
+        elif(dataProvider == 'sina'):
+            pass
+    '''
     def retriveCandleData(self,datasource = 'tushare',storageType = 'mongodb',symbol = '',period = 'D'):
         if (datasource == 'tushare'):
             return self.tsCenter.retriveCandleData(storageType = storageType,symbol = symbol,period = period)
         elif (datasource == 'yahoo'):
             pass
         elif (datasource == 'sina'):
-            pass
+            pass    
+    '''
     def retriveHistData(self,symbol = ''):
         return self.tsCenter.retriveHistData(storageType = 'mongodb',symbol = symbol)
     def getLocalAvailableDataSymbols(self,dataType = 'tushare',storageType = 'mongodb',periodType = "D"):
@@ -60,10 +83,45 @@ class dataCenter():
             pass
         elif(providerType == 'sina'):
             pass
-    def getFeedsForZipline(self,feedFormat = "tushareCsv",instrument = ""):
+    def __DataFrameToZipline__(self,history):
+        """
+        输入：
+        pandas.DataFrame。
+                Index=Str
+        输出：
+                pandas.DataFrame
+        Index=Datatime
+        """
+        #date = pd.to_datetime(history.index+' 09:30:00+08',format='%Y-%m-%d %H:%M:%S')
+        date = pd.to_datetime(history.index+' 00:00:00+00',format='%Y-%m-%d %H:%M:%S')
+        date.name='Date'
+        close = pd.Series(np.array(history['close']),index=date,name='AAPL')
+    
+        data = pd.DataFrame(close)
+        #data.set_index(date,inplace=True)   
+        return data    
+    def getFeedsForZipline(self,params):
         '''mid
         提供回测数据给zipline的唯一接口
         '''
+        dataProvider = params['dataProvider']
+        storageFormat = params['storageFormat']
+        
+        symbol = params['symbol']
+        strStart = params['dateStart']
+        strEnd = params['dateEnd']
+        frequency = params['frequency']        
+
+        if(dataProvider == "tushare"):
+            if(storageFormat == 'mongodb'):
+                dfHistory = self.retriveHistData(symbol)
+                return self.__DataFrameToZipline__(dfHistory)
+            elif(storageFormat == 'csv'):
+                pass
+        elif(dataProvider == 'yahoo'):
+            pass
+        elif(dataProvider == 'sina'):
+            pass
     def getFeedsForPAT(self,feedFormat = "tushareCsv",instrument = ""):
         '''mid
         提供回测数据给PAT调用的唯一接口

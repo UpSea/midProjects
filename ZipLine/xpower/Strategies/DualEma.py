@@ -12,10 +12,8 @@ if __name__ == '__main__':
     dataSource={}
     algo={}
     
-    dataSource['ip']='192.168.0.212'
-    dataSource['port']=27017
-    dataSource['database']='Tushare'
-    
+    dataSource['dataProvider']='tushare'
+    dataSource['storageFormat']='mongodb'
     dataSource['symbol']='600028'
     dataSource['dateStart']='2015-03-19'
     dataSource['dateEnd']='2015-12-31'
@@ -43,9 +41,7 @@ import os,sys
 xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata'))
 sys.path.append(xpower)
 
-import feedsForCandle as feedsForCandle
-import feedsForZipline as feedsForZipline
-
+import dataCenter as dataCenter    
 from Analyzers.Analyzer01 import Analyzer01
 from Analyzers.Analyzer02 import Analyzer02
 from Analyzers.Analyzer03 import Analyzer03
@@ -55,8 +51,14 @@ from Analyzers.Analyzer05 import Analyzer05
 dataSource = params['dataSource']
 algo = params['algo']
 
-dataForZipline = feedsForZipline.GetFeedsFromMongodb(dataSource)
-dataForCandle = feedsForCandle.GetCandlesFromMongodb(dataSource)
+
+dataCenter = dataCenter.dataCenter()           
+dataForZipline = dataCenter.getFeedsForZipline(dataSource)
+#dataForZipline = feedsForZipline.GetFeedsFromMongodb(dataSource)
+dataForCandle = dataCenter.retriveCandleData(params = dataSource)
+#dataForCandle = dataCenter.retriveCandleData(datasource = 'tushare',storageType = 'mongodb',symbol = '600028')     
+
+#dataForCandle = feedsForCandle.GetCandlesFromMongodb(dataSource)
 
 dataUtcTime = dataForZipline.tz_localize('utc')
 algo = DualEmaTalib(instant_fill=algo['instant_fill'],

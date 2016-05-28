@@ -34,7 +34,6 @@ else:
 dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
 sys.path.append(dataRoot)        
 import dataCenter as dataCenter    
-import feedsForCandle as feedsForCandle
 from data.mongodb.DataSourceMongodb import Mongodb
 
 windowsRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir))

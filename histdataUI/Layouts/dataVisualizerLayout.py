@@ -34,7 +34,6 @@ else:
 dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
 sys.path.append(dataRoot)        
 import dataCenter as dataCenter    
-import feedsForCandle as feedsForCandle
 from data.mongodb.DataSourceMongodb import Mongodb
 
 windowsRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir))
@@ -184,7 +183,15 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
         bottomLeft02 = QtGui.QHBoxLayout(self.parent)  
     
         # 05)bottomLeft02---------------------        
-        dataForCandle = self.dataCenter.retriveCandleData(datasource = 'tushare',storageType = 'mongodb',symbol = '600028')     
+        dataSource={}        
+        dataSource['dataProvider']='tushare'
+        dataSource['storageFormat']='mongodb'
+        dataSource['symbol']='600028'
+        dataSource['dateStart']='2015-03-19'
+        dataSource['dateEnd']='2015-12-31'
+        dataSource['frequency']='D'        
+
+        dataForCandle = self.dataCenter.retriveCandleData(params = dataSource)     
         candle = pgCandleWidgetCross(dataForCandle=dataForCandle)          
     
         bottomLeft02.addLayout(self.createTableLayout())        

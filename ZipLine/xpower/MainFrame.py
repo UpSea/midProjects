@@ -5,7 +5,11 @@ import os
 import datetime
 
 import matplotlib.pyplot as plt
-from Dialogs.DataManager import DataManagerDialog
+import os,sys        
+xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdataUI'))
+sys.path.append(xpower)
+
+from DataCenterUI_1 import MainWindow
 from Views.EditorView import EditorView
 
 QtCore.QTextCodec.setCodecForTr(QtCore.QTextCodec.codecForName("utf8"))           
@@ -192,10 +196,28 @@ class MainFrame(QtGui.QMainWindow):
             message = QtGui.QMessageBox.information(self,"Information",self.tr('Please choose a params file to run.'))      
             message.exec_()
         else:
+            '''mid
+            两个文件。
+            一个参数文件，一个是策略文件
+            exec()执行的第一个参数是python程序，第二个参数是一个变量，可提供参数给被执行的文件
+
+            1.执行参数生成程序，传入一个全局变量，参数生成程序会写入参数
+            2.执行策略程序，此程序会读入参数程序生成的参数，并做计算      
+            在templateText执行过程中需要__file__参数
+            作为文本执行的程序是没有此参数的（IDE下执行打开的文件会有次参数）
+            所以主动生成次占位参数
+
+            在IDE中执行时，使用此参数的语句是有实际功能的
+            使用exec()方式执行时次参数无用，但为了在两个环境分别执行时不修改代码，特如此修改
+            IDE中如下语句用到__file__
+            import os,sys        
+            xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'histdata'))
+            sys.path.append(xpower)
+            '''
             templateText = templateEditor.toPlainText()
             paramsText = paramsEditor.toPlainText()
             # 3)自参数文本获取参数
-            global_namespace = {"__name__": __name__,'params':{},'Globals':self.Globals}
+            global_namespace = {'__file__':__file__,'params':{},'Globals':self.Globals}
             exec(paramsText, global_namespace)
             #print('params set:',global_namespace['params'])        
             ## 4)传参数入模板，形成策略并运行       
@@ -550,5 +572,5 @@ class MainFrame(QtGui.QMainWindow):
         此处将dialog设置为实例变量是有原因的
         若为局部变量，调用后会自动清除，导致闪退
         """
-        self.dialog=DataManagerDialog()
+        self.dialog=MainWindow()
         self.dialog.show()       
