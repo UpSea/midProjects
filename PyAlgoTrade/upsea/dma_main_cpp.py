@@ -1,33 +1,26 @@
 # -*- coding: utf-8 -*-
-from pyalgotrade import plotter
-
-from pyalgotrade.stratanalyzer import sharpe
-from pyalgotrade.stratanalyzer import returns
-from pyalgotrade.stratanalyzer import drawdown
-from pyalgotrade.stratanalyzer import trades
-
 import os,sys
+from pyalgotrade import plotter
 dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
 sys.path.append(dataRoot)        
-#import feedsForPAT as feedsForPAT
 import dataCenter as dataCenter 
-import pandas as pd
 #from BollingerBands import BBands
 import strategies.dma_crossover as dma_crossover
 import money.moneyFixed as moneyFixed
 
 class Expert():
-    def __init__(self,toPlot = True,instrument = '000001',shortPeriod = 20,longPeriod = 40,feedFormat = 'tushare',money = None):
-        self.instrument = instrument
+    def __init__(self,toPlot = True,instruments = [],shortPeriod = 20,longPeriod = 40,dataProvider = 'tushare',storageType = 'mongodb',period = 'D',toYear = '',fromYear='',money = None):
+        self.instrument = instruments[0]
         self.shortPeriod = shortPeriod
         self.longPeriod = longPeriod
         self.toPlot = toPlot
         
         #mid data
         self.dataCenter = dataCenter.dataCenter()           
-        #mid feedFormat = tushareCsv|tushare|yahooCsv|yahoo|generic
-        self.feed = self.dataCenter.getFeedsForPAT(feedFormat = feedFormat,instrument = self.instrument)
-        
+        #mid dataProvider = tushareCsv|tushare|yahooCsv|yahoo|generic
+        feeds = self.dataCenter.getFeedsForPAT(dataProvider = dataProvider,storageType = storageType,instruments = instruments,period=period,
+                                                   toYear = toYear,fromYear=fromYear)
+        self.feed = feeds[self.instrument]
         #mid money
         self.money = money
         
@@ -39,7 +32,10 @@ class Expert():
         #mid results
         self.initAnalyzer()
     def initAnalyzer(self):
-        #self.strat = BBands(self.feed, self.instrument, self.bBandsPeriod) 
+        from pyalgotrade.stratanalyzer import sharpe
+        from pyalgotrade.stratanalyzer import returns
+        from pyalgotrade.stratanalyzer import drawdown
+        from pyalgotrade.stratanalyzer import trades        
         
         self.returnsAnalyzer = returns.Returns()
         self.sharpeRatioAnalyzer = sharpe.SharpeRatio()
@@ -96,13 +92,16 @@ class Expert():
 
 
 if __name__ == "__main__":    
-    #mid feedFormat = tushareCsv|tushare|yahooCsv|yahoo|generic
-
-
+    #mid dataProvider = tushare|yahoo|generic
+    #mid storageType = csv|mongodb
+    #mid ktype 数据类型，D=日k线 W=周 M=月 m5=5分钟 m15=15分钟 m30=30分钟 h1=60分钟，默认为D
+    
     money = moneyFixed.moneyFixed()
-    ex = Expert(toPlot=True, instrument='600713', shortPeriod=20, 
-               longPeriod=40, feedFormat='tushare',
-               money = money)
+    instruments = ['600028']
+    ex = Expert(toPlot=True,  shortPeriod=20,longPeriod=40, 
+                dataProvider = 'tushare',storageType = 'mongodb',period = 'D',
+                instruments=instruments,money = money,
+                fromYear = 2014,toYear=2016)
     ex.run()
 
 

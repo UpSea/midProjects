@@ -18,6 +18,7 @@ import tushare as ts
 import numpy as np
 import time,os
 from pandas import DataFrame
+import pyalgotrade.logger        
 
 #reload(sys)
 #sys.setdefaultencoding('utf-8')
@@ -36,6 +37,12 @@ class tushareDataCenter():
         frequency = 'D'
         connect.setCollection(frequency)    #table
         self.mongodb = connect
+        #ktype 数据类型，D=日k线 W=周 M=月 5=5分钟 15=15分钟 30=30分钟 60=60分钟，默认为D
+        
+        self.periods = {'D':'D','W':'W','M':'M','m5':'5','m15':'15','m30':'30','h1':'60'}
+        
+        self.logger = pyalgotrade.logger.getLogger("tusharefinance")
+        
     def getCodesStorage(self):  
         selectorMsgBox=QtGui.QMessageBox()  
         selectorMsgBox.setWindowTitle("select codes storage.")  
@@ -104,34 +111,36 @@ class tushareDataCenter():
         dat = self.downloadCodes()
         dat.to_csv(self.codefile,encoding='gbk')    
     def exists(self,instrument,frequency):
-        from pyalgotrade import bar        
-        if frequency == 'D':
-            fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
+        if (frequency in self.periods.keys()):
+            fileName = os.path.join(self.dataRoot,frequency,('%s.csv'%instrument))
             if os.path.exists(fileName):
                 return True
             else:
-                return False
-        elif frequency == 'week':
-            fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
-            if os.path.exists(fileName):
-                return True
-            else:
-                return False                
+                return False               
         else:
             raise Exception("Invalid frequency")
 
-    def downloadAndStoreKDataByCode(self,instrument,_start_,_end_):
-        _data_ = ts.get_hist_data(instrument,start=None,end=None)  #默认取3年，start 8-1包括
-        fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
+    def downloadAndStoreKDataByCode(self,instrument = '',fromYear = '',toYear = '',period="D"):
+        #ktype 数据类型，D=日k线 W=周 M=月 5=5分钟 15=15分钟 30=30分钟 60=60分钟，默认为D
+        _data_ = ts.get_hist_data(code=instrument,start=str(fromYear),end=str(toYear),ktype=self.periods[period])  #默认取3年，start 8-1包括
+        fileName = os.path.join(self.dataRoot,period,('%s.csv'%instrument))
+        fileDir = os.path.dirname(fileName)
+        
+        #mid 判断是否存在文件夹，如不存在，则创建
+        if not os.path.exists(fileDir):
+            self.logger.info("Creating %s directory" % (fileDir))
+            os.mkdir(fileDir)
+        
+        #mid 判断是否存在已有同名文件，如有追加，如无，创建
         if _data_ is not None and len(_data_) != 0:
             if os.path.exists(fileName):
                 _data_.to_csv(fileName, mode='a', header=None,encoding='gbk')
             else:
                 _data_.to_csv(fileName,encoding='gbk')
+            return True
         else:
             return False
 
-        return True
     def downloadAndStoreAllData(self):
         '''mid 下载代码表及其中所有历史数据
         1.自tushare下载代码表:code.csv
@@ -288,21 +297,17 @@ class tushareDataCenter():
             pass
         else:
             pass
-    def retriveHistData(self,storageType = 'mongodb',symbol = ''):
+    def retriveHistData(self,storageType = 'mongodb',period = '',symbol = ''):
         if(storageType == 'mongodb'):
-            return self.mongodb.retrive(symbol = symbol)
+            return self.mongodb.retrive(symbol = symbol,period=period)
         elif(storageType == 'csv'):
-            return self.__retriveDataFrameKData__(symbol)
-    def __retriveDataFrameKData__(self,instrument,frequency='day'):
-        if frequency == 'day':
-            fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
-        elif frequency == 'day':
-            fileName = os.path.join(self.dataRoot,'day',('%s.csv'%instrument))
-    
-        dat = pd.read_csv(fileName,index_col=0,encoding='gbk')
-        #dat = pd.read_csv(fileName,index_col=0,parse_dates=[0],encoding='gbk')  #parse_dates直接转换数据类型 string->datastamp
-        
-        return dat.sort_index(axis=0,ascending=True)
+            return self.__retriveDataFrameKData__(symbol = symbol,period=period)
+    def __retriveDataFrameKData__(self,symbol = '',period=''):
+        if (period in self.periods.keys()):
+            fileName = os.path.join(self.dataRoot,period,('%s.csv'%symbol))
+            dat = pd.read_csv(fileName,index_col=0,encoding='gbk')
+            #dat = pd.read_csv(fileName,index_col=0,parse_dates=[0],encoding='gbk')  #parse_dates直接转换数据类型 string->datastamp
+            return dat.sort_index(axis=0,ascending=True)
     def get_macd(self,df):
         _columns_ = ['EMA_12','EMA_26','DIFF','MACD','BAR']
         a = np.zeros(len(df)*5).reshape(len(df),5) #也可以EMA_12 = [0 for i in range(len(df))]
@@ -316,10 +321,13 @@ class tushareDataCenter():
             a[i][3] = a[i-1][3]*8/10+a[i][2]*2/10 #MACD
             a[i][4]=2*(a[i][2]-a[i][3])
         return DataFrame(a,index = df.index,columns = _columns_) 
-    def buildFeedForPAT(self,instruments, fromYear, toYear, storage, frequency='D', timezone=None, skipErrors=False):
-        import feedsForPAT as feedsForPAT   
-        feed = feedsForPAT.Feed()
-        return feed.build_feed(instruments, fromYear, toYear, storage)           
+    def buildFeedForPAT(self,instruments = [], fromYear = '', toYear = '', storageType = 'csv', period='D', timezone=None, skipErrors=False):
+        import feedsForPAT as feedsForPAT 
+        feeds = {}
+        for instrument in instruments:
+            feed = feedsForPAT.Feed(tsDataCenter=self)
+            feeds[instrument] = feed.build_feed(instrument=instrument, fromYear=fromYear, toYear=toYear, storageType=storageType,period=period)           
+        return feeds
     #df为原dataframe da为macd
     def plt_macd(self,df,da):
         my_dfs = [df['open'], da['EMA_12'], da['EMA_26'], da['DIFF'], da['MACD'], da['BAR'],] # or in your case [ df,do]

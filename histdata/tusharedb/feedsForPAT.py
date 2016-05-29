@@ -142,7 +142,7 @@ class Feed(dataFrameBarFeed):
             * If any of the instruments loaded are in different timezones, then the timezone parameter must be set.
     """
 
-    def __init__(self, frequency=bar.Frequency.DAY, timezone=None, maxLen=dataseries.DEFAULT_MAX_LEN):
+    def __init__(self, tsDataCenter = None,frequency=bar.Frequency.DAY, timezone=None, maxLen=dataseries.DEFAULT_MAX_LEN):
         if isinstance(timezone, int):
             raise Exception("timezone as an int parameter is not supported anymore. Please use a pytz timezone instead.")
 
@@ -152,7 +152,7 @@ class Feed(dataFrameBarFeed):
         dataFrameBarFeed.__init__(self, frequency, maxLen)
         self.__timezone = timezone
         self.__sanitizeBars = False
-
+        self.tsDataCenter = tsDataCenter
     def sanitizeBars(self, sanitize):
         self.__sanitizeBars = sanitize
 
@@ -179,12 +179,50 @@ class Feed(dataFrameBarFeed):
 
         rowParser = RowParser(self.getDailyBarTime(), self.getFrequency(), timezone, self.__sanitizeBars)
         dataFrameBarFeed.addBarsFromDataFrame(self, instrument,rowParser,dataFrame)
-    def addBarsFromCSV(self,tsCenter,instrument):
-        from tushareDataManager import tushareDataCenter
-        dat = tsCenter.retriveHistData(storageType = 'csv',symbol = instrument)
-        self.addBarsFromDataFrame(instrument, dat)
+    def addBarsFromCSV(self,instrument='', period='D', fromYear='', toYear=''):
+        '''mid
+        添加一个symbol的历史数据到对象
+        '''
+        import pandas as pd
+        import pyalgotrade.logger        
+        tsCenter = self.tsDataCenter            
+        logger = pyalgotrade.logger.getLogger("tusharefinance")
+    
+        '''
+        if not os.path.exists(storage):
+            logger.info("Creating %s directory" % (storage))
+            os.mkdir(storage) 
+            
+         
+        '''
+        if(not tsCenter.exists(instrument,period)):
+            logger.info("Downloading %s from %d to %d" % (instrument, fromYear,toYear))
+            try:
+                if (period in self.tsDataCenter.periods.keys()):
+                    if tsCenter.downloadAndStoreKDataByCode(instrument = instrument,fromYear=fromYear,toYear = toYear,period=period):
+                        logger.info("Downloading successed.")
+                    else:
+                        logger.info("Downloading failed.")
+                else:
+                    raise Exception("Invalid period")
+            except Exception, e:
+                if skipErrors:
+                    logger.error(str(e))
+                    #continue
+                else:
+                    raise e
+        else:
+            logger.info("\n%s already existed." % (instrument))        
         
-    def build_feed(self,instruments, fromYear, toYear, storage, frequency='D', timezone=None, skipErrors=False):
+        dat = tsCenter.retriveHistData(storageType = 'csv',period = period,symbol = instrument)
+        self.addBarsFromDataFrame(instrument, dat)   
+    
+
+    def addBarsFromMongodb(self,instrument='', period='D', fromYear='', toYear=''):
+        tsCenter = self.tsDataCenter            
+        dat = tsCenter.retriveHistData(storageType = 'mongodb',symbol = instrument,period=period)
+        self.addBarsFromDataFrame(instrument, dat)
+    def build_feed(self,instrument = '', fromYear='', toYear='', storageType='', period='D', timezone=None, skipErrors=False):
         """Build and load a :class:`pyalgotrade.barfeed.yahoofeed.Feed` using CSV files downloaded from Yahoo! Finance.
         CSV files are downloaded if they haven't been downloaded before.
     
@@ -204,45 +242,10 @@ class Feed(dataFrameBarFeed):
         :type skipErrors: boolean.
         :rtype: :class:`pyalgotrade.barfeed.yahoofeed.Feed`.
         """
-        import pandas as pd
-        import pyalgotrade.logger
-        
-        #------
-        from tushareDataManager import tushareDataCenter
-        tsCenter = tushareDataCenter(storage)    
-        
-        logger = pyalgotrade.logger.getLogger("tusharefinance")
-    
-        if not os.path.exists(storage):
-            logger.info("Creating %s directory" % (storage))
-            os.mkdir(storage)
-    
-        for instrument in instruments:
-                    
-            if(not tsCenter.exists(instrument,frequency)):
-                logger.info("Downloading %s from %d to %d" % (instrument, fromYear,toYear))
-                try:
-                    if frequency == bar.Frequency.DAY:
-                        if tsCenter.downloadAndStoreKDataByCode(instrument,fromYear,toYear):
-                            logger.info("Downloading successed.")
-                        else:
-                            logger.info("Downloading failed.")
-                    elif frequency == bar.Frequency.WEEK:
-                        if(tsCenter.downloadAndStoreKDataByCode(instrument,fromYear,toYear)):
-                            logger.info("Downloading successed.")
-                        else:
-                            logger.info("Downloading failed.")
-                    else:
-                        raise Exception("Invalid frequency")
-                except Exception, e:
-                    if skipErrors:
-                        logger.error(str(e))
-                        continue
-                    else:
-                        raise e
-            else:
-                logger.info("\n%s already existed." % (instrument))
-            self.addBarsFromCSV(tsCenter,instrument)   
+        if(storageType == 'csv'):
+            self.addBarsFromCSV(instrument=instrument, period=period, fromYear=fromYear, toYear=toYear)
+        elif(storageType == 'mongodb'):
+            self.addBarsFromMongodb(instrument = instrument, period=period, fromYear=fromYear, toYear=toYear)
             #dat = tsCenter.retriveKDataByCode(instrument,bar.Frequency.DAY)
             #ret.addBarsFromDataFrame(instrument, dat)               
         return self    

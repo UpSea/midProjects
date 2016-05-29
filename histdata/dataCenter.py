@@ -1,9 +1,19 @@
 # -*- coding: utf-8 -*-
+'''mid
+#ktype 数据类型，D=日k线 W=周 M=月 5=5分钟 15=15分钟 30=30分钟 60=60分钟，默认为D
+D
+W
+M
+m5
+m15
+m30
+h1
+'''
 import os,sys
 import pandas as pd
 import numpy as np
 from tusharedb.tushareDataManager import tushareDataCenter
-        
+
 class dataCenter():
     def __init__(self):
         dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','csv','tusharedb'))                
@@ -122,23 +132,20 @@ class dataCenter():
             pass
         elif(dataProvider == 'sina'):
             pass
-    def getFeedsForPAT(self,feedFormat = "tushareCsv",instrument = ""):
+    def getFeedsForPAT(self,dataProvider = "tushare",storageType = 'mongodb',instruments = [],period='D', fromYear=2015,toYear=2015):
         '''mid
         提供回测数据给PAT调用的唯一接口
         '''
-        if(feedFormat == "yahoo"):
-            feed = self.__getFeedFromYahoo(instrument)
-        elif(feedFormat == "yahooCsv"):
-            feed = self.__getFeedFromYahooCsv(instrument)
-        elif(feedFormat == "tushareCsv"):
-            feed = self.__getFeedFromTushareCsv(instrument)
-        elif(feedFormat == "tushare"):
+        if(dataProvider == "yahoo"):
+            feeds = self.__getFeedFromYahoo(instrument)
+        elif(dataProvider == "yahooCsv"):
+            feeds = self.__getFeedFromYahooCsv(instrument)
+        elif(dataProvider == "tushare"):
             import sys,os
-            dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','csv','tusharedb'))                
-            feed = self.tsCenter.buildFeedForPAT([instrument], 2015, 2015, dataPath)
-        elif(feedFormat == "generic"):
-            feed = self.__getFeedFromGenericCsv(instrument)
-        return feed           
+            feeds = self.tsCenter.buildFeedForPAT(instruments = instruments, fromYear=fromYear,toYear=toYear, period=period,storageType=storageType)
+        elif(dataProvider == "generic"):
+            feeds = self.__getFeedFromGenericCsv(instrument)
+        return feeds           
     def __getFeedFromGenericCsv(self,instrument):
         '''mid
         使用系统自定义的与数据提供者的数据格式相互独立的csv格式储存的文件
@@ -154,18 +161,7 @@ class dataCenter():
         filename = dataRoot+os.sep+'day'+os.sep+('%s.csv'%instrument)          
         barfeed.addBarsFromCSV(instrument, filename) 
         return barfeed
-    def __getFeedFromTushareCsv(self,instrument):
-        '''mid
-        直接读取某个tushare格式的csv文件到pandas，再解析为feed格式返回
-        '''
-        import tusharedb.feedsForPAT as feedsForPAT        
-        dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','tusharedb','csv'))        
-        filename = dataRoot+os.sep+'day'+os.sep+('%s.csv'%instrument)          
-    
-        dat = pd.read_csv(filename,index_col=0,encoding='gbk')
-        feed = feedsForPAT.Feed()
-        feed.addBarsFromDataFrame(instrument, dat)   
-        return feed
+
     def __getFeedFromYahooCsv(self,instrument,fromYear = 2014,toYear = 2016):   
         from pyalgotrade.barfeed import yahoofeed        
         feed = yahoofeed.Feed()
