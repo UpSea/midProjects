@@ -18,6 +18,15 @@ class dataCenter():
     def __init__(self):
         dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','csv','tusharedb'))                
         self.tsCenter = tushareDataCenter(dataPath)
+        self.dataProviders = ['tushare','yahoo','sina','all']
+        self.dataStorages = ['mongodb','csv','all']
+        self.dataPeriods =  ['D','W','M','m5','m15','m30','h1']
+    def getDataProviders(self):
+        return self.dataProviders
+    def getDataStorages(self):
+        return self.dataStorages
+    def getDataPeriods(self):
+        return self.dataPeriods
     def retriveCandleData(self,params = None):
         '''mid
         return data used to draw candle
@@ -29,10 +38,10 @@ class dataCenter():
         symbol = params['symbol']
         strStart = params['dateStart']
         strEnd = params['dateEnd']
-        frequency = params['frequency']        
+        period = params['dataPeriod']        
 
         if(dataProvider == "tushare"):
-            return self.tsCenter.retriveCandleData(storageType = storageFormat,symbol = symbol,period = frequency)
+            return self.tsCenter.retriveCandleData(storageType = storageFormat,symbol = symbol,period = period)
 
         elif(dataProvider == 'yahoo'):
             pass

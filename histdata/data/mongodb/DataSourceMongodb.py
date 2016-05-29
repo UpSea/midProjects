@@ -117,9 +117,10 @@ class Mongodb(object):
         #return historyDf.loc[start:end]
         return historyDf[:]
     #----------------------------------------------------------------------
-    def retriveSymbolsAll(self):
+    def retriveSymbolsAll(self,period = 'D'):
         """"""
-        self.setCollection('D')
+        self.setCollection(period)
+        
         dfSymbols = pd.DataFrame(columns=['code','counts','dateStart','dateEnd'])
         symbols = self.find({})
         

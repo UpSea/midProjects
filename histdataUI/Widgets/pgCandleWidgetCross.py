@@ -19,11 +19,12 @@ from Widgets.pgCrossAddition import pgCrossAddition
 class pgCandleWidgetCross(pgCrossAddition):
     def __init__(self, dataForCandle=None):
         super(pgCandleWidgetCross, self).__init__()
+        if(dataForCandle == None):
+            return
         # 0) adds candle
-        self.candleData = dataForCandle        
-        self.candleItem = CandlestickItem(dataForCandle)
-        self.addItem(self.candleItem) 
-        self.candleItem.sigClicked.connect(self.mouseClicked)   
+        self.candleItem = None
+        self.setCandleData(dataForCandle=dataForCandle)
+  
         # 1)cross hair
         #self.crossHair = pgCrossAddition(self)
         #self.vLine = pg.InfiniteLine(angle=90, movable=False)
@@ -43,6 +44,16 @@ class pgCandleWidgetCross(pgCrossAddition):
         self.addItem(self.candleInfo)
         
         #self.scatterAddition(self.candleData[:,0],self.candleData[:,2])   
+    def setCandleData(self,dataForCandle = None):
+        if(dataForCandle == None):
+            return 
+        self.candleData = dataForCandle   
+        if(self.candleItem is not None):
+            #self.removeItem(self.candleItem)
+            pass
+        self.candleItem = CandlestickItem(dataForCandle)
+        self.addItem(self.candleItem) 
+        self.candleItem.sigClicked.connect(self.mouseClicked)           
     def mouseClicked(self,plot, points):
         if(len(points)>0):
             mousePoint = points[0].topRight()

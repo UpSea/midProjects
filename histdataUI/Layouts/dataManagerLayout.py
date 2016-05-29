@@ -81,7 +81,7 @@ class dataManagerLayout(QtGui.QHBoxLayout):
         if(codesType == 'tushare'):
             self.dfLocalSymbols = self.dataCenter.getCodes(codesType,sourceType)
         else:
-            QtGui.QMessageBox.information(self,codesType + ' codesTable data.',  'from '+sourceType+'\nis not prepared.')
+            QtGui.QMessageBox.information(self.parent,'information',codesType + ' codesTable data from '+sourceType+'\nis not prepared.')
             return
         
         self.tableLocalSymbols.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)  
@@ -263,10 +263,9 @@ class dataManagerLayout(QtGui.QHBoxLayout):
         codesTypeLable = QtGui.QLabel(self.tr("codes source type:"))  
         codesTypeComboBox=QtGui.QComboBox()
         self.codesTypeComboBox = codesTypeComboBox
-        codesTypeComboBox.insertItem(0,self.tr("tushare"))
-        codesTypeComboBox.insertItem(1,self.tr("sina"))        
-        codesTypeComboBox.insertItem(2,self.tr("datayes"))        
-        codesTypeComboBox.insertItem(3,self.tr("yahoo"))        
+        dataProviders = self.dataCenter.getDataProviders()
+        for dataProvider in dataProviders:
+            codesTypeComboBox.insertItem(0,dataProvider)        
         codesTypeComboBox.activated[str].connect(self.onActivate)        
         # 01.02 mid source type
         codesSourceLable = QtGui.QLabel(self.tr("storage type:")) 
@@ -339,8 +338,9 @@ class dataManagerLayout(QtGui.QHBoxLayout):
         lablePeriod = QtGui.QLabel(self.tr("Period:")) 
         periodComboBox=QtGui.QComboBox()
         self.periodComboBox = periodComboBox
-        periodComboBox.insertItem(0,self.tr("D"))
-        periodComboBox.insertItem(1,self.tr("min"))
+        dataPeriods = self.dataCenter.getDataPeriods()
+        for dataPeriod in dataPeriods:
+            periodComboBox.insertItem(0,dataPeriod)    
         
         lableTimeStart = QtGui.QLabel(self.tr("Time start:")) 
         timeStart = QtGui.QCalendarWidget()
@@ -364,22 +364,22 @@ class dataManagerLayout(QtGui.QHBoxLayout):
         dataSourceTypeComboBox=QtGui.QComboBox()
         self.remoteDataSourceTypeComboBox = dataSourceTypeComboBox
         self.dataSourceTypeComboBox = dataSourceTypeComboBox
-        dataSourceTypeComboBox.insertItem(0,self.tr("tushare"))
-        dataSourceTypeComboBox.insertItem(1,self.tr("sina"))        
-        dataSourceTypeComboBox.insertItem(2,self.tr("datayes"))        
-        dataSourceTypeComboBox.insertItem(3,self.tr("yahoo"))        
+        dataProviders = self.dataCenter.getDataProviders()
+        for dataProvider in dataProviders:
+            dataSourceTypeComboBox.insertItem(0,dataProvider)  
         # 01.02 mid source type
         codesSourceLable = QtGui.QLabel(self.tr("local storage type:")) 
-        sourceTypeComboBox=QtGui.QComboBox()
-        self.localStorageTypeComboBox = sourceTypeComboBox
-        sourceTypeComboBox.insertItem(0,self.tr("mongodb"))        
-        sourceTypeComboBox.insertItem(1,self.tr("csv"))        
+        storageComboBox=QtGui.QComboBox()
+        self.localStorageTypeComboBox = storageComboBox
+        dataStorages = self.dataCenter.getDataStorages()
+        for dataStorage in dataStorages:
+            storageComboBox.insertItem(0,dataStorage)           
         
         
         layoutParameters.addWidget(codesTypeLable,0,0)   
         layoutParameters.addWidget(dataSourceTypeComboBox,0,1)   
         layoutParameters.addWidget(codesSourceLable,1,0)   
-        layoutParameters.addWidget(sourceTypeComboBox,1,1)          
+        layoutParameters.addWidget(storageComboBox,1,1)          
         
         layoutParameters.addWidget(lablePeriod,2,0)
         layoutParameters.addWidget(periodComboBox,2,1)  
@@ -416,10 +416,9 @@ class dataManagerLayout(QtGui.QHBoxLayout):
             symbols = self.dfSymbolsToDownload['code']
             codeList=symbols.tolist()
 
-            remoteDataSourceType = self.remoteDataSourceTypeComboBox.currentText()
-            localStorageType = self.localStorageTypeComboBox.currentText()            
-            
-            periodType = self.periodComboBox.currentText()
+            remoteDataSourceType = str(self.remoteDataSourceTypeComboBox.currentText())
+            localStorageType = str(self.localStorageTypeComboBox.currentText())   
+            periodType = str(self.periodComboBox.currentText())
             
             
             timeStart = self.timeStartTimeEdit.dateTime().toPyDateTime()
@@ -454,10 +453,9 @@ class dataManagerLayout(QtGui.QHBoxLayout):
             symbolToDownload = self.tableSymbolsToDownload.item(rowSelected,0).text()
             codeList=[str(symbolToDownload)]
 
-            remoteDataSourceType = self.remoteDataSourceTypeComboBox.currentText()
-            localStorageType = self.localStorageTypeComboBox.currentText()            
-            
-            periodType = self.periodComboBox.currentText()
+            remoteDataSourceType = str(self.remoteDataSourceTypeComboBox.currentText())
+            localStorageType = str(self.localStorageTypeComboBox.currentText())         
+            periodType = str(self.periodComboBox.currentText())
             
             timeStart = self.timeStartTimeEdit.dateTime().toPyDateTime()
             strStart = timeStart.strftime('%Y-%m-%d')

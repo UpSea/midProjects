@@ -43,6 +43,11 @@ from Views.HistoryCandleView import HistoryCandleView
 from Views.HistoryTableView import HistoryTableView
 class dataVisualizerLayout(QtGui.QVBoxLayout):
     def __init__(self,parent=None):
+        '''mid
+        1)创建combobox组，并初始化值
+        2)依据combobox组的值初始化table
+        3)依据combobox，table初始化candleview
+        '''
         self.parent = None
         super(dataVisualizerLayout,self).__init__()        
         #mid data
@@ -55,7 +60,6 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
         self.addLayout(layoutLocalDataVisualizer)
         self.setStretch(0, 1)
         self.setStretch(1, 4)
-        self.updateLocalAvailableSymbolsTable()
     def createDataSourceSelectorLayout(self):
         '''mid
         创建数据来源选择组合框组，横向排列
@@ -68,21 +72,21 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
         
         datasourceComboBox = QtGui.QComboBox()
         self.localDatasourceComboBox = datasourceComboBox
-        datasourceComboBox.insertItem(0,'tushare')
-        datasourceComboBox.insertItem(1,'sina')
-        datasourceComboBox.insertItem(2,'yahoo')
-        
+        dataProviders = self.dataCenter.getDataProviders()
+        for dataProvider in dataProviders:
+            datasourceComboBox.insertItem(0,dataProvider)
+
         storageComboBox = QtGui.QComboBox()
         self.localSymbolsStorageComboBox = storageComboBox
-        storageComboBox.insertItem(0,self.tr("mongodb"))
-        storageComboBox.insertItem(1,self.tr("csv")) 
-        storageComboBox.insertItem(2,self.tr("all")) 
+        dataStorages = self.dataCenter.getDataStorages()
+        for dataStorage in dataStorages:
+            storageComboBox.insertItem(0,dataStorage)       
         
         periodComboBox=QtGui.QComboBox()
         self.localSymbolsPeriodComboBox = periodComboBox
-        periodComboBox.insertItem(0,self.tr("D"))
-        periodComboBox.insertItem(1,self.tr("min"))  
-        periodComboBox.insertItem(2,self.tr("all"))  
+        dataPeriods = self.dataCenter.getDataPeriods()
+        for dataPeriod in dataPeriods:
+            periodComboBox.insertItem(0,dataPeriod)               
         
         datasourceComboBox.activated[str].connect(self.onLocalSymbolSelectorActivate)        
         storageComboBox.activated[str].connect(self.onLocalSymbolSelectorActivate)        
@@ -108,9 +112,9 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
         dfLocalSymbols.index = 'code'
         dfLocalSymbols.columns = ['code','name','c_name',...]
         """
-        datasource = self.localDatasourceComboBox.currentText()
-        storageType = self.localSymbolsStorageComboBox.currentText()
-        period = self.localSymbolsPeriodComboBox.currentText()        
+        datasource = str(self.localDatasourceComboBox.currentText())
+        storageType = str(self.localSymbolsStorageComboBox.currentText())
+        period = str(self.localSymbolsPeriodComboBox.currentText()) 
         
         dfLocalSymbols = self.dataCenter.getLocalAvailableDataSymbols(dataType = datasource,storageType = storageType,periodType = period)
 
@@ -169,6 +173,39 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
         self.connect(ShowInTableButton,QtCore.SIGNAL("clicked()"),self.slotShowInTable)
         self.connect(ShowInGraphButton,QtCore.SIGNAL("clicked()"),self.slotShowInCandleGraph)
         return bottomLeft03
+    def getDataSourceParams(self,rowSelected = 0):
+        if((rowSelected<0) and (self.tableLocalAvailableSymbols.rowCount()>0)):
+            rowSelected = 0
+        if(rowSelected>=0):   #a row selected or table is not empty.
+            datasource = str(self.localDatasourceComboBox.currentText())
+            storageType = str(self.localSymbolsStorageComboBox.currentText())
+            symbolToShow = str(self.tableLocalAvailableSymbols.item(rowSelected,0).text())
+            period = str(self.localSymbolsPeriodComboBox.currentText())            
+            
+            dataSource={}        
+            dataSource['dataProvider'] = datasource
+            dataSource['storageFormat']=storageType
+            dataSource['dataPeriod']=period
+            dataSource['symbol']=symbolToShow
+            dataSource['dateStart']='2015-03-19'
+            dataSource['dateEnd']='2015-12-31'  
+            return dataSource
+        else:
+            return None
+    def onClicked(self):
+        print ('******row : ' , self.tableLocalAvailableSymbols.currentRow(), ' ***********')
+        
+        rows = self.tableLocalAvailableSymbols.rowCount()
+
+        #for rows_index in range(rows):
+            ##print items[item_index].text()
+            #print (self.tableLocalAvailableSymbols.item(rows_index,0).text())    
+        rowSelected = self.tableLocalAvailableSymbols.currentRow()
+
+        params = self.getDataSourceParams(rowSelected=rowSelected)
+        if(params is not None):
+            dataForCandle = self.dataCenter.retriveCandleData(params = params)     
+            self.candleWidget.setCandleData(dataForCandle = dataForCandle)   
     def createTableLayout(self):
         # 06)bottomLeft03
         localSymbolTable = QtGui.QVBoxLayout(self.parent)
@@ -177,26 +214,21 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
         localSymbolTable.addWidget(self.tableLocalAvailableSymbols)  
         
         localSymbolTable.addLayout(self.createDataControlButtonLayout())
-        
+        self.tableLocalAvailableSymbols.itemClicked.connect(self.onClicked)
+        self.updateLocalAvailableSymbolsTable()        
         return localSymbolTable
     def createDataVisualizerLayout(self):
         bottomLeft02 = QtGui.QHBoxLayout(self.parent)  
+        bottomLeft02.addLayout(self.createTableLayout())        
     
         # 05)bottomLeft02---------------------        
-        dataSource={}        
-        dataSource['dataProvider']='tushare'
-        dataSource['storageFormat']='mongodb'
-        dataSource['symbol']='600028'
-        dataSource['dateStart']='2015-03-19'
-        dataSource['dateEnd']='2015-12-31'
-        dataSource['frequency']='D'        
-
-        dataForCandle = self.dataCenter.retriveCandleData(params = dataSource)     
-        candle = pgCandleWidgetCross(dataForCandle=dataForCandle)          
+        params = self.getDataSourceParams()
+        if(params is not None):   
+            dataForCandle = self.dataCenter.retriveCandleData(params = params)     
+            self.candleWidget = pgCandleWidgetCross(dataForCandle=dataForCandle)          
     
-        bottomLeft02.addLayout(self.createTableLayout())        
         
-        bottomLeft02.addWidget(candle)  
+        bottomLeft02.addWidget(self.candleWidget)  
         
         bottomLeft02.setStretch(0,1)
         bottomLeft02.setStretch(1,3.5)
@@ -228,15 +260,9 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
         rowSelected = self.tableLocalAvailableSymbols.currentRow()
         if((rowSelected<0) and (self.tableLocalAvailableSymbols.rowCount()>0)):
             rowSelected = 0
-            
-        if(rowSelected>=0):   #a row selected or table is not empty.
-            datasource = self.localDatasourceComboBox.currentText()
-            storageType = self.localSymbolsStorageComboBox.currentText()
-            symbolToDownload = self.tableLocalAvailableSymbols.item(rowSelected,0).text()
-            period = self.localSymbolsPeriodComboBox.currentText()
-            #history = self.dataCenter.retriveHistData(symbolToDownload)
-            
-            dataForCandle = self.dataCenter.retriveCandleData(datasource = datasource,storageType = storageType,symbol = symbolToDownload)     
+        params = self.getDataSourceParams(rowSelected=rowSelected)
+        if(params is not None):
+            dataForCandle = self.dataCenter.retriveCandleData(params = params)     
             self.__showCandle__(dataForCandle)
             #self.myWindowfff = MyDialog(dataForCandle=dataForCandle)  
             #self.myWindowfff.show()                        

@@ -62,12 +62,9 @@ class tushareDataCenter():
             return 'cancel'  
     def retriveAvailableSymbols(self,storageType = 'mongodb' , periodType = 'D'):
         if(storageType == 'mongodb'):
-            if(periodType == 'D'):
-                self.mongodb.setCollection('D')
-                codes = self.mongodb.retriveSymbolsAll()             
+            if(periodType in self.periods.keys()):
+                codes = self.mongodb.retriveSymbolsAll(period =periodType)             
                 return codes    
-            elif(periodType == 'min'):
-                pass
             else:
                 pass
         elif(storageType == 'csv'):
@@ -172,8 +169,8 @@ class tushareDataCenter():
         _df_inuse.to_csv(self.codeinusefile,encoding='gbk')
     def downloadHistData(self,codeList = None,periodType = 'D',timeStart ='2000-01-01',timeEnd = '2016-05-20',storageType =  'mongodb'):
         dic = {}
-        for code in codeList:
-            _data_ = ts.get_hist_data(str(code),start=timeStart,end=timeEnd)
+        for code in codeList:       
+            _data_ = ts.get_hist_data(code = str(code),start=timeStart,end=timeEnd,ktype=self.periods[str(periodType)])
             if _data_ is not None:
                 dic[code] = _data_
                 #print i,code,type(code)
@@ -181,15 +178,20 @@ class tushareDataCenter():
         #mid ---------------------------------------------------------------------
         #storage = self.getCodesStorage()
         if(storageType == 'mongodb'):
-            self.mongodb.setCollection('D')
+            self.mongodb.setCollection(periodType)
             for code in dic:
                 quotesDict = dic[code].to_dict()
                 quotesDict['symbol'] = code
                 self.mongodb.insert(quotesDict)            
         elif(storageType == 'csv'):
             for code in dic:
-                dic[code].to_csv((self.dataRoot+os.sep+'day'+os.sep+('%s.csv'%code)),encoding='gbk')
-                
+                #mid 判断是否存在文件夹，如不存在，则创建
+                fileName = os.path.join(self.dataRoot,periodType,('%s.csv'%code))
+                fileDir = os.path.dirname(fileName)     
+                if not os.path.exists(fileDir):
+                    self.logger.info("Creating %s directory" % (fileDir))
+                    os.mkdir(fileDir)                   
+                dic[code].to_csv(fileName,encoding='gbk')
         #mid ----------------------------------------------------------------------
         return dic
             
@@ -290,19 +292,26 @@ class tushareDataCenter():
             raise SystemExit    
         return quotesWithDate.T      
     def retriveCandleData(self,storageType = 'mongodb',symbol = '',period = 'D'):
-        if(storageType == 'mongodb'):
-            dfKData = self.mongodb.retrive(symbol = symbol,period = period)
-            return self.__DataFrameToCandle__(dfKData)
-        elif(storageType == 'csv'):
-            pass
-        else:
-            pass
+        '''mid
+        将dataframe格式历史数据转化为用于绘制canlde 的数据
+        
+        '''
+        dfHistData = self.retriveHistData(storageType = storageType,period = period,symbol = symbol)
+        return self.__DataFrameToCandle__(dfHistData)
     def retriveHistData(self,storageType = 'mongodb',period = '',symbol = ''):
+        '''mid
+        返回dataframe格式的历史数据
+        '''
         if(storageType == 'mongodb'):
-            return self.mongodb.retrive(symbol = symbol,period=period)
+            dfHistData = self.mongodb.retrive(symbol = symbol,period=period)
         elif(storageType == 'csv'):
-            return self.__retriveDataFrameKData__(symbol = symbol,period=period)
+            dfHistData = self.__retriveDataFrameKData__(symbol = symbol,period=period)
+        return dfHistData
     def __retriveDataFrameKData__(self,symbol = '',period=''):
+        '''mid
+        依据symbol和period自csv数据文件夹获取dataframe格式数据
+        
+        '''
         if (period in self.periods.keys()):
             fileName = os.path.join(self.dataRoot,period,('%s.csv'%symbol))
             dat = pd.read_csv(fileName,index_col=0,encoding='gbk')
@@ -322,6 +331,9 @@ class tushareDataCenter():
             a[i][4]=2*(a[i][2]-a[i][3])
         return DataFrame(a,index = df.index,columns = _columns_) 
     def buildFeedForPAT(self,instruments = [], fromYear = '', toYear = '', storageType = 'csv', period='D', timezone=None, skipErrors=False):
+        '''mid
+        创建用于PAT的feeds，返回格式为字典，这个或许需要修改为单个feed(将所有数据都填入一个feed)
+        '''
         import feedsForPAT as feedsForPAT 
         feeds = {}
         for instrument in instruments:
