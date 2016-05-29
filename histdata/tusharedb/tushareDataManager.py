@@ -18,7 +18,7 @@ import tushare as ts
 import numpy as np
 import time,os
 from pandas import DataFrame
-import pyalgotrade.logger        
+#import pyalgotrade.logger        
 
 #reload(sys)
 #sys.setdefaultencoding('utf-8')
@@ -41,7 +41,7 @@ class tushareDataCenter():
         
         self.periods = {'D':'D','W':'W','M':'M','m5':'5','m15':'15','m30':'30','h1':'60'}
         
-        self.logger = pyalgotrade.logger.getLogger("tusharefinance")
+        #self.logger = pyalgotrade.logger.getLogger("tusharefinance")
         
     def getCodesStorage(self):  
         selectorMsgBox=QtGui.QMessageBox()  
