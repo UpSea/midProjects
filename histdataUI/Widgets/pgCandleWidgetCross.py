@@ -23,8 +23,8 @@ class pgCandleWidgetCross(pgCrossAddition):
             return
         # 0) adds candle
         self.candleItem = None
+        self.candleItemList = []
         self.setCandleData(dataForCandle=dataForCandle)
-  
         # 1)cross hair
         #self.crossHair = pgCrossAddition(self)
         #self.vLine = pg.InfiniteLine(angle=90, movable=False)
@@ -44,14 +44,29 @@ class pgCandleWidgetCross(pgCrossAddition):
         self.addItem(self.candleInfo)
         
         #self.scatterAddition(self.candleData[:,0],self.candleData[:,2])   
-    def setCandleData(self,dataForCandle = None):
+    def setCandleData(self,dataForCandle = None,graphMode = 'alone'):
+        '''mid
+        设置此方法，是为了在程序运行过程中能够动态的更新candle
+        此图显示过程有两个模式
+        1.alone，每个symbol的candles都是独立显示，删除老图，绘制新图
+        2.overlay，每个新图都是直接绘制进入老图，产生叠加图，可方便进行图形对比
+        '''
         if(dataForCandle == None):
             return 
+        #mid 1) 创建当前传入数据的candlestickItem
         self.candleData = dataForCandle   
-        if(self.candleItem is not None):
-            #self.removeItem(self.candleItem)
-            pass
         self.candleItem = CandlestickItem(dataForCandle)
+        
+        if(len(self.candleItemList) > 0 and graphMode == 'alone'):
+            #mid 清空老数据
+            for candleItem in self.candleItemList:
+                self.removeItem(candleItem)
+            del self.candleItemList[:]
+            
+        #mid 加入新数据
+        if(self.candleItem is not None):
+            self.candleItemList.append(self.candleItem)        
+            
         self.addItem(self.candleItem) 
         self.candleItem.sigClicked.connect(self.mouseClicked)           
     def mouseClicked(self,plot, points):
@@ -160,21 +175,21 @@ if __name__ == '__main__':
     def getCandleData():
         import os,sys        
         xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))
-        sys.path.append(xpower)
-    
-        import feedsForCandle as feedsForCandle
-    
+        sys.path.append(xpower)     
+        import dataCenter as dataCenter     
+        dataCenter = dataCenter.dataCenter()  
+        
         dataSource={}
-        dataSource['ip']='192.168.0.212'
-        dataSource['port']=27017
-        dataSource['database']='Tushare'
+        dataSource['dataProvider'] = 'tushare'
+        dataSource['storageFormat']='mongodb'
+        dataSource['dataPeriod']='D'
         dataSource['symbol']='600028'
-        dataSource['dateStart']='2013-08-19'
-        dataSource['dateEnd']='2015-08-31'
-        dataSource['frequency']='D'
-        dataForCandle = feedsForCandle.GetCandlesFromMongodb(dataSource)
+        dataSource['dateStart']='2015-03-19'
+        dataSource['dateEnd']='2015-12-31'  
+
+
+        dataForCandle = dataCenter.retriveCandleData(params = dataSource)    
         return dataForCandle    
-    
     dialog = QtGui.QDialog()
     layout = QtGui.QHBoxLayout()
     layoutLeft = QtGui.QVBoxLayout()

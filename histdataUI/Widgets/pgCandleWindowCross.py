@@ -48,20 +48,21 @@ if __name__ == '__main__':
     def getCandleData():
         import os,sys        
         xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))
-        sys.path.append(xpower)
-    
-        import feedsForCandle as feedsForCandle
-    
+        sys.path.append(xpower)     
+        import dataCenter as dataCenter     
+        dataCenter = dataCenter.dataCenter()  
+        
         dataSource={}
-        dataSource['ip']='192.168.0.212'
-        dataSource['port']=27017
-        dataSource['database']='Tushare'
+        dataSource['dataProvider'] = 'tushare'
+        dataSource['storageFormat']='mongodb'
+        dataSource['dataPeriod']='D'
         dataSource['symbol']='600028'
-        dataSource['dateStart']='2013-08-19'
-        dataSource['dateEnd']='2015-08-31'
-        dataSource['frequency']='D'
-        dataForCandle = feedsForCandle.GetCandlesFromMongodb(dataSource)
-        return dataForCandle        
+        dataSource['dateStart']='2015-03-19'
+        dataSource['dateEnd']='2015-12-31'  
+
+
+        dataForCandle = dataCenter.retriveCandleData(params = dataSource)    
+        return dataForCandle     
     import sys
     app = QtGui.QApplication(sys.argv)
     mw = QtGui.QMainWindow()

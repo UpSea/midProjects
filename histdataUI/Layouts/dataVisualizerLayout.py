@@ -58,8 +58,8 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
         # bottom--------------------------------------------------------------------
         self.addLayout(layoutLocalDataSource)
         self.addLayout(layoutLocalDataVisualizer)
-        self.setStretch(0, 1)
-        self.setStretch(1, 4)
+        #self.setStretch(0, 1)
+        #self.setStretch(1, 4)
     def createDataSourceSelectorLayout(self):
         '''mid
         创建数据来源选择组合框组，横向排列
@@ -88,6 +88,12 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
         for dataPeriod in dataPeriods:
             periodComboBox.insertItem(0,dataPeriod)               
         
+        
+        self.overlayCheckBox = QtGui.QRadioButton('overlay')   # 创建单选框
+        self.aloneCheckBox = QtGui.QRadioButton('stand-alone')
+        self.aloneCheckBox.setChecked(True)      # 将Radio1选中
+   
+        
         datasourceComboBox.activated[str].connect(self.onLocalSymbolSelectorActivate)        
         storageComboBox.activated[str].connect(self.onLocalSymbolSelectorActivate)        
         periodComboBox.activated[str].connect(self.onLocalSymbolSelectorActivate)        
@@ -101,9 +107,13 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
         layoutSymbolsSelector.addWidget(labelPeriodType)
         layoutSymbolsSelector.addWidget(periodComboBox)        
         
-        layoutSymbolsSelector.addWidget(QtGui.QLineEdit())
+        layoutSymbolsSelector.addWidget(self.aloneCheckBox)        
+        layoutSymbolsSelector.addWidget(self.overlayCheckBox)        
         
-        layoutSymbolsSelector.setStretch(6,1)
+        layoutSymbolsSelector.addWidget(QtGui.QLabel(' '))
+        
+        layoutSymbolsSelector.setStretch(8,1)
+        
         return layoutSymbolsSelector
     def onLocalSymbolSelectorActivate(self,text):
         self.updateLocalAvailableSymbolsTable()    
@@ -182,6 +192,9 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
             symbolToShow = str(self.tableLocalAvailableSymbols.item(rowSelected,0).text())
             period = str(self.localSymbolsPeriodComboBox.currentText())            
             
+            alone = self.aloneCheckBox.isChecked()
+            overlay = self.overlayCheckBox.isChecked()
+            
             dataSource={}        
             dataSource['dataProvider'] = datasource
             dataSource['storageFormat']=storageType
@@ -189,6 +202,8 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
             dataSource['symbol']=symbolToShow
             dataSource['dateStart']='2015-03-19'
             dataSource['dateEnd']='2015-12-31'  
+            dataSource['alone'] = alone
+            dataSource['overlay'] = overlay
             return dataSource
         else:
             return None
@@ -204,8 +219,12 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
 
         params = self.getDataSourceParams(rowSelected=rowSelected)
         if(params is not None):
-            dataForCandle = self.dataCenter.retriveCandleData(params = params)     
-            self.candleWidget.setCandleData(dataForCandle = dataForCandle)   
+            dataForCandle = self.dataCenter.retriveCandleData(params = params)   
+            if(params['alone'] is True):       # 判断单选框是否选中
+                graphMode = 'alone'
+            elif (params['overlay'] is True):
+                graphMode = 'overlay'                
+            self.candleWidget.setCandleData(dataForCandle = dataForCandle,graphMode = graphMode)   
     def createTableLayout(self):
         # 06)bottomLeft03
         localSymbolTable = QtGui.QVBoxLayout(self.parent)
@@ -224,7 +243,8 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
         # 05)bottomLeft02---------------------        
         params = self.getDataSourceParams()
         if(params is not None):   
-            dataForCandle = self.dataCenter.retriveCandleData(params = params)     
+            dataForCandle = self.dataCenter.retriveCandleData(params = params)
+        
             self.candleWidget = pgCandleWidgetCross(dataForCandle=dataForCandle)          
     
         
