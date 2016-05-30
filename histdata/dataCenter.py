@@ -210,6 +210,7 @@ class dataCenter():
         feed = yahoofinance.build_feed([instrument], 2015, 2015, dataPath)    
         return feed    
 
+# mid 以下两个函数只用于某些demo函数获取历史数据，如此安排可方便统一修改，也用于演示datacenter的调用
 def getCandleData():
     dataSource={}
     dataSource['dataProvider'] = 'tushare'
@@ -260,7 +261,7 @@ if __name__ == '__main__':
     table.clear()
     header = ['datetime','open','high','low','close']
     table.setHorizontalHeaderLabels(header)     #mid should be after .setColumnCount()
-    if(False):#mid 
+    if(False):#mid 用于演示candledata的获取和使用
         candleData = getCandleData()  
         table.setColumnCount(len(header))
         table.setRowCount(len(candleData))      
@@ -269,7 +270,7 @@ if __name__ == '__main__':
             for column in range(len(candleData[0,:])):
                 print (column)
                 table.setItem(row,column,QtGui.QTableWidgetItem(str(candleData[row, column]))) 
-    else:
+    else:#mid 用于演示histdata的获取和使用
         dfLocalSymbols = getRawData()
         table.setRowCount(len(dfLocalSymbols))
         table.setColumnCount(len(header))
