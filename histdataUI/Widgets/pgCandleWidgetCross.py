@@ -19,8 +19,6 @@ from Widgets.pgCrossAddition import pgCrossAddition
 class pgCandleWidgetCross(pgCrossAddition):
     def __init__(self, dataForCandle=None):
         super(pgCandleWidgetCross, self).__init__()
-        if(dataForCandle == None):
-            return
         # 0) adds candle
         self.candleItem = None
         self.candleItemList = []
@@ -51,10 +49,12 @@ class pgCandleWidgetCross(pgCrossAddition):
         1.alone，每个symbol的candles都是独立显示，删除老图，绘制新图
         2.overlay，每个新图都是直接绘制进入老图，产生叠加图，可方便进行图形对比
         '''
-        if(dataForCandle == None):
-            return 
+
         #mid 1) 创建当前传入数据的candlestickItem
         self.candleData = dataForCandle   
+        if(self.candleData == None):
+            return  
+        
         self.candleItem = CandlestickItem(dataForCandle)
         
         if(len(self.candleItemList) > 0 and graphMode == 'alone'):
@@ -101,6 +101,10 @@ class pgCandleWidgetCross(pgCrossAddition):
         if self.sceneBoundingRect().contains(pos):
             mousePoint = self.plotItem.vb.mapSceneToView(pos)
             index = int(mousePoint.x())
+            
+            if(self.candleData == None):
+                return            
+            
             xLeft = self.candleData[0,0]
             xRight = self.candleData[len(self.candleData)-1,0]
             if index >= xLeft and index <= xRight:

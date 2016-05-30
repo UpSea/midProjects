@@ -48,7 +48,7 @@ class StrategyEditorView(QtGui.QDialog):
     def exec_text(self,text):
         """"""
         global_namespace = {"__name__": "__main__","__fig__":self.strategyFig}
-        exec(text, global_namespace)      
+        exec(str(text), global_namespace)      
     #----------------------------------------------------------------------      
     def exec_filePath(self,filepath):
         global_namespace = {"__file__": filepath,"__name__": "__main__","__fig__":self.strategyFig}

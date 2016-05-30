@@ -180,33 +180,38 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
         bottomLeft03.addWidget(DeleteAllFromDBButton)
         bottomLeft03.addWidget(ShowInTableButton)
         bottomLeft03.addWidget(ShowInGraphButton)
+        
+        self.connect(DeleteOneFromDBButton,QtCore.SIGNAL("clicked()"),self.slotDeleteOneFromDB)
+        self.connect(DeleteAllFromDBButton,QtCore.SIGNAL("clicked()"),self.slotDeleteAllFromDB)
         self.connect(ShowInTableButton,QtCore.SIGNAL("clicked()"),self.slotShowInTable)
         self.connect(ShowInGraphButton,QtCore.SIGNAL("clicked()"),self.slotShowInCandleGraph)
         return bottomLeft03
-    def getDataSourceParams(self,rowSelected = 0):
+    def getDataSourceParams(self):
+        rowSelected = self.tableLocalAvailableSymbols.currentRow()
         if((rowSelected<0) and (self.tableLocalAvailableSymbols.rowCount()>0)):
             rowSelected = 0
+        datasource = str(self.localDatasourceComboBox.currentText())
+        storageType = str(self.localSymbolsStorageComboBox.currentText())
+        period = str(self.localSymbolsPeriodComboBox.currentText())            
+        
+        alone = self.aloneCheckBox.isChecked()
+        overlay = self.overlayCheckBox.isChecked()
+        
+        dataSource={}        
+        dataSource['dataProvider'] = datasource
+        dataSource['storageFormat']=storageType
+        dataSource['dataPeriod']=period
+        dataSource['dateStart']='2015-03-19'
+        dataSource['dateEnd']='2015-12-31'  
+        dataSource['alone'] = alone
+        dataSource['overlay'] = overlay        
+        
         if(rowSelected>=0):   #a row selected or table is not empty.
-            datasource = str(self.localDatasourceComboBox.currentText())
-            storageType = str(self.localSymbolsStorageComboBox.currentText())
             symbolToShow = str(self.tableLocalAvailableSymbols.item(rowSelected,0).text())
-            period = str(self.localSymbolsPeriodComboBox.currentText())            
-            
-            alone = self.aloneCheckBox.isChecked()
-            overlay = self.overlayCheckBox.isChecked()
-            
-            dataSource={}        
-            dataSource['dataProvider'] = datasource
-            dataSource['storageFormat']=storageType
-            dataSource['dataPeriod']=period
             dataSource['symbol']=symbolToShow
-            dataSource['dateStart']='2015-03-19'
-            dataSource['dateEnd']='2015-12-31'  
-            dataSource['alone'] = alone
-            dataSource['overlay'] = overlay
-            return dataSource
         else:
-            return None
+            dataSource['symbol']=''
+        return dataSource
     def onClicked(self):
         print ('******row : ' , self.tableLocalAvailableSymbols.currentRow(), ' ***********')
         
@@ -215,9 +220,7 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
         #for rows_index in range(rows):
             ##print items[item_index].text()
             #print (self.tableLocalAvailableSymbols.item(rows_index,0).text())    
-        rowSelected = self.tableLocalAvailableSymbols.currentRow()
-
-        params = self.getDataSourceParams(rowSelected=rowSelected)
+        params = self.getDataSourceParams()
         if(params is not None):
             dataForCandle = self.dataCenter.retriveCandleData(params = params)   
             if(params['alone'] is True):       # 判断单选框是否选中
@@ -253,34 +256,45 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
         bottomLeft02.setStretch(0,1)
         bottomLeft02.setStretch(1,3.5)
         return bottomLeft02    
-
+    def slotDeleteOneFromDB(self):
+        params = self.getDataSourceParams()
+        if(params is not None):
+            self.dataCenter.removeFromStorage(dataProvider = params['dataProvider'],storageType = params['storageFormat'],
+                                              symbols = params['symbol'],period=params['dataPeriod']) 
+            self.updateLocalAvailableSymbolsTable()
+    def slotDeleteAllFromDB(self):
+        '''
+            dataSource={}        
+            dataSource['dataProvider'] = datasource
+            dataSource['storageFormat']=storageType
+            dataSource['dataPeriod']=period
+            dataSource['symbol']=symbolToShow
+            dataSource['dateStart']='2015-03-19'
+            dataSource['dateEnd']='2015-12-31'  
+            dataSource['alone'] = alone
+            dataSource['overlay'] = overlay        
+        '''
+        params = self.getDataSourceParams()
+        if(params is not None):
+            self.dataCenter.removeFromStorage(dataProvider = params['dataProvider'],storageType = params['storageFormat'],
+                                              symbols = None,period=params['dataPeriod'])
+        self.updateLocalAvailableSymbolsTable()   
     def slotShowInTable(self):
         """
         show currrent selected symbol in table
-        """
-        def getRawDataFromMongodb():
-            # 1)connect to Mongodb 
-            connect = Mongodb('192.168.0.212', 27017)
-            connect.use('Tushare')    #database
-            
-            # 2)retrive data from specified collection
-            symbol = '600028'
-            strStart = '2015-01-01'
-            dateEnd = dt.datetime.now()
-            strEnd = dateEnd.strftime('%Y-%m-%d')  
-            frequency = 'D'
-            connect.setCollection(frequency)    #table
-            return connect.retrive(symbol,strStart,strEnd,frequency)        
-            
-        data = getRawDataFromMongodb()
-        self.tableHistory=HistoryTableView(rawData=data)
-        self.tableHistory.setWindowTitle("history")
-        self.tableHistory.show()        
+        """     
+        params = self.getDataSourceParams()
+        if(params is not None):
+            data = self.dataCenter.retriveHistData(params = params)                           
+            self.tableHistory=HistoryTableView(rawData=data)
+            self.tableHistory.setWindowTitle("history")
+            self.tableHistory.showMaximized()          
+        else:   #none selected and empty table
+            symbol = 'none to download.'
+            QtGui.QMessageBox.information(self.parent,"Information",self.tr(symbol))             
+      
     def slotShowInCandleGraph(self):
-        rowSelected = self.tableLocalAvailableSymbols.currentRow()
-        if((rowSelected<0) and (self.tableLocalAvailableSymbols.rowCount()>0)):
-            rowSelected = 0
-        params = self.getDataSourceParams(rowSelected=rowSelected)
+        params = self.getDataSourceParams()
         if(params is not None):
             dataForCandle = self.dataCenter.retriveCandleData(params = params)     
             self.__showCandle__(dataForCandle)
@@ -288,7 +302,7 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
             #self.myWindowfff.show()                        
         else:   #none selected and empty table
             symbol = 'none to download.'
-            QtGui.QMessageBox.information(self,"Information",self.tr(symbol)) 
+            QtGui.QMessageBox.information(self.parent,"Information",self.tr(symbol)) 
     def __showCandle__(self,dataForCandle):
         dialog = QtGui.QDialog()
         self.pgCandleView = dialog

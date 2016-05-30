@@ -283,6 +283,8 @@ class tushareDataCenter():
         else:
             date = np.array([mpd.date2num(pd.to_datetime(dateStr+' 09:30:00+08','%Y-%m-%d %H:%M:%S').tz_localize('utc')) for dateStr in history.index])         
             
+        if(len(history) == 0):
+            return None
         quotes = np.array(history.iloc[:][['open','high','low','close']])
         rows = quotes.shape[0]
         colls = quotes.shape[1]
@@ -290,7 +292,27 @@ class tushareDataCenter():
         # %%
         if len(quotesWithDate) == 0:
             raise SystemExit    
-        return quotesWithDate.T      
+        return quotesWithDate.T     
+    def removeFromStorage(self,storageType = 'mongodb',symbols = None,period = 'D'):
+        if(storageType == 'mongodb'):
+            '''mid
+            接受三种symbols参数:
+            None:删除所有当前period的数据项
+            str:表示是一个code，删除他
+            list:表示是一个code的list，需要循环处理
+            '''
+            if(type(symbols) is str):
+                data = {'symbol':symbols}
+                self.mongodb.removeItem(collection=period,data=data)
+            elif(symbols is None):
+                self.mongodb.removeItem(collection=period)
+            elif(type(symbols) is list):
+                for symbol in symbols:
+                    data = {'symbol':symbol}
+                    self.mongodb.removeItem(collection=period,data=data)
+
+        elif(storageType == 'csv'):
+            pass   
     def retriveCandleData(self,storageType = 'mongodb',symbol = '',period = 'D'):
         '''mid
         将dataframe格式历史数据转化为用于绘制canlde 的数据

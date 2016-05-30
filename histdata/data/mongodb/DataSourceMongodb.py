@@ -69,7 +69,13 @@ class Mongodb(object):
             self.coll.insert_many(data)
         else:
             self.coll.insert_one(data)
-    def remove(self, data = None):
+    def removeItem(self,collection='D',data = None):
+        self.setCollection(collection)
+        if(data is not None):
+            self.__remove__(data=data)
+        else:
+            self.__remove__()
+    def __remove__(self, data = None):
         self.coll.remove(data)
     def update(self,data, setdata):
         if type(data) is not dict or type(setdata) is not dict:
@@ -109,7 +115,9 @@ class Mongodb(object):
         historyDf = pd.DataFrame()        
         
         # 3) 
-        historyDf = pd.DataFrame(data[0])  # mid only one field and it is a dict.
+        if(data.count()>0):
+            historyDf = pd.DataFrame(data[0])  # mid only one field and it is a dict.
+            
         historyDf.index.names = ['Date'] 
         historyDf.columns.names=['OHLC']
         historyDf.sort_index(inplace=True,ascending=True)
@@ -161,7 +169,7 @@ class Mongodb(object):
 if __name__ == "__main__":
     # mid create a new connect to mongodb and test it.
     connect = Mongodb()
-    connect.testConnect()
+    #connect.testConnect()
     # mid 1)if find 'midtest',delete it.
     
     
@@ -189,7 +197,7 @@ if __name__ == "__main__":
     #mid 4)delete one item
     data = {'id':'1'}
     setdata = {"author":"upsea"}
-    connect.remove(data)       
+    connect.removeItem(collection=collectionName,data = data)       
     #mid 5)delete all
-    connect.remove()          
+    connect.removeItem(collection=collectionName)          
     

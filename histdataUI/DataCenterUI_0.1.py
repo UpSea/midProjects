@@ -245,24 +245,37 @@ class DataManagerDialog(QtGui.QDialog):
         self.tableHistory=HistoryTableView(rawData=data)
         self.tableHistory.setWindowTitle("history")
         self.tableHistory.show()        
+    def getCandleData(self):
+        import os,sys
+        dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
+        sys.path.append(dataRoot)        
+        import dataCenter as dataCenter   
+    
+        rowSelected = self.tableLocalSymbols.currentRow()
+        if((rowSelected<0) and (self.tableLocalSymbols.rowCount()>0)):
+            rowSelected = 0
+            
+        dataSource={}
+        dataSource['dataProvider'] = 'tushare'
+        dataSource['storageFormat']='mongodb'
+        dataSource['dataPeriod']='D'
+        dataSource['symbol']=self.tableLocalSymbols.item(rowSelected,0).text()
+        dataSource['dateStart']='2015-03-19'
+        dataSource['dateEnd']='2015-12-31'  
+        dataSource['alone'] = True
+        dataSource['overlay'] = False   
+        
+        dataCenter = dataCenter.dataCenter()        
+        dataForCandle = dataCenter.retriveCandleData(params = dataSource)     
+        
+        return dataForCandle      
     def slotShowInCandleGraph(self):
         rowSelected = self.tableLocalSymbols.currentRow()
         if((rowSelected<0) and (self.tableLocalSymbols.rowCount()>0)):
             rowSelected = 0
             
         if(rowSelected>=0):   #a row selected or table is not empty.
-            symbolToDownload = self.tableLocalSymbols.item(rowSelected,0).text()
-            # 1)connect to Mongodb 
-            connect = Mongodb('192.168.0.212', 27017)
-            connect.use('Tushare')    #database            
-            # 2)retrive data from specified collection
-            strStart = u'2013-12-01'
-            dateEnd = dt.datetime.now()
-            strEnd = dateEnd.strftime('%Y-%m-%d')  
-            frequency = 'D'
-            connect.setCollection(frequency)    #table
-            history = connect.retrive(symbolToDownload,strStart,strEnd,frequency)
-            dataForCandle = feedsForCandle.DataFrameToCandle(history)            
+            dataForCandle = self.getCandleData()          
             
             self.myWindow = MyDialog(dataForCandle=dataForCandle)  
             self.myWindow.show()                        

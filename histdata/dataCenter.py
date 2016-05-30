@@ -56,8 +56,22 @@ class dataCenter():
         elif (datasource == 'sina'):
             pass    
     '''
-    def retriveHistData(self,symbol = ''):
-        return self.tsCenter.retriveHistData(storageType = 'mongodb',symbol = symbol)
+    def retriveHistData(self,params):
+        dataProvider = params['dataProvider']
+        storageFormat = params['storageFormat']
+        
+        symbol = params['symbol']
+        strStart = params['dateStart']
+        strEnd = params['dateEnd']
+        period = params['dataPeriod']        
+
+        if(dataProvider == "tushare"):
+            dfHistory = self.tsCenter.retriveHistData(storageType = storageFormat,symbol = symbol,period = period)
+            return dfHistory
+        elif(dataProvider == 'yahoo'):
+            pass
+        elif(dataProvider == 'sina'):
+            pass        
     def getLocalAvailableDataSymbols(self,dataType = 'tushare',storageType = 'mongodb',periodType = "D"):
         if(dataType == 'tushare'):
             return self.tsCenter.retriveAvailableSymbols(storageType=storageType,periodType = periodType)
@@ -137,6 +151,13 @@ class dataCenter():
                 return self.__DataFrameToZipline__(dfHistory)
             elif(storageFormat == 'csv'):
                 pass
+        elif(dataProvider == 'yahoo'):
+            pass
+        elif(dataProvider == 'sina'):
+            pass
+    def removeFromStorage(self,dataProvider = "tushare",storageType = 'mongodb',symbols = None,period='D'):
+        if(dataProvider == "tushare"):
+            return self.tsCenter.removeFromStorage(storageType = storageType,symbols = symbols,period = period)
         elif(dataProvider == 'yahoo'):
             pass
         elif(dataProvider == 'sina'):

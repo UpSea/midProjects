@@ -24,6 +24,8 @@ class HistoryCandleView(FigureCanvas):
         
         fig.tight_layout()        
         
+        if(dataForCandle is None):
+            return
         self.candlePlot(ax1,dataForCandle[-50:-1],colorup='r',colordown='g',alpha=1)
         self.candlePlot(ax2,dataForCandle[-100:-50],colorup='r',colordown='g',alpha=1)    
         self.candlePlot(ax3,dataForCandle[-100:-1],colorup='r',colordown='g',alpha=1)    
@@ -138,10 +140,10 @@ class MyDialog(QtGui.QDialog):
         layoutLeft.addWidget(button02)        
         # 5) add candleView to mainlayout
         canvas = HistoryCandleView(dataForCandle=dataForCandle,fnUpdateBarInfoCallback=self.updateBarInfo)        
-        layout.addWidget(canvas)
+        #layout.addWidget(canvas)
         
         layout.setStretchFactor(layoutLeft,10)
-        layout.setStretchFactor(canvas,60)
+        #layout.setStretchFactor(canvas,60)
     #----------------------------------------------------------------------
     def updateBarInfo(self,event):
         """"""
@@ -155,20 +157,24 @@ if __name__ == '__main__':
     import os,sys        
     app = QtGui.QApplication([])
     def getCandleData():
-        xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))
-        sys.path.append(xpower)
-    
-        import feedsForCandle as feedsForCandle
+        import os,sys
+        dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
+        sys.path.append(dataRoot)        
+        import dataCenter as dataCenter   
     
         dataSource={}
-        dataSource['ip']='192.168.0.212'
-        dataSource['port']=27017
-        dataSource['database']='Tushare'
+        dataSource['dataProvider'] = 'tushare'
+        dataSource['storageFormat']='mongodb'
+        dataSource['dataPeriod']='D'
         dataSource['symbol']='600028'
-        dataSource['dateStart']='2013-08-19'
-        dataSource['dateEnd']='2015-08-31'
-        dataSource['frequency']='D'
-        dataForCandle = feedsForCandle.GetCandlesFromMongodb(dataSource)
+        dataSource['dateStart']='2015-03-19'
+        dataSource['dateEnd']='2015-12-31'  
+        dataSource['alone'] = True
+        dataSource['overlay'] = False   
+        
+        dataCenter = dataCenter.dataCenter()        
+        dataForCandle = dataCenter.retriveCandleData(params = dataSource)     
+        
         return dataForCandle    
     
     candleData = getCandleData()  
