@@ -50,28 +50,12 @@ if __name__ == '__main__':
     import os,sys        
     app = QtGui.QApplication([])
     
-    def getRawDataDataCenter():
-        import os,sys
-        dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
-        sys.path.append(dataRoot)        
-        import dataCenter as dataCenter          
-        dataSource={}        
-        dataSource['dataProvider'] = 'tushare'
-        dataSource['storageFormat']='mongodb'
-        dataSource['dataPeriod']='D'
-        dataSource['symbol']='600028'
-        dataSource['dateStart']='2015-03-19'
-        dataSource['dateEnd']='2015-12-31'  
-        dataSource['alone'] = True
-        dataSource['overlay'] = False            
-        
-        dataCenter = dataCenter.dataCenter()
-        
-        data = dataCenter.retriveHistData(params = dataSource)   
-        
-        return data
-        
-    data = getRawDataDataCenter()
+    import os,sys
+    dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
+    sys.path.append(dataRoot)        
+    import dataCenter as dataCenter   
+    data = dataCenter.getRawData()  
+    
     tableHistory=HistoryTableView(rawData=data)
     tableHistory.setWindowTitle("history")
     tableHistory.showMaximized()  

@@ -10,7 +10,6 @@ sys.path.append(xpower)
 xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata'))
 sys.path.append(xpower)
 
-import feedsForCandle as feedsForCandle
 from data.mongodb.DataSourceMongodb import Mongodb
 import matplotlib.dates as mpd
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas

@@ -176,24 +176,12 @@ class pgCandleWidgetCross(pgCrossAddition):
 if __name__ == '__main__':
     import sys
     app = QtGui.QApplication(sys.argv)
-    def getCandleData():
-        import os,sys        
-        xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))
-        sys.path.append(xpower)     
-        import dataCenter as dataCenter     
-        dataCenter = dataCenter.dataCenter()  
-        
-        dataSource={}
-        dataSource['dataProvider'] = 'tushare'
-        dataSource['storageFormat']='mongodb'
-        dataSource['dataPeriod']='D'
-        dataSource['symbol']='600028'
-        dataSource['dateStart']='2015-03-19'
-        dataSource['dateEnd']='2015-12-31'  
-
-
-        dataForCandle = dataCenter.retriveCandleData(params = dataSource)    
-        return dataForCandle    
+    import os,sys
+    dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
+    sys.path.append(dataRoot)        
+    import dataCenter as dataCenter   
+    candleData = dataCenter.getCandleData()  
+     
     dialog = QtGui.QDialog()
     layout = QtGui.QHBoxLayout()
     layoutLeft = QtGui.QVBoxLayout()
@@ -203,7 +191,6 @@ if __name__ == '__main__':
     # 2) creates widgets 
     editor = QtGui.QTextEdit()
     editor.setText("<span style='font-size: 15pt' style='color: red'>x = %0.1f,y = %0.1f</span>"% (2.0,2.0))
-    candleData = getCandleData()
     candle = pgCandleWidgetCross(dataForCandle=candleData)  
     #candle = pgCrossAddition()
     # 3)arrange widgets

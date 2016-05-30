@@ -39,7 +39,6 @@ sys.path.append(xpower)
 xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'histdata'))
 sys.path.append(xpower)
 
-import feedsForCandle as feedsForCandle
 from data.mongodb.DataSourceMongodb import Mongodb
 from Widgets.pgCandleWidgetCross import pgCandleWidgetCross
 from Views.HistoryCandleView import HistoryCandleView

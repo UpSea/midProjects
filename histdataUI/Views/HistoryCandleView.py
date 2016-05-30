@@ -14,6 +14,7 @@ class HistoryCandleView(FigureCanvas):
         if(fnUpdateBarInfoCallback is not None):
             self.updateBarInfo = fnUpdateBarInfoCallback
         fig = plt.figure()
+        FigureCanvas.__init__(self, fig)        
         #fig.subplots_adjust(top=0.98,bottom=0.05,left=0.15,right=0.99,hspace =0.1,wspace = 0.1) 
 
         self.fig = fig
@@ -31,7 +32,7 @@ class HistoryCandleView(FigureCanvas):
         self.candlePlot(ax3,dataForCandle[-100:-1],colorup='r',colordown='g',alpha=1)    
         self.candlePlot(ax4,dataForCandle,alpha=1.0)   
         
-        FigureCanvas.__init__(self, fig)
+
         self.setParent(parent)
         #cMousePress = fig.canvas.mpl_connect('button_press_event', self.onclick) 
         cMouseMove = fig.canvas.mpl_connect('motion_notify_event', self.slotNotifyMotion)
@@ -140,10 +141,10 @@ class MyDialog(QtGui.QDialog):
         layoutLeft.addWidget(button02)        
         # 5) add candleView to mainlayout
         canvas = HistoryCandleView(dataForCandle=dataForCandle,fnUpdateBarInfoCallback=self.updateBarInfo)        
-        #layout.addWidget(canvas)
+        layout.addWidget(canvas)
         
         layout.setStretchFactor(layoutLeft,10)
-        #layout.setStretchFactor(canvas,60)
+        layout.setStretchFactor(canvas,60)
     #----------------------------------------------------------------------
     def updateBarInfo(self,event):
         """"""
@@ -154,30 +155,18 @@ class MyDialog(QtGui.QDialog):
         self.infoEdit.setText(info)
 
 if __name__ == '__main__':
+    '''mid
+    only under python3.*
+    '''
     import os,sys        
     app = QtGui.QApplication([])
-    def getCandleData():
-        import os,sys
-        dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
-        sys.path.append(dataRoot)        
-        import dataCenter as dataCenter   
     
-        dataSource={}
-        dataSource['dataProvider'] = 'tushare'
-        dataSource['storageFormat']='mongodb'
-        dataSource['dataPeriod']='D'
-        dataSource['symbol']='600028'
-        dataSource['dateStart']='2015-03-19'
-        dataSource['dateEnd']='2015-12-31'  
-        dataSource['alone'] = True
-        dataSource['overlay'] = False   
-        
-        dataCenter = dataCenter.dataCenter()        
-        dataForCandle = dataCenter.retriveCandleData(params = dataSource)     
-        
-        return dataForCandle    
+    import os,sys
+    dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
+    sys.path.append(dataRoot)        
+    import dataCenter as dataCenter   
+    candleData = dataCenter.getCandleData()  
     
-    candleData = getCandleData()  
     myWindow = MyDialog(dataForCandle=candleData)  
     myWindow.show()    
     

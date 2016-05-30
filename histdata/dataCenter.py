@@ -209,3 +209,77 @@ class dataCenter():
         dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','yahoodb','csv'))          
         feed = yahoofinance.build_feed([instrument], 2015, 2015, dataPath)    
         return feed    
+
+def getCandleData():
+    dataSource={}
+    dataSource['dataProvider'] = 'tushare'
+    dataSource['storageFormat']='mongodb'
+    dataSource['dataPeriod']='D'
+    dataSource['symbol']='600028'
+    dataSource['dateStart']='2015-03-19'
+    dataSource['dateEnd']='2015-12-31'  
+    dataSource['alone'] = True
+    dataSource['overlay'] = False   
+    
+    dc = dataCenter()        
+    dataForCandle = dc.retriveCandleData(params = dataSource)     
+    
+    return dataForCandle   
+def getRawData():
+    import os,sys
+    dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
+    sys.path.append(dataRoot)        
+    import dataCenter as dataCenter          
+    dataSource={}        
+    dataSource['dataProvider'] = 'tushare'
+    dataSource['storageFormat']='mongodb'
+    dataSource['dataPeriod']='D'
+    dataSource['symbol']='600028'
+    dataSource['dateStart']='2015-03-19'
+    dataSource['dateEnd']='2015-12-31'  
+    dataSource['alone'] = True
+    dataSource['overlay'] = False            
+    
+    dataCenter = dataCenter.dataCenter()
+    
+    data = dataCenter.retriveHistData(params = dataSource)   
+    
+    return data
+if __name__ == '__main__':
+    import os,sys        
+    from PyQt4 import QtGui,QtCore
+    
+    app = QtGui.QApplication([])   
+    
+    dialog = QtGui.QDialog()
+    layout = QtGui.QHBoxLayout()
+    dialog.setLayout(layout)   
+    
+    
+    table = QtGui.QTableWidget()   
+    table.clear()
+    header = ['datetime','open','high','low','close']
+    table.setHorizontalHeaderLabels(header)     #mid should be after .setColumnCount()
+    if(False):#mid 
+        candleData = getCandleData()  
+        table.setColumnCount(len(header))
+        table.setRowCount(len(candleData))      
+        for row in range(len(candleData[:,0])):
+            print (row)
+            for column in range(len(candleData[0,:])):
+                print (column)
+                table.setItem(row,column,QtGui.QTableWidgetItem(str(candleData[row, column]))) 
+    else:
+        dfLocalSymbols = getRawData()
+        table.setRowCount(len(dfLocalSymbols))
+        table.setColumnCount(len(header))
+        
+        for row in range(len(dfLocalSymbols.index)):
+            for column in range(len(dfLocalSymbols.columns)):
+                table.setItem(row,column,QtGui.QTableWidgetItem(str(dfLocalSymbols.iget_value(row, column))))   
+                
+    layout.addWidget(table)
+    dialog.showMaximized()    
+
+    
+    sys.exit(app.exec_())
