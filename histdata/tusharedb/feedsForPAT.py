@@ -142,10 +142,15 @@ class Feed(dataFrameBarFeed):
             * If any of the instruments loaded are in different timezones, then the timezone parameter must be set.
     """
 
-    def __init__(self, tsDataCenter = None,frequency=bar.Frequency.DAY, timezone=None, maxLen=dataseries.DEFAULT_MAX_LEN):
+    def __init__(self, tsDataCenter = None,frequency='D', timezone=None, maxLen=dataseries.DEFAULT_MAX_LEN):
         if isinstance(timezone, int):
             raise Exception("timezone as an int parameter is not supported anymore. Please use a pytz timezone instead.")
-
+        #mid bar.Frequency.DAY只应该在PAT中有依赖，在此之外，使用D,W，M，h1，m1等通用周期标记
+        if(frequency == 'D'):
+            frequency = bar.Frequency.DAY
+        elif(frequency == 'W'):
+            frequency = bar.Frequency.WEEK
+            
         if frequency not in [bar.Frequency.DAY, bar.Frequency.WEEK]:
             raise Exception("Invalid frequency.")
 

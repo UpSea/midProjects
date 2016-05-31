@@ -210,7 +210,7 @@ class dataManagerLayout(QtGui.QHBoxLayout):
             
         if(rowSelected>=0):   #a row selected or table is not empty.
             
-            code = self.tableSymbolsToDownload.item(rowSelected,0).text()
+            code = str(self.tableSymbolsToDownload.item(rowSelected,0).text())
             self.dfSymbolsToDownload.drop(code,inplace=True)
             
             self.updateSymbolsToDownloadTable()

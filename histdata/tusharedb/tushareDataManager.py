@@ -167,22 +167,62 @@ class tushareDataCenter():
         #print len(inuse)
         _df_inuse = DataFrame(inuse,columns={'code'})
         _df_inuse.to_csv(self.codeinusefile,encoding='gbk')
+    def getHistDataType(self):
+        '''mid
+        选择下载前复权，后复权或者原始数据
+        '''
+        selectorMsgBox=QtGui.QMessageBox()  
+        selectorMsgBox.setWindowTitle("select histData Type.")  
+        
+        dataWithMAButton=selectorMsgBox.addButton("dataWithMA",QtGui.QMessageBox.ActionRole)  
+        originButton=selectorMsgBox.addButton("origin",QtGui.QMessageBox.ActionRole)  
+        qfqButton=selectorMsgBox.addButton("qfq(ths)",QtGui.QMessageBox.ActionRole)  #mid 同花顺默认使用前复权
+        hfqButton=selectorMsgBox.addButton("hfq",QtGui.QMessageBox.ActionRole)  
+
+        selectorMsgBox.setText("select histData Type!")  
+        selectorMsgBox.exec_()  
+
+        button=selectorMsgBox.clickedButton()  
+        if button==dataWithMAButton:  
+            return 'dataWithMA'         
+        if button==originButton:  
+            return 'origin' 
+        elif button==qfqButton:  
+            return 'qfq' 
+        elif button==hfqButton:  
+            return 'hfq'  
     def downloadHistData(self,codeList = None,periodType = 'D',timeStart ='2000-01-01',timeEnd = '2016-05-20',storageType =  'mongodb'):
         dic = {}
-        for code in codeList:       
-            _data_ = ts.get_hist_data(code = str(code),start=timeStart,end=timeEnd,ktype=self.periods[str(periodType)])
+        histDataType = self.getHistDataType()
+        for code in codeList:   
+            if(histDataType == 'dataWithMA'):   #mid dataWithMA只有最近三年，有不同周期，有均线。其他复权数据只有日线，有所有上市以来的数据
+                _data_ = ts.get_hist_data(code = str(code),start=timeStart,end=timeEnd,ktype=self.periods[str(periodType)])
+            elif(histDataType == 'origin'):
+                _data_ = ts.get_h_data(code,start=timeStart, end=timeEnd,autype=None) #mid 不复权              
+            elif(histDataType == 'qfq'):
+                _data_ = ts.get_h_data(code,start=timeStart, end=timeEnd,autype='qfq') #前复权           
+            elif(histDataType == 'hfq'):
+                _data_ = ts.get_h_data(code,start=timeStart, end=timeEnd,autype='hfq') #后复权           
+                
             if _data_ is not None:
                 dic[code] = _data_
                 #print i,code,type(code)
         
         #mid ---------------------------------------------------------------------
-        #storage = self.getCodesStorage()
         if(storageType == 'mongodb'):
             self.mongodb.setCollection(periodType)
-            for code in dic:
-                quotesDict = dic[code].to_dict()
-                quotesDict['symbol'] = code
-                self.mongodb.insert(quotesDict)            
+            if(histDataType == 'dataWithMA'):
+                for code in dic:
+                    quotesDict = dic[code].to_dict()
+                    quotesDict['symbol'] = code
+                    self.mongodb.insert(quotesDict)      
+            elif(histDataType in ['origin','qfq','hfq']):
+                for code in dic:
+                    quotesDict = dic[code]
+                    quotesDict.index = [str(ds) for ds in dic[code].index]
+                    quotesDict = dic[code].to_dict()
+                    quotesDict['symbol'] = code
+                    self.mongodb.insert(quotesDict)                    
         elif(storageType == 'csv'):
             for code in dic:
                 #mid 判断是否存在文件夹，如不存在，则创建
@@ -377,7 +417,7 @@ class tushareDataCenter():
         import feedsForPAT as feedsForPAT 
         feeds = {}
         for instrument in instruments:
-            feed = feedsForPAT.Feed(tsDataCenter=self)
+            feed = feedsForPAT.Feed(tsDataCenter=self,frequency=period)
             feeds[instrument] = feed.build_feed(instrument=instrument, fromYear=fromYear, toYear=toYear, storageType=storageType,period=period)           
         return feeds
     #df为原dataframe da为macd
