@@ -261,7 +261,7 @@ if __name__ == '__main__':
     table.clear()
     header = ['datetime','open','high','low','close']
     table.setHorizontalHeaderLabels(header)     #mid should be after .setColumnCount()
-    if(False):#mid 用于演示candledata的获取和使用
+    if(True):#mid 用于演示candledata的获取和使用
         candleData = getCandleData()  
         table.setColumnCount(len(header))
         table.setRowCount(len(candleData))      

@@ -274,18 +274,36 @@ class tushareDataCenter():
         import datetime as dt        
         #date = np.array([mpd.date2num(dt.datetime.strptime(dateStr, '%Y-%m-%d')) for dateStr in history.index])      
         import sys
+        
+        #mid 这个转换是将dataframe格式的数据转化为np.array格式，转换时排列的顺序重要
+        #mid 必须确保是按时间index的升序排列
+        history.sort_index(inplace=True,ascending=True)
+        
         if sys.version > '3':
             PY3 = True
         else:
             PY3 = False    
         if (PY3 == True):
-            date = np.array([mpd.date2num(pd.to_datetime(dateStr+' 09:30:00+08',format= '%Y-%m-%d %H:%M:%S').tz_localize('utc')) for dateStr in history.index])         
+            '''mid
+            tushare有两个获取历史数据的函数
+            get_h_data，他返回的数据index为pd.core.index.Index，item类型为str
+            get_hist_data，他返回的数据index为pd.tseries.index.DatetimeIndex，item类型为Timestamp
+            需要区别对待转换为num
+            '''
+            if(type(history.index) is pd.core.index.Index):
+                date = np.array([mpd.date2num(pd.to_datetime(dateStr+' 09:30:00+08',format= '%Y-%m-%d %H:%M:%S').tz_localize('utc')) for dateStr in history.index]) 
+            elif(type(history.index) is pd.tseries.index.DatetimeIndex):
+                date = np.array([mpd.date2num(Timestamp) for Timestamp in history.index])                        
         else:
-            date = np.array([mpd.date2num(pd.to_datetime(dateStr+' 09:30:00+08','%Y-%m-%d %H:%M:%S').tz_localize('utc')) for dateStr in history.index])         
+            if(type(history.index) is pd.core.index.Index):
+                date = np.array([mpd.date2num(pd.to_datetime(dateStr+' 09:30:00+08','%Y-%m-%d %H:%M:%S').tz_localize('utc')) for dateStr in history.index]) 
+            elif(type(history.index) is pd.tseries.index.DatetimeIndex):
+                date = np.array([mpd.date2num(Timestamp) for Timestamp in history.index])                 
             
         if(len(history) == 0):
             return None
-        quotes = np.array(history.iloc[:][['open','high','low','close']])
+        ohlc = history.iloc[:][['open','high','low','close']]
+        quotes = np.array(ohlc)
         rows = quotes.shape[0]
         colls = quotes.shape[1]
         quotesWithDate = np.append(date,quotes.reshape(rows*colls,1,order='F')).reshape(colls+1,rows)
