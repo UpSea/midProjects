@@ -52,11 +52,13 @@ class DMACrossOver(strategy.BacktestingStrategy):
     def getLMA(self):
         return self.__lma
     def onEnterOk(self, position):
+        print
         execInfo = position.getEntryOrder().getExecutionInfo()        
         if isinstance(position, strategy.position.LongPosition):
             self.info("onEnterOK().ExecutionInfo: %s,OPEN LONG %.2f at $%.2f" % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice()))                    
         elif isinstance(position, strategy.position.ShortPosition):
-            self.info("onEnterOK().ExecutionInfo: %s,OPEN SHORT %.2f at $%.2f" % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice()))                    
+            self.info("onEnterOK().ExecutionInfo: %s,OPEN SHORT %.2f at $%.2f" % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice()))     
+        print
     def onEnterCanceled(self, position):
         if isinstance(position, strategy.position.LongPosition):
             self.__longPosition = None
@@ -65,6 +67,7 @@ class DMACrossOver(strategy.BacktestingStrategy):
             self.__shortPosition = None
             self.info("onEnterCanceled().ExecutionInfo: %s,OPEN SHORT %.2f at $%.2f" % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice()))                                
     def onExitOk(self, position):        
+        print
         execInfo = position.getExitOrder().getExecutionInfo()        
         if isinstance(position, strategy.position.LongPosition):
             self.__longPosition = None
@@ -72,6 +75,7 @@ class DMACrossOver(strategy.BacktestingStrategy):
         elif isinstance(position, strategy.position.ShortPosition):
             self.__shortPosition = None
             self.info("onExitOk().ExecutionInfo: %s,CLOSE SHORT %.2f at $%.2f" % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice()))                    
+        print    
     def onExitCanceled(self, position):
         # If the exit was canceled, re-submit it.
         if isinstance(position, strategy.position.LongPosition):
@@ -118,7 +122,7 @@ class DMACrossOver(strategy.BacktestingStrategy):
         pClose = bar.getClose()
         pPrice = bar.getPrice()
         
-        self.info('price:%.3f,open:%.2f,high:%.2f,low:%.2f,close:%.2f'%(pPrice,pOpen,pHigh,pLow,pClose))
+        #self.info('price:%.3f,open:%.2f,high:%.2f,low:%.2f,close:%.2f'%(pPrice,pOpen,pHigh,pLow,pClose))
         #self.info('long:%.2f#short:%.2f'%(pLong,pShort))
         
         self.recordPositions()            
@@ -134,7 +138,6 @@ class DMACrossOver(strategy.BacktestingStrategy):
             elif not self.__longPosition.exitActive():
                 #mid 有多仓，检查是否需要平仓
                 if(cross.cross_below(self.__sma, self.__lma) > 0):
-                    print
                     self.info("onBars().Status info,before exitMarket(), LONG POSITION to close %.2f" % (self.__longPosition.getShares()))                                    
                     self.__longPosition.exitMarket()
         
@@ -149,6 +152,5 @@ class DMACrossOver(strategy.BacktestingStrategy):
             # Check if we have to exit the position.
             elif not self.__shortPosition.exitActive():
                 if(cross.cross_above(self.__sma, self.__lma) > 0):
-                    print
                     self.info("onBars().Status info,before exitMarket(), SHORT POSITION to close %.2f" % (self.__shortPosition.getShares()))                                    
                     self.__shortPosition.exitMarket()    
