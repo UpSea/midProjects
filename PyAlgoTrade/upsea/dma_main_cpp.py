@@ -98,7 +98,7 @@ if __name__ == "__main__":
     
     money = moneyFixed.moneyFixed()
     instruments = ['600028']
-    ex = Expert(toPlot=True,  shortPeriod=20,longPeriod=40, 
+    ex = Expert(toPlot=True,  shortPeriod=20,longPeriod=30, 
                 dataProvider = 'tushare',storageType = 'mongodb',period = 'D',
                 instruments=instruments,money = money,
                 fromYear = 2014,toYear=2016)

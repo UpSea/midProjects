@@ -2,9 +2,7 @@
 import baseMoney
 class moneyFixed(baseMoney.baseMoney):
     def __init__(self):
-        self.init = 30000
-        self.i = 0
+        self.init = 100000
     def getShares(self):        
-        money = self.init + self.i*1000
-        self.i = self.i + 1
+        money = self.init
         return money
