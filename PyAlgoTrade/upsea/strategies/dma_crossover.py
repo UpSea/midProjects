@@ -3,6 +3,7 @@ from pyalgotrade import strategy
 from pyalgotrade.technical import ma
 from pyalgotrade.technical import cross
 from pyalgotrade.dataseries import SequenceDataSeries
+from pyalgotrade.dataseries import DEFAULT_MAX_LEN
 
 class DMACrossOver(strategy.BacktestingStrategy):
     def __init__(self, feed = None, instrument = '',shortPeriod =  0,longPeriod = 0,money = None,longAllowed=True,shortAllowed=True):
@@ -10,7 +11,7 @@ class DMACrossOver(strategy.BacktestingStrategy):
         self.__instrument = instrument
         self.__longPosition = None
         self.__shortPosition = None
-        self.__position = SequenceDataSeries()
+        self.__position = SequenceDataSeries(maxLen=30 * DEFAULT_MAX_LEN)
         self.money = money
         self.longAllowed = True
         self.shortAllowed = True        
@@ -41,10 +42,14 @@ class DMACrossOver(strategy.BacktestingStrategy):
                 self.__position.append(-yLimit)
                 self.i = self.i + 1
             else:
-                self.__position.append(share)
+                currentTime = self.getCurrentDateTime()
+                self.__position.appendWithDateTime(currentTime,share)                
+                #self.__position.append(share)
 
         else:
-            self.__position.append(share)
+            currentTime = self.getCurrentDateTime()
+            self.__position.appendWithDateTime(currentTime,share)               
+            #self.__position.append(share)
     def getTest(self):
         return self.__position    
     def getSMA(self):

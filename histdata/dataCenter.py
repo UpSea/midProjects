@@ -126,7 +126,8 @@ class dataCenter():
         Index=Datatime
         """
         #date = pd.to_datetime(history.index+' 09:30:00+08',format='%Y-%m-%d %H:%M:%S')
-        date = pd.to_datetime(history.index+' 00:00:00+00',format='%Y-%m-%d %H:%M:%S')
+        #date = pd.to_datetime(history.index+' 00:00:00+00',format='%Y-%m-%d %H:%M:%S')
+        date = pd.to_datetime(history.index,format='%Y-%m-%d %H:%M:%S')
         date.name='Date'
         close = pd.Series(np.array(history['close']),index=date,name='AAPL')
     
@@ -137,24 +138,9 @@ class dataCenter():
         '''mid
         提供回测数据给zipline的唯一接口
         '''
-        dataProvider = params['dataProvider']
-        storageFormat = params['storageFormat']
-        
-        symbol = params['symbol']
-        strStart = params['dateStart']
-        strEnd = params['dateEnd']
-        frequency = params['frequency']        
+        dfHistory = self.retriveHistData(params)
+        return self.__DataFrameToZipline__(dfHistory)
 
-        if(dataProvider == "tushare"):
-            if(storageFormat == 'mongodb'):
-                dfHistory = self.retriveHistData(symbol)
-                return self.__DataFrameToZipline__(dfHistory)
-            elif(storageFormat == 'csv'):
-                pass
-        elif(dataProvider == 'yahoo'):
-            pass
-        elif(dataProvider == 'sina'):
-            pass
     def removeFromStorage(self,dataProvider = "tushare",storageType = 'mongodb',symbols = None,period='D'):
         if(dataProvider == "tushare"):
             return self.tsCenter.removeFromStorage(storageType = storageType,symbols = symbols,period = period)
