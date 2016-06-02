@@ -17,7 +17,7 @@ if __name__ == '__main__':
     dataSource['symbol']='600028'
     dataSource['dateStart']='2015-03-19'
     dataSource['dateEnd']='2015-12-31'
-    dataSource['frequency']='D'
+    dataSource['dataPeriod']='D'
     
     algo['instant_fill']=True
     algo['capital_base']=1000
