@@ -78,16 +78,26 @@ class DMACrossOver(strategy.BacktestingStrategy):
     def getSell(self):
         return self.__sell
     def onEnterOk(self, position):
+<<<<<<< HEAD
+        print
+        execInfo = position.getEntryOrder().getExecutionInfo()        
+=======
         execInfo = position.getEntryOrder().getExecutionInfo()   
         portfolio = self.getResult()
         cash = self.getBroker().getCash()
         self.info("onEnterOk().current available cash: %.2f,portfolio: %.2f." % (cash,portfolio))
+>>>>>>> 3b9d702b9a7c500b67fffc43f61c04acf45044c7
         if isinstance(position, strategy.position.LongPosition):
             self.info("onEnterOK().ExecutionInfo: %s,OPEN LONG %.2f at $%.2f" 
                       % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice())) 
         elif isinstance(position, strategy.position.ShortPosition):
+<<<<<<< HEAD
+            self.info("onEnterOK().ExecutionInfo: %s,OPEN SHORT %.2f at $%.2f" % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice()))     
+        print
+=======
             self.info("onEnterOK().ExecutionInfo: %s,OPEN SHORT %.2f at $%.2f" 
                       % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice()))                    
+>>>>>>> 3b9d702b9a7c500b67fffc43f61c04acf45044c7
     def onEnterCanceled(self, position):
         self.info("onEnterCanceled().current available cash: %.2f." % (self.getBroker().getCash()))
         if isinstance(position, strategy.position.LongPosition):
@@ -97,19 +107,29 @@ class DMACrossOver(strategy.BacktestingStrategy):
             self.__shortPosition = None
             self.info("onEnterCanceled().OPEN SHORT cancled.")
     def onExitOk(self, position):        
+<<<<<<< HEAD
+        print
+        execInfo = position.getExitOrder().getExecutionInfo()        
+=======
         execInfo = position.getExitOrder().getExecutionInfo()     
         portfolio = self.getResult()
         cash = self.getBroker().getCash()
         self.info("onExitOk().current available cash: %.2f,portfolio: %.2f." % (cash,portfolio))
         
+>>>>>>> 3b9d702b9a7c500b67fffc43f61c04acf45044c7
         if isinstance(position, strategy.position.LongPosition):
             self.__longPosition = None
             self.info("onExitOk().ExecutionInfo: %s,CLOSE LONG %.2f at $%.2f" 
                       % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice()))                    
         elif isinstance(position, strategy.position.ShortPosition):
             self.__shortPosition = None
+<<<<<<< HEAD
+            self.info("onExitOk().ExecutionInfo: %s,CLOSE SHORT %.2f at $%.2f" % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice()))                    
+        print    
+=======
             self.info("onExitOk().ExecutionInfo: %s,CLOSE SHORT %.2f at $%.2f" 
                       % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice()))                    
+>>>>>>> 3b9d702b9a7c500b67fffc43f61c04acf45044c7
     def onExitCanceled(self, position):
         # If the exit was canceled, re-submit it.
         if isinstance(position, strategy.position.LongPosition):
@@ -175,9 +195,23 @@ class DMACrossOver(strategy.BacktestingStrategy):
         
         #self.logInfo(bars = bars)
         
+<<<<<<< HEAD
+        bar = bars[self.__instrument]
+        pOpen = bar.getOpen()
+        pHigh = bar.getHigh()
+        pLow = bar.getLow()
+        pClose = bar.getClose()
+        pPrice = bar.getPrice()
+        
+        #self.info('price:%.3f,open:%.2f,high:%.2f,low:%.2f,close:%.2f'%(pPrice,pOpen,pHigh,pLow,pClose))
+        #self.info('long:%.2f#short:%.2f'%(pLong,pShort))
+        
+        self.recordPositions()            
+=======
         #portfolio = self.getResult()
         #cash = self.getBroker().getCash()
         #self.info("onBars().current available cash: %.2f,portfolio: %.2f." % (cash,portfolio))        
+>>>>>>> 3b9d702b9a7c500b67fffc43f61c04acf45044c7
         
         self.__buySignal,self.__sellSignal = False,False
         # mid 1)close
@@ -207,7 +241,16 @@ class DMACrossOver(strategy.BacktestingStrategy):
                     self.info("onBars().Status info,before enterLong(), LONG POSITION to open %.2f,need amount: %.2f,available amount: %.2f." % 
                               (shares,shares*self.getLastPrice(self.__instrument),self.getBroker().getCash() ))                                    
                     self.__longPosition = self.enterLong(self.__instrument, shares, True)
+<<<<<<< HEAD
+            elif not self.__longPosition.exitActive():
+                #mid 有多仓，检查是否需要平仓
+                if(cross.cross_below(self.__sma, self.__lma) > 0):
+                    self.info("onBars().Status info,before exitMarket(), LONG POSITION to close %.2f" % (self.__longPosition.getShares()))                                    
+                    self.__longPosition.exitMarket()
+        
+=======
                     self.__buySignal = True   
+>>>>>>> 3b9d702b9a7c500b67fffc43f61c04acf45044c7
         if(self.shortAllowed):
             if self.__shortPosition is None:
                 if cross.cross_below(self.__sma, self.__lma) > 0:
@@ -216,6 +259,14 @@ class DMACrossOver(strategy.BacktestingStrategy):
                     self.info("onBars().Status info,before enterShort(), SHORT POSITION to open %.2f,need amount: %.2f,available amount: %.2f." % 
                               (shares,shares*self.getLastPrice(self.__instrument),self.getBroker().getCash() ))                                    
                     self.__shortPosition = self.enterShort(self.__instrument, shares, True)
+<<<<<<< HEAD
+            # Check if we have to exit the position.
+            elif not self.__shortPosition.exitActive():
+                if(cross.cross_above(self.__sma, self.__lma) > 0):
+                    self.info("onBars().Status info,before exitMarket(), SHORT POSITION to close %.2f" % (self.__shortPosition.getShares()))                                    
+                    self.__shortPosition.exitMarket()    
+=======
                     self.__sellSignal = True
        
         self.recordPositions()            
+>>>>>>> 3b9d702b9a7c500b67fffc43f61c04acf45044c7
