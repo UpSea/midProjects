@@ -2,5 +2,5 @@
 class baseMoney():
     def __init__(self):
         pass
-    def getShares(self):
+    def getShares(self,strat = None):
         pass

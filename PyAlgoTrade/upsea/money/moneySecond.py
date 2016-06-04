@@ -4,7 +4,7 @@ class moneySecond(baseMoney.baseMoney):
     def __init__(self):
         self.init = 30000
         self.i = 0
-    def getShares(self):        
+    def getShares(self,strat = None):        
         money = self.init + self.i*1000
         self.i = self.i + 1
         return money

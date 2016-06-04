@@ -4,27 +4,37 @@ from pyalgotrade.technical import ma
 from pyalgotrade.technical import cross
 from pyalgotrade.dataseries import SequenceDataSeries
 from pyalgotrade.dataseries import DEFAULT_MAX_LEN
+import pandas as pd
 
 class DMACrossOver(strategy.BacktestingStrategy):
     def __init__(self, feed = None, instrument = '',shortPeriod =  0,longPeriod = 0,money = None,longAllowed=True,shortAllowed=True):
         strategy.BacktestingStrategy.__init__(self, feed)
+        
+        mid_DEFAULT_MAX_LEN = 5 * DEFAULT_MAX_LEN
         self.__instrument = instrument
         self.__longPosition = None
         self.__shortPosition = None
-        self.__position = SequenceDataSeries(maxLen=30 * DEFAULT_MAX_LEN)
+        self.__position = SequenceDataSeries(maxLen = mid_DEFAULT_MAX_LEN)
+        self.__portfolio_value = SequenceDataSeries(maxLen = mid_DEFAULT_MAX_LEN)
+        self.__buy = SequenceDataSeries(maxLen = mid_DEFAULT_MAX_LEN)
+        self.__sell = SequenceDataSeries(maxLen = mid_DEFAULT_MAX_LEN)
+        self.__buySignal = False
+        self.__sellSignal = False
         self.money = money
         self.longAllowed = True
         self.shortAllowed = True        
         #mid 计算ma将使用当天的收盘价格计算
+        #mid 1)
         dataSeries = feed[instrument]
-        priceSeries = dataSeries.getPriceDataSeries()
-        openSeries = dataSeries.getOpenDataSeries()
+        dataSeries.setMaxLen(mid_DEFAULT_MAX_LEN)
         closeSeries = dataSeries.getOpenDataSeries()
+        #mid 2)
         prices = closeSeries
-        
-        self.__sma = ma.SMA(prices, shortPeriod)
-        self.__lma = ma.SMA(prices,longPeriod)
-        
+        prices.setMaxLen(mid_DEFAULT_MAX_LEN)
+        #mid 3)
+        self.__sma = ma.SMA(prices, shortPeriod,maxLen=mid_DEFAULT_MAX_LEN)
+        self.__lma = ma.SMA(prices,longPeriod,maxLen=mid_DEFAULT_MAX_LEN)
+
         self.i = 0
     def recordPositions(self):
         # record position      
@@ -33,6 +43,7 @@ class DMACrossOver(strategy.BacktestingStrategy):
         share = broker.getShares(self.__instrument)
         position = broker.getPositions()
         curTime = self.getCurrentDateTime()
+        portfolio_value = self.getResult()
         if(False):
             yLimit = self.money.getShares()*1.1
             if(self.i==0):
@@ -48,45 +59,115 @@ class DMACrossOver(strategy.BacktestingStrategy):
 
         else:
             currentTime = self.getCurrentDateTime()
-            self.__position.appendWithDateTime(currentTime,share)               
-            #self.__position.append(share)
-    def getTest(self):
+            self.__position.appendWithDateTime(currentTime,share)  
+            self.__portfolio_value.appendWithDateTime(currentTime,portfolio_value)  
+            self.__buy.appendWithDateTime(currentTime,self.__buySignal)              
+            self.__sell.appendWithDateTime(currentTime,self.__sellSignal) 
+    def getInstrument(self):
+        return self.__instrument
+    def getPortfolio(self):
+        return self.__portfolio_value
+    def getPosition(self):
         return self.__position    
     def getSMA(self):
         return self.__sma
     def getLMA(self):
         return self.__lma
+    def getBuy(self):
+        return self.__buy
+    def getSell(self):
+        return self.__sell
     def onEnterOk(self, position):
+<<<<<<< HEAD
         print
         execInfo = position.getEntryOrder().getExecutionInfo()        
+=======
+        execInfo = position.getEntryOrder().getExecutionInfo()   
+        portfolio = self.getResult()
+        cash = self.getBroker().getCash()
+        self.info("onEnterOk().current available cash: %.2f,portfolio: %.2f." % (cash,portfolio))
+>>>>>>> 3b9d702b9a7c500b67fffc43f61c04acf45044c7
         if isinstance(position, strategy.position.LongPosition):
-            self.info("onEnterOK().ExecutionInfo: %s,OPEN LONG %.2f at $%.2f" % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice()))                    
+            self.info("onEnterOK().ExecutionInfo: %s,OPEN LONG %.2f at $%.2f" 
+                      % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice())) 
         elif isinstance(position, strategy.position.ShortPosition):
+<<<<<<< HEAD
             self.info("onEnterOK().ExecutionInfo: %s,OPEN SHORT %.2f at $%.2f" % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice()))     
         print
+=======
+            self.info("onEnterOK().ExecutionInfo: %s,OPEN SHORT %.2f at $%.2f" 
+                      % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice()))                    
+>>>>>>> 3b9d702b9a7c500b67fffc43f61c04acf45044c7
     def onEnterCanceled(self, position):
+        self.info("onEnterCanceled().current available cash: %.2f." % (self.getBroker().getCash()))
         if isinstance(position, strategy.position.LongPosition):
             self.__longPosition = None
-            self.info("onEnterCanceled().ExecutionInfo: %s,OPEN LONG %.2f at $%.2f" % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice()))                                
+            self.info("onEnterCanceled().OPEN LONG cancled.")                                
         elif isinstance(position, strategy.position.ShortPosition):
             self.__shortPosition = None
-            self.info("onEnterCanceled().ExecutionInfo: %s,OPEN SHORT %.2f at $%.2f" % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice()))                                
+            self.info("onEnterCanceled().OPEN SHORT cancled.")
     def onExitOk(self, position):        
+<<<<<<< HEAD
         print
         execInfo = position.getExitOrder().getExecutionInfo()        
+=======
+        execInfo = position.getExitOrder().getExecutionInfo()     
+        portfolio = self.getResult()
+        cash = self.getBroker().getCash()
+        self.info("onExitOk().current available cash: %.2f,portfolio: %.2f." % (cash,portfolio))
+        
+>>>>>>> 3b9d702b9a7c500b67fffc43f61c04acf45044c7
         if isinstance(position, strategy.position.LongPosition):
             self.__longPosition = None
-            self.info("onExitOk().ExecutionInfo: %s,CLOSE LONG %.2f at $%.2f" % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice()))                    
+            self.info("onExitOk().ExecutionInfo: %s,CLOSE LONG %.2f at $%.2f" 
+                      % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice()))                    
         elif isinstance(position, strategy.position.ShortPosition):
             self.__shortPosition = None
+<<<<<<< HEAD
             self.info("onExitOk().ExecutionInfo: %s,CLOSE SHORT %.2f at $%.2f" % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice()))                    
         print    
+=======
+            self.info("onExitOk().ExecutionInfo: %s,CLOSE SHORT %.2f at $%.2f" 
+                      % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice()))                    
+>>>>>>> 3b9d702b9a7c500b67fffc43f61c04acf45044c7
     def onExitCanceled(self, position):
         # If the exit was canceled, re-submit it.
         if isinstance(position, strategy.position.LongPosition):
             self.__longPosition = None
         elif isinstance(position, strategy.position.ShortPosition):
             self.__shortPosition = None
+    def logInfo(self,bars = None):
+        pLong,pShort = 0,0
+        if(self.__longPosition is not None):
+            pLong = self.__longPosition.getShares()
+        if(self.__shortPosition is not None):
+            pShort = self.__shortPosition.getShares()
+        
+        
+        bar = bars[self.__instrument]
+        pOpen = bar.getOpen()
+        pHigh = bar.getHigh()
+        pLow = bar.getLow()
+        pClose = bar.getClose()
+        pPrice = bar.getPrice()
+        
+        self.info('logInfo().price:%.3f,open:%.2f,high:%.2f,low:%.2f,close:%.2f'%(pPrice,pOpen,pHigh,pLow,pClose))
+        #self.info('long:%.2f#short:%.2f'%(pLong,pShort))        
+    def run(self):
+        strategy.BacktestingStrategy.run(self)
+        
+        pos = self.getPosition()
+        sma = self.getSMA()
+        lma = self.getLMA()
+        buy = self.getBuy()
+        sell = self.getSell()
+        portfolio_value = self.getPortfolio()
+        
+        result = pd.DataFrame({'positions':list(pos),'short_ema':list(sma),'long_ema':list(lma),
+                               'buy':list(buy),'sell':list(sell),'portfolio_value':list(portfolio_value)},
+                              columns=['positions','short_ema','long_ema','buy','sell','portfolio_value'],
+                              index=pos.getDateTimes())        
+        return result
     def onBars(self, bars):
         '''mid
         此处是onBars，这个和zipline的概念完全不同
@@ -110,16 +191,11 @@ class DMACrossOver(strategy.BacktestingStrategy):
         2.每个newbar按open价格计算指标，并在此newbar按open成交
         以上1,2的计算逻辑是一致的。如果当前bar的close和下一个bar的open相差无几时，两种算法的回测结果也应相差无几
         '''
-        # If a position was not opened, check if we should enter a long position.
-        #print 'onBars'        
         #shares = int(self.getBroker().getCash() * 0.9 / bars[self.__instrument].getPrice())
-        pLong,pShort = 0,0
-        if(self.__longPosition is not None):
-            pLong = self.__longPosition.getShares()
-        if(self.__shortPosition is not None):
-            pShort = self.__shortPosition.getShares()
         
+        #self.logInfo(bars = bars)
         
+<<<<<<< HEAD
         bar = bars[self.__instrument]
         pOpen = bar.getOpen()
         pHigh = bar.getHigh()
@@ -131,31 +207,66 @@ class DMACrossOver(strategy.BacktestingStrategy):
         #self.info('long:%.2f#short:%.2f'%(pLong,pShort))
         
         self.recordPositions()            
+=======
+        #portfolio = self.getResult()
+        #cash = self.getBroker().getCash()
+        #self.info("onBars().current available cash: %.2f,portfolio: %.2f." % (cash,portfolio))        
+>>>>>>> 3b9d702b9a7c500b67fffc43f61c04acf45044c7
         
+        self.__buySignal,self.__sellSignal = False,False
+        # mid 1)close
+        if(self.longAllowed):
+            if self.__longPosition is not None and not self.__longPosition.exitActive():
+                #mid 有多仓，检查是否需要平仓
+                if(cross.cross_below(self.__sma, self.__lma) > 0):
+                    print
+                    self.info("onBars().Status info,before exitMarket(), LONG POSITION to close %.2f" 
+                              % (self.__longPosition.getShares()))                                    
+                    self.__longPosition.exitMarket()
+        if(self.shortAllowed):
+            if self.__shortPosition is not None and not self.__shortPosition.exitActive():
+                if(cross.cross_above(self.__sma, self.__lma) > 0):
+                    print
+                    self.info("onBars().Status info,before exitMarket(), SHORT POSITION to close %.2f" 
+                              % (self.__shortPosition.getShares()))                                    
+                    self.__shortPosition.exitMarket()    
+                    
+        # mid 2)open
         if(self.longAllowed):
             if self.__longPosition is None:
                 #mid 无多仓，检查是否需要开多仓
                 if cross.cross_above(self.__sma, self.__lma) > 0:
                     # Enter a buy market order. The order is good till canceled.
-                    shares = self.money.getShares()                    
-                    self.info("onBars().Status info,before enterLong(), LONG POSITION to open %.2f" % (shares))                                    
+                    shares = self.money.getShares(strat = self)                    
+                    self.info("onBars().Status info,before enterLong(), LONG POSITION to open %.2f,need amount: %.2f,available amount: %.2f." % 
+                              (shares,shares*self.getLastPrice(self.__instrument),self.getBroker().getCash() ))                                    
                     self.__longPosition = self.enterLong(self.__instrument, shares, True)
+<<<<<<< HEAD
             elif not self.__longPosition.exitActive():
                 #mid 有多仓，检查是否需要平仓
                 if(cross.cross_below(self.__sma, self.__lma) > 0):
                     self.info("onBars().Status info,before exitMarket(), LONG POSITION to close %.2f" % (self.__longPosition.getShares()))                                    
                     self.__longPosition.exitMarket()
         
+=======
+                    self.__buySignal = True   
+>>>>>>> 3b9d702b9a7c500b67fffc43f61c04acf45044c7
         if(self.shortAllowed):
-            # If a position was not opened, check if we should enter a long position.
             if self.__shortPosition is None:
                 if cross.cross_below(self.__sma, self.__lma) > 0:
                     # Enter a buy market order. The order is good till canceled.
-                    shares = self.money.getShares()
-                    self.info("onBars().Status info,before enterShort(), SHORT POSITION to open %.2f" % (shares))                                    
+                    shares = self.money.getShares(strat = self)
+                    self.info("onBars().Status info,before enterShort(), SHORT POSITION to open %.2f,need amount: %.2f,available amount: %.2f." % 
+                              (shares,shares*self.getLastPrice(self.__instrument),self.getBroker().getCash() ))                                    
                     self.__shortPosition = self.enterShort(self.__instrument, shares, True)
+<<<<<<< HEAD
             # Check if we have to exit the position.
             elif not self.__shortPosition.exitActive():
                 if(cross.cross_above(self.__sma, self.__lma) > 0):
                     self.info("onBars().Status info,before exitMarket(), SHORT POSITION to close %.2f" % (self.__shortPosition.getShares()))                                    
                     self.__shortPosition.exitMarket()    
+=======
+                    self.__sellSignal = True
+       
+        self.recordPositions()            
+>>>>>>> 3b9d702b9a7c500b67fffc43f61c04acf45044c7

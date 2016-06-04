@@ -66,7 +66,7 @@ class Expert():
         #addCallBack()
         #addDataSeries()    
         
-        position = strat.getTest()
+        position = strat.getPosition()
         SPlotter.getOrCreateSubplot("position").addDataSeries("position", position)    
         return SPlotter
     def run(self):
