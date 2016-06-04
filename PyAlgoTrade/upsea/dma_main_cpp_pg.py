@@ -118,8 +118,9 @@ if __name__ == "__main__":
 
     app = QtGui.QApplication(sys.argv)
     #----------------------------------------------------------------------------------------------------
-    instruments = ['600028']
-    dataForCandle = dataCenter.getCandleData(symbol = '600028')     
+    symbol = '600083'
+    instruments = [symbol]
+    dataForCandle = dataCenter.getCandleData(symbol = symbol)     
     
     #mid ea01
     money = moneyFixed.moneyFixed()
