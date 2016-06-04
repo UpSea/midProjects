@@ -383,6 +383,9 @@ class Analyzer05():
         from Widgets.pgCrossAddition import pgCrossAddition
         pgCandleView = pgCandleWidgetCross(dataForCandle=KData)        
         self.pricePlot(pgCandleView) 
+        self.pricePlot(pgCandleView)    
+        self.indicatorsPlot(pgCandleView)        
+        
         #  2.2)Pnl
         PyqtGraphPnl = pgCrossAddition()
         self.pnlPlot(PyqtGraphPnl,bDrawText=bDrawText)

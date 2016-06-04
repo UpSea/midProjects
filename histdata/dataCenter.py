@@ -197,14 +197,14 @@ class dataCenter():
         return feed    
 
 # mid 以下两个函数只用于某些demo函数获取历史数据，如此安排可方便统一修改，也用于演示datacenter的调用
-def getCandleData():
+def getCandleData(dataProvider = 'tushare',dataStorage = 'mongodb',dataPeriod = 'D',symbol = '600028',dateStart='2015-03-19',dateEnd = '2015-12-31'):
     dataSource={}
-    dataSource['dataProvider'] = 'tushare'
-    dataSource['storageFormat']='mongodb'
-    dataSource['dataPeriod']='D'
-    dataSource['symbol']='600028'
-    dataSource['dateStart']='2015-03-19'
-    dataSource['dateEnd']='2015-12-31'  
+    dataSource['dataProvider'] = dataProvider
+    dataSource['storageFormat']=dataStorage
+    dataSource['dataPeriod']=dataPeriod
+    dataSource['symbol']=symbol
+    dataSource['dateStart']=dateStart
+    dataSource['dateEnd']=dateEnd  
     dataSource['alone'] = True
     dataSource['overlay'] = False   
     

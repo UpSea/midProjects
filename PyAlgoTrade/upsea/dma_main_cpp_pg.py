@@ -1,14 +1,22 @@
 # -*- coding: utf-8 -*-
 import os,sys
 from PyQt4 import QtGui,QtCore
+import pandas as pd
 
-from pyalgotrade import plotter
+#mid 1)dataCenter
 dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
 sys.path.append(dataRoot)        
 import dataCenter as dataCenter 
-#from BollingerBands import BBands
+#mid 2)graphOutput
+xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdataUI'))
+sys.path.append(xpower)        
+from Analyzers.Analyzer05 import Analyzer05#from BollingerBands import BBands
+#mid 3)strategy
 import strategies.dma_crossover as dma_crossover
+#mid 4)money
 import money.moneyFixed as moneyFixed
+import money.moneyFirst as moneyFirst
+import money.moneySecond as moneySecond
 
 class Expert():
     def __init__(self,toPlot = True,instruments = [],shortPeriod = 20,longPeriod = 40,dataProvider = 'tushare',
@@ -103,44 +111,38 @@ class Expert():
             print "Max. return: %2.f %%" % (returns.max() * 100)
             print "Min. return: %2.f %%" % (returns.min() * 100)        
     def run(self):
+        result = self.strat.run()
+        return result
 
-        self.strat.run()
-        
-        pos = self.strat.getTest()
-        
-        
-        import os,sys        
-        xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdataUI'))
-        sys.path.append(xpower)        
-
-        from Analyzers.Analyzer05 import Analyzer05
-        import pandas as pd
-        
-        Globals = []
-        analyzer = Analyzer05(Globals=Globals)
-                
-        result = pd.DataFrame(list(pos),columns=['positions'],index=pos.getDateTimes())
-        dataForCandle = dataCenter.getCandleData()  
-        analyzer.analyze(result,dataForCandle)
-        
-        self.printStats()
 if __name__ == "__main__": 
 
     app = QtGui.QApplication(sys.argv)
     #----------------------------------------------------------------------------------------------------
-        
-    money = moneyFixed.moneyFixed()
     instruments = ['600028']
+    dataForCandle = dataCenter.getCandleData(symbol = '600028')     
+    
+    #mid ea01
+    money = moneyFixed.moneyFixed()
+    money = moneyFirst.moneyFirst()
     '''mid
     mid dataProvider = tushare|yahoo|generic
     mid storageType = csv|mongodb
     mid period 数据类型，D=日k线 W=周 M=月 m5=5分钟 m15=15分钟 m30=30分钟 h1=60分钟，默认为D
     '''    
-    ex = Expert(toPlot=False,  shortPeriod=20,longPeriod=30, 
+    ex01 = Expert(toPlot=False,  shortPeriod=20,longPeriod=30, 
                 dataProvider = 'tushare',storageType = 'mongodb',period = 'D',
                 instruments=instruments,money = money,
                 fromYear = 2014,toYear=2016)
-    ex.run()
+    result01 = ex01.run()
+    #mid ea02
+    analyzer = Analyzer05(Globals=[]) 
+
+    analyzer.analyze(result01,dataForCandle)
+
+    ex01.printStats()    
+    
+    
+    #mid 3a03
     # ---------------------------------------------------------------------------------------------------
     sys.exit(app.exec_())  
     '''
