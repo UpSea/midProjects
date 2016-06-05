@@ -34,6 +34,7 @@ if __name__ == '__main__':
     sysstr = platform.system()
     if(sysstr =="Windows"):
         '''mid
+        windows下需要将git路径手动添加到环境路径中，linux下不用
         windows下原来想使用下面的方法将git的路径加入到path中，以使os.system可以直接执行git命令
         多次尝试不行，所以只能手动通过windows的系统属性追加以下路径，之后在重启wingIde才能直接执行git而不用全路径
         '''
@@ -41,7 +42,7 @@ if __name__ == '__main__':
         os.system('path ')
         os.system('path %path% ;' + gitpath)
         os.system('path')
-        #sys.path.append(gitpath)
+        #sys.path.append(gitpath) #mid 这个是添加到python路径中，不是系统路径，windows系统路径需要使用os.system
     elif(sysstr == "Linux"):
         print "Call Linux tasks"
     else:
@@ -69,6 +70,7 @@ if __name__ == '__main__':
     
     try:
         os.system('git push git@github.com:upsea/midProjects master')        
+        print 'push oked.'
     except Exception, error:
         print error
         
