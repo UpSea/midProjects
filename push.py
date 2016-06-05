@@ -27,7 +27,8 @@ def printSysInfo():
     logger.info("platform.version()=%s", platform.version());
     logger.info("platform.uname()=%s", platform.uname());
 
-comments = " 'mid batch files added'"
+#mid commit的-m参数后面的字符串必须要使用"",所以，外侧使用""" """
+comments =  """ "mids comments on batch files added" """
 
 if __name__ == '__main__':
     sysstr = platform.system()
@@ -59,8 +60,8 @@ if __name__ == '__main__':
         print error    
     
     try:
+        
         commit = 'git commit -m ' + comments
-        commit = """ git commit -m "mids batch files added" """
 
         os.system(commit)
     except Exception, error:
