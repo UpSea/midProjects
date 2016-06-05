@@ -52,18 +52,20 @@ if __name__ == '__main__':
     project_dir = os.path.abspath(os.path.dirname(__file__))
     try:
         os.chdir(project_dir)
+        print 'pwd changed to '+project_dir        
     except Exception, e:
         raise e    
     
     try:
         os.system('git add --all')
+        print 'git add --all'
     except Exception, error:
         print error    
     
     try:
         
         commit = 'git commit -m ' + comments
-
+        print 'git commit -m'
         os.system(commit)
     except Exception, error:
         print error    
