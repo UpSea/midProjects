@@ -118,7 +118,7 @@ if __name__ == "__main__":
 
     app = QtGui.QApplication(sys.argv)
     #----------------------------------------------------------------------------------------------------
-    symbol = '600083'
+    symbol = '600701'
     instruments = [symbol]
     dataForCandle = dataCenter.getCandleData(symbol = symbol)     
     
