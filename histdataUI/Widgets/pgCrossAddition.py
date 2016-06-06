@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys,os
-xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'thirdParty','pyqtgraph-0.9.10'))
+xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'thirdParty','pyqtgraph-0.9.10'))
 sys.path.append(xpower)
 xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir))
 sys.path.append(xpower)
@@ -43,7 +43,7 @@ class pgCrossAddition(pg.PlotWidget):
             mousePoint = self.plotItem.vb.mapSceneToView(pos)        
             xAxis = mousePoint.x()
             yAxis = mousePoint.y()            
-            # 1)set postions
+            #mid 1)set contents to price and date lable
             self.vLine.setPos(xAxis)
             self.hLine.setPos(yAxis)      
     
@@ -63,11 +63,20 @@ class pgCrossAddition(pg.PlotWidget):
                                         </span>\
                                     </div>'\
                                         % (dt.datetime.strftime(strTime,'%Y-%m-%d %H:%M:%S%Z')))                                           
-            # 0)get environments
+            #mid 2)get position environments
+            #mid 2.1)client area rect
             rect = self.sceneBoundingRect()
-            topLeft = self.plotItem.vb.mapSceneToView(QtCore.QPointF(rect.left()+35,rect.top())) 
-            bottomRight = self.plotItem.vb.mapSceneToView(QtCore.QPointF(rect.width(),rect.bottom()-40))
-    
+            leftAxis = self.getAxis('left')
+            bottomAxis = self.getAxis('bottom')            
+            rectTextDate = self.textDate.boundingRect()         
+            #mid 2.2)leftAxis width,bottomAxis height and textDate height.
+            leftAxisWidth = leftAxis.width()
+            bottomAxisHeight = bottomAxis.height()
+            rectTextDateHeight = rectTextDate.height()
+            print leftAxisWidth,bottomAxisHeight
+            #mid 3)set positions of price and date lable
+            topLeft = self.plotItem.vb.mapSceneToView(QtCore.QPointF(rect.left()+leftAxisWidth,rect.top()))
+            bottomRight = self.plotItem.vb.mapSceneToView(QtCore.QPointF(rect.width(),rect.bottom()-(bottomAxisHeight+rectTextDateHeight)))
             self.textDate.setPos(xAxis,bottomRight.y())
             self.textPrice.setPos(topLeft.x(),yAxis)    
     #----------------------------------------------------------------------
@@ -111,3 +120,27 @@ class pgCrossAddition(pg.PlotWidget):
                 p.setPen('b', width=2)
             self.lastClicked = points    
         scatterPrice.sigClicked.connect(clicked)          
+        
+if __name__ == '__main__':
+    import sys
+    app = QtGui.QApplication(sys.argv)
+    import os,sys
+    dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
+    sys.path.append(dataRoot)        
+    import dataCenter as dataCenter   
+     
+    #mid 1) creates windows
+    dialog = QtGui.QDialog()
+    layout = QtGui.QHBoxLayout()
+    dialog.setLayout(layout)        
+    dialog.setWindowTitle(('ComboView'))
+    #mid 2) creates widgets 
+    candle = pgCrossAddition()
+    #mid 3) creates Item and adds Item to widgets
+    candleData = dataCenter.getCandleData()  
+    candleItem = CandlestickItem(candleData)
+    candle.addItem(candleItem)     
+    #mid 4) arrange widgets
+    layout.addWidget(candle)
+    dialog.showMaximized()
+    sys.exit(app.exec_())
