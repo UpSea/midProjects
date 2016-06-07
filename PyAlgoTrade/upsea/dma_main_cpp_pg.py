@@ -118,7 +118,7 @@ if __name__ == "__main__":
 
     app = QtGui.QApplication(sys.argv)
     #----------------------------------------------------------------------------------------------------
-    symbol = '600701'
+    symbol = '600320'
     instruments = [symbol]
     dataForCandle = dataCenter.getCandleData(symbol = symbol)     
     
@@ -136,8 +136,8 @@ if __name__ == "__main__":
                 fromYear = 2014,toYear=2016)
     result01 = ex01.run()
     #mid ea02
+    
     analyzer = Analyzer05(Globals=[]) 
-
     analyzer.analyze(result01,dataForCandle)
 
     ex01.printStats()    
