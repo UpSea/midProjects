@@ -1,0 +1,208 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="a\a.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bball\bball.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="beepdown\beepdown.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="calc\calc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="chklang\chklang.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="color\color.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="color2\color2.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gview\gview.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gview\jpeg.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="haribote\bootpack.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="haribote\console.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="haribote\dsctbl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="haribote\fifo.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="haribote\file.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="haribote\graphic.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="haribote\int.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="haribote\keyboard.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="haribote\memory.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="haribote\mouse.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="haribote\mtask.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="haribote\sheet.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="haribote\tek.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="haribote\timer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="haribote\window.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hello3\hello3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hello4\hello4.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="invader\invader.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="iroha\iroha.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lines\lines.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mmlplay\mmlplay.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="noodle\noodle.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="notrec\notrec.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sosu\sosu.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sosu2\sosu2.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sosu3\sosu3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="star1\star1.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stars\stars.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stars2\stars2.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdlib\stdlib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tek\autodec_.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tek\tek.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tview\tview.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="type\type.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="walk\walk.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="winhelo\winhelo.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="winhelo2\winhelo2.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="winhelo3\winhelo3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="apilib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdlib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="haribote\bootpack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="nihongo\jpn16v00.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="haribote\!cons_9x.bat">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="haribote\!cons_nt.bat">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="haribote\asmhead.nas">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="haribote\ipl10.nas">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="haribote\ipl20.nas">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="haribote\jp.nas">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="haribote\make.bat">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="haribote\Makefile">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="haribote\naskfunc.nas">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="haribote\hankaku.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+  </ItemGroup>
+</Project>

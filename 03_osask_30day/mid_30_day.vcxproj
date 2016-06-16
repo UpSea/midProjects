@@ -1,0 +1,145 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{8C4100DD-BBFA-413A-B2EE-E241262D8EA7}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="a\a.c" />
+    <ClCompile Include="bball\bball.c" />
+    <ClCompile Include="beepdown\beepdown.c" />
+    <ClCompile Include="calc\calc.c" />
+    <ClCompile Include="chklang\chklang.c" />
+    <ClCompile Include="color2\color2.c" />
+    <ClCompile Include="color\color.c" />
+    <ClCompile Include="gview\gview.c" />
+    <ClCompile Include="gview\jpeg.c" />
+    <ClCompile Include="haribote\bootpack.c" />
+    <ClCompile Include="haribote\console.c" />
+    <ClCompile Include="haribote\dsctbl.c" />
+    <ClCompile Include="haribote\fifo.c" />
+    <ClCompile Include="haribote\file.c" />
+    <ClCompile Include="haribote\graphic.c" />
+    <ClCompile Include="haribote\int.c" />
+    <ClCompile Include="haribote\keyboard.c" />
+    <ClCompile Include="haribote\memory.c" />
+    <ClCompile Include="haribote\mouse.c" />
+    <ClCompile Include="haribote\mtask.c" />
+    <ClCompile Include="haribote\sheet.c" />
+    <ClCompile Include="haribote\tek.c" />
+    <ClCompile Include="haribote\timer.c" />
+    <ClCompile Include="haribote\window.c" />
+    <ClCompile Include="hello3\hello3.c" />
+    <ClCompile Include="hello4\hello4.c" />
+    <ClCompile Include="invader\invader.c" />
+    <ClCompile Include="iroha\iroha.c" />
+    <ClCompile Include="lines\lines.c" />
+    <ClCompile Include="mmlplay\mmlplay.c" />
+    <ClCompile Include="noodle\noodle.c" />
+    <ClCompile Include="notrec\notrec.c" />
+    <ClCompile Include="sosu2\sosu2.c" />
+    <ClCompile Include="sosu3\sosu3.c" />
+    <ClCompile Include="sosu\sosu.c" />
+    <ClCompile Include="star1\star1.c" />
+    <ClCompile Include="stars2\stars2.c" />
+    <ClCompile Include="stars\stars.c" />
+    <ClCompile Include="stdlib\stdlib.c" />
+    <ClCompile Include="tek\autodec_.c" />
+    <ClCompile Include="tek\tek.c" />
+    <ClCompile Include="tview\tview.c" />
+    <ClCompile Include="type\type.c" />
+    <ClCompile Include="walk\walk.c" />
+    <ClCompile Include="winhelo2\winhelo2.c" />
+    <ClCompile Include="winhelo3\winhelo3.c" />
+    <ClCompile Include="winhelo\winhelo.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="apilib.h" />
+    <ClInclude Include="haribote\bootpack.h" />
+    <ClInclude Include="stdlib.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="haribote\!cons_9x.bat" />
+    <None Include="haribote\!cons_nt.bat" />
+    <None Include="haribote\asmhead.nas" />
+    <None Include="haribote\ipl10.nas" />
+    <None Include="haribote\ipl20.nas" />
+    <None Include="haribote\jp.nas" />
+    <None Include="haribote\make.bat" />
+    <None Include="haribote\Makefile" />
+    <None Include="haribote\naskfunc.nas" />
+    <None Include="nihongo\jpn16v00.bin" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="haribote\hankaku.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
