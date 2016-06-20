@@ -70,20 +70,7 @@ class dataManagerLayout(QtGui.QHBoxLayout):
         self.addLayout(layoutDownloadParams)  
         
         self.updateLocalSymbolsTable()
-    #----------------------------------------------------------------------
-    def updateLocalSymbolsTable(self):
-        """mid
-        dfLocalSymbols.index = 'code'
-        dfLocalSymbols.columns = ['code','name','c_name',...]
-        """
-        codesType = self.codesTypeComboBox.currentText()
-        sourceType = self.sourceTypeComboBox.currentText()
-        if(codesType == 'tushare'):
-            self.dfLocalSymbols = self.dataCenter.getCodes(codesType,sourceType)
-        else:
-            QtGui.QMessageBox.information(self.parent,'information',codesType + ' codesTable data from '+sourceType+'\nis not prepared.')
-            return
-        
+    def __updateLocalSymbolsTableTushare(self):
         self.tableLocalSymbols.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)  
         self.tableLocalSymbols.setEditTriggers(QtGui.QTableWidget.NoEditTriggers)  
         self.tableLocalSymbols.setSelectionBehavior(QtGui.QTableWidget.SelectRows)  
@@ -92,7 +79,7 @@ class dataManagerLayout(QtGui.QHBoxLayout):
         
         
         self.tableLocalSymbols.clear()
-        header = ["code","name","class","listed date","stop date","trade days"]
+        header = ["code","name","class"]
         self.tableLocalSymbols.setColumnCount(len(header))
         
         if(self.tableLocalSymbols is None):
@@ -119,7 +106,63 @@ class dataManagerLayout(QtGui.QHBoxLayout):
                 #self.tableLocalSymbols.setCellWidget(row,0,symbol)
                 self.tableLocalSymbols.setItem(row,0,QtGui.QTableWidgetItem(symbol))
                 self.tableLocalSymbols.setItem(row,1,QtGui.QTableWidgetItem(codeName))
-                self.tableLocalSymbols.setItem(row,2,QtGui.QTableWidgetItem(codeClass))    
+                self.tableLocalSymbols.setItem(row,2,QtGui.QTableWidgetItem(codeClass))            
+    def __updataLocalSymbolsTableMt5(self):
+        self.tableLocalSymbols.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)  
+        self.tableLocalSymbols.setEditTriggers(QtGui.QTableWidget.NoEditTriggers)  
+        self.tableLocalSymbols.setSelectionBehavior(QtGui.QTableWidget.SelectRows)  
+        self.tableLocalSymbols.setSelectionMode(QtGui.QTableWidget.SingleSelection)  
+        self.tableLocalSymbols.setAlternatingRowColors(True)         
+        
+        
+        self.tableLocalSymbols.clear()
+        header = ["code","name","digits"]
+        self.tableLocalSymbols.setColumnCount(len(header))
+        
+        if(self.tableLocalSymbols is None):
+            self.tableLocalSymbols.setRowCount(0)
+            return  
+        
+        self.tableLocalSymbols.setRowCount(len(self.dfLocalSymbols))
+        self.tableLocalSymbols.setHorizontalHeaderLabels(header)     #mid should be after .setColumnCount()
+        
+        if (PY3 == True):#mid 这种填充方式虽然快，但是，当item有中文编码时，在py2下会出现问题
+            for row in range(len(self.dfLocalSymbols.index)):
+                for column in range(len(self.dfLocalSymbols.columns)):
+                    strItem = str(self.dfLocalSymbols.iget_value(row, column))
+                    self.tableLocalSymbols.setItem(row,column,QtGui.QTableWidgetItem(strItem))        
+        else: #mid the above codes have better performance than the below.
+            for row in np.arange(0,len(self.dfLocalSymbols)):
+                code = self.dfLocalSymbols.index[row]
+                
+                #symbol = QtGui.QLabel(self.tr(code))
+                symbol = str(code)
+                codeName = self.dfLocalSymbols.loc[code,'name']
+                codeClass = self.dfLocalSymbols.loc[code,'digits']
+                                   
+                #self.tableLocalSymbols.setCellWidget(row,0,symbol)
+                self.tableLocalSymbols.setItem(row,0,QtGui.QTableWidgetItem(symbol))
+                self.tableLocalSymbols.setItem(row,1,QtGui.QTableWidgetItem(codeName))
+                self.tableLocalSymbols.setItem(row,2,QtGui.QTableWidgetItem(str(codeClass)))      
+    #----------------------------------------------------------------------
+    def updateLocalSymbolsTable(self):
+        """mid
+        dfLocalSymbols.index = 'code'
+        dfLocalSymbols.columns = ['code','name','c_name',...]
+        """
+        codesType = self.codesTypeComboBox.currentText()
+        sourceType = self.sourceTypeComboBox.currentText()
+        if(codesType == 'tushare'):
+            self.dfLocalSymbols = self.dataCenter.getCodes(codesType,sourceType)
+            self.__updateLocalSymbolsTableTushare()
+        elif(codesType == 'mt5'):
+            self.dfLocalSymbols = self.dataCenter.getCodes(codesType,sourceType)
+            self.__updataLocalSymbolsTableMt5()
+        else:
+            QtGui.QMessageBox.information(self.parent,'information',codesType + ' codesTable data from '+sourceType+'\nis not prepared.')
+            return
+        
+      
     def initLayoutCodeMover(self):
         layoutCodeMover = QtGui.QVBoxLayout()        
         

@@ -13,12 +13,16 @@ import os,sys
 import pandas as pd
 import numpy as np
 from tusharedb.tushareDataManager import tushareDataCenter
-
+from mt5db.mt5DataManager import mt5DataCenter
 class dataCenter():
     def __init__(self):
         dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','csv','tusharedb'))                
-        self.tsCenter = tushareDataCenter(dataPath)
-        self.dataProviders = ['tushare','yahoo','sina','all']
+        self.tsCenter = tushareDataCenter(dataPath)  
+        
+        dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','csv','mt5db'))                        
+        self.mt5Center = mt5DataCenter(dataPath)
+        
+        self.dataProviders = ['mt5','tushare','yahoo','sina','all']
         self.dataStorages = ['mongodb','csv','all']
         self.dataPeriods =  ['D','W','M','m5','m15','m30','h1']
     def getDataProviders(self):
@@ -42,7 +46,8 @@ class dataCenter():
 
         if(dataProvider == "tushare"):
             return self.tsCenter.retriveCandleData(storageType = storageFormat,symbol = symbol,period = period)
-
+        elif(dataProvider == "mt5"):
+            return self.mt5Center.retriveCandleData(storageType = storageFormat,symbol = symbol,period = period)            
         elif(dataProvider == 'yahoo'):
             pass
         elif(dataProvider == 'sina'):
@@ -75,6 +80,8 @@ class dataCenter():
     def getLocalAvailableDataSymbols(self,dataType = 'tushare',storageType = 'mongodb',periodType = "D"):
         if(dataType == 'tushare'):
             return self.tsCenter.retriveAvailableSymbols(storageType=storageType,periodType = periodType)
+        elif(dataType == 'mt5'):
+            return self.mt5Center.retriveAvailableSymbols(storageType=storageType,periodType = periodType)
         elif(dataType == 'yahoo'):
             pass        
         elif(dataType == 'sina'):
@@ -82,8 +89,15 @@ class dataCenter():
         else:
             pass
     def getCodes(self,codesType,sourceType):
+        '''mid
+        codes 在储存时不存所获取数据的index，只储存values
+        values值中必须要有一列名称为'symbol',这是为了检索时准备
+        因为检索时是以symbol为关键字建表的
+        '''
         if(codesType == 'tushare'):
             return self.tsCenter.getCodes(sourceType)
+        elif(codesType == 'mt5'):
+            return self.mt5Center.getCodes(sourceType)
         elif(codesType == 'yahoo'):
             if(sourceType == 'remote'):
                 pass
@@ -109,6 +123,9 @@ class dataCenter():
     def downloadHistData(self,providerType='tushare',storageType = 'mongodb',periodType='D',codeList=None,timeStart='',timeEnd=''):
         if(providerType == 'tushare'):
             return self.tsCenter.downloadHistData(storageType=storageType,timeStart=timeStart,timeEnd=timeEnd,
+                                                  codeList = codeList,periodType = periodType)
+        elif(providerType == 'mt5'):
+            return self.mt5Center.downloadHistData(storageType=storageType,timeStart=timeStart,timeEnd=timeEnd,
                                                   codeList = codeList,periodType = periodType)
         elif(providerType == 'yahoo'):
             pass

@@ -10,6 +10,8 @@ from PyQt4 import QtGui,QtCore
 import os,sys
 dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir))        
 sys.path.append(dataRoot) 
+dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir))        
+sys.path.append(dataRoot) 
 import constant as ct
 
 import pylab as plt
@@ -18,6 +20,8 @@ import tushare as ts
 import numpy as np
 import time,os
 from pandas import DataFrame
+
+from data.localStorage import localStorage
 #import pyalgotrade.logger        
 
 #reload(sys)
@@ -26,23 +30,7 @@ from pandas import DataFrame
 
 class tushareDataCenter():
     def __init__(self,dataRoot):
-        self.dataRoot = dataRoot      
-        self.codefile = self.dataRoot +os.sep + "code.csv"   
-        self.codeinusefile = self.dataRoot + os.sep + "code_inuse.csv"
-        self.codenewinusefile = self.dataRoot + os.sep + "code_new_inuse.csv"
-        
-        from data.mongodb.DataSourceMongodb import Mongodb
-        connect = Mongodb()
-        connect.use('Tushare')    #database
-        frequency = 'D'
-        connect.setCollection(frequency)    #table
-        self.mongodb = connect
-        #ktype 数据类型，D=日k线 W=周 M=月 5=5分钟 15=15分钟 30=30分钟 60=60分钟，默认为D
-        
-        self.periods = {'D':'D','W':'W','M':'M','m5':'5','m15':'15','m30':'30','h1':'60'}
-        
-        #self.logger = pyalgotrade.logger.getLogger("tusharefinance")
-        
+        self.localStorage = localStorage(dataRoot,'Tushare','D')
     def getCodesStorage(self):  
         selectorMsgBox=QtGui.QMessageBox()  
         selectorMsgBox.setWindowTitle("select codes storage.")  
@@ -62,51 +50,50 @@ class tushareDataCenter():
             return 'cancel'  
     def retriveAvailableSymbols(self,storageType = 'mongodb' , periodType = 'D'):
         if(storageType == 'mongodb'):
-            if(periodType in self.periods.keys()):
-                codes = self.mongodb.retriveSymbolsAll(period =periodType)             
+            if(periodType in self.localStorage.periods.keys()):
+                codes = self.localStorage.mongodb.retriveSymbolsAll(period =periodType)             
                 return codes    
             else:
                 pass
         elif(storageType == 'csv'):
-            pass          
+            pass                  
     def getCodes(self,sourceType):
         if(sourceType == 'remote'):
             codes = self.downloadCodes()
-            codes.index = codes['code']
-            
-            storage = self.getCodesStorage()
+            storage = self.localStorage.getCodesStorage()
             if(storage == 'mongodb'):
-                self.mongodb.setCollection('codes')
-                self.mongodb.remove()          
+                self.localStorage.mongodb.removeItem(collection='codes')          
                 codesDict = codes.T.to_dict()
                 dictList = list()
                 for code in codesDict:
                     dictList.append(codesDict[code])          
-                self.mongodb.insert(dictList)  
+                self.localStorage.mongodb.insert(dictList)  
             elif(storage == 'csv'):
-                codes.to_csv(self.codefile,encoding='gbk',index=False)    
+                codes.to_csv(self.localStorage.codefile,encoding='gbk',index=False)    
             return codes
         elif(sourceType == 'mongodb'):
-            self.mongodb.setCollection('codes')
-            codes = self.mongodb.retriveCodes()
+            self.localStorage.mongodb.setCollection('codes')
+            codes = self.localStorage.mongodb.retriveCodes()
             return codes
         elif(sourceType == 'csv'):
-            codes = self.retriveCodesFromCsv()
+            codes = self.localStorage.retriveCodesFromCsv()
             return codes
-    def retriveCodesFromCsv(self):
-        dfCodes = pd.read_csv(self.codefile,index_col=False,encoding='gbk',dtype={0:np.str,1:np.str})
-        dfCodes.index = dfCodes['code']
-        return dfCodes
+
     def retriveCodesFromMongodb(self):
         codes = self.mongodb.retriveSymbolsAll()             
         return codes       
     def downloadCodes(self):
         dat = ts.get_industry_classified()
         dat = dat.drop_duplicates('code')  
-        return dat
-    def downloadAndStoreCodes(self,code):
+        #mid 更换index并重命名
+        dat.index = dat['code']
+        dat.index.name = 'symbol'
+        #mid 重命名code列为symbol
+        df=dat.rename(columns = {'code':'symbol'})
+        return df
+    def downloadAndStoreCodes(self):
         dat = self.downloadCodes()
-        dat.to_csv(self.codefile,encoding='gbk')    
+        dat.to_csv(self.dataRoot,encoding='gbk')    
     def exists(self,instrument,frequency):
         if (frequency in self.periods.keys()):
             fileName = os.path.join(self.dataRoot,frequency,('%s.csv'%instrument))
@@ -210,19 +197,19 @@ class tushareDataCenter():
         
         #mid ---------------------------------------------------------------------
         if(storageType == 'mongodb'):
-            self.mongodb.setCollection(periodType)
+            self.localStorage.mongodb.setCollection(periodType)
             if(histDataType == 'dataWithMA'):
                 for code in dic:
                     quotesDict = dic[code].to_dict()
                     quotesDict['symbol'] = code
-                    self.mongodb.insert(quotesDict)      
+                    self.localStorage.mongodb.insert(quotesDict)      
             elif(histDataType in ['origin','qfq','hfq']):
                 for code in dic:
                     quotesDict = dic[code]
                     quotesDict.index = [str(ds) for ds in dic[code].index]
                     quotesDict = dic[code].to_dict()
                     quotesDict['symbol'] = code
-                    self.mongodb.insert(quotesDict)                    
+                    self.localStorage.mongodb.insert(quotesDict)                    
         elif(storageType == 'csv'):
             for code in dic:
                 #mid 判断是否存在文件夹，如不存在，则创建
@@ -378,27 +365,7 @@ class tushareDataCenter():
         将dataframe格式历史数据转化为用于绘制canlde 的数据
         
         '''
-        dfHistData = self.retriveHistData(storageType = storageType,period = period,symbol = symbol)
-        return self.__DataFrameToCandle__(dfHistData)
-    def retriveHistData(self,storageType = 'mongodb',period = '',symbol = ''):
-        '''mid
-        返回dataframe格式的历史数据
-        '''
-        if(storageType == 'mongodb'):
-            dfHistData = self.mongodb.retrive(symbol = symbol,period=period)
-        elif(storageType == 'csv'):
-            dfHistData = self.__retriveDataFrameKData__(symbol = symbol,period=period)
-        return dfHistData
-    def __retriveDataFrameKData__(self,symbol = '',period=''):
-        '''mid
-        依据symbol和period自csv数据文件夹获取dataframe格式数据
-        
-        '''
-        if (period in self.periods.keys()):
-            fileName = os.path.join(self.dataRoot,period,('%s.csv'%symbol))
-            dat = pd.read_csv(fileName,index_col=0,encoding='gbk')
-            #dat = pd.read_csv(fileName,index_col=0,parse_dates=[0],encoding='gbk')  #parse_dates直接转换数据类型 string->datastamp
-            return dat.sort_index(axis=0,ascending=True)
+        return self.localStorage.retriveCandleData(storageType = storageType,period = period,symbol = symbol)
     def get_macd(self,df):
         _columns_ = ['EMA_12','EMA_26','DIFF','MACD','BAR']
         a = np.zeros(len(df)*5).reshape(len(df),5) #也可以EMA_12 = [0 for i in range(len(df))]
@@ -487,7 +454,16 @@ class tushareDataCenter():
         #print get_beta(value1,value2) 
         
 if __name__ == "__main__":
-    tsCenter = tushareDataCenter()
+    #/home/mid/PythonProjects/midProjects/histdata/data/csv/tusharedb'
+    import os,sys
+    dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir))        
+    sys.path.append(dataRoot)    
+    
+    dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'data','csv','tusharedb'))                    
+    tsCenter = tushareDataCenter(dataPath)
+    
+    if(True):
+        tsCenter.downloadHistData(['600028'])
     if(False):
         tsCenter.downloadAndStoreOrAppendAllData()
     if(False):
@@ -497,7 +473,7 @@ if __name__ == "__main__":
         #mid 应做修改，使用codes列表进行下载
         code = '600209'
         d = tsCenter.downloadAndStoreKDataByCode(code)
-    if(False):
+    if(True):
         #mid 2)下载代码表
         tsCenter.downloadAndStoreCodes()
     if(False):

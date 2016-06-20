@@ -72,10 +72,10 @@ class Mongodb(object):
     def removeItem(self,collection='D',data = None):
         self.setCollection(collection)
         if(data is not None):
-            self.__remove__(data=data)
+            self.__remove(data=data)
         else:
-            self.__remove__()
-    def __remove__(self, data = None):
+            self.__remove()
+    def __remove(self, data = None):
         self.coll.remove(data)
     def update(self,data, setdata):
         if type(data) is not dict or type(setdata) is not dict:
@@ -133,11 +133,14 @@ class Mongodb(object):
         symbols = self.find({})
         
         for item in symbols:
+            if(len(item)<3):
+                break
             symbol = item["symbol"]        
             high = item["high"]
             dateStart = min(high.keys())
             dateEnd = max(high.keys())
             counts = len(high.keys())
+            
             dfSymbols.loc[symbol]=[symbol,counts,dateStart,dateEnd]
         return dfSymbols
     def retriveCodes(self):
@@ -151,8 +154,8 @@ class Mongodb(object):
         self.setCollection('codes')
         codes = self.find({})
         if(True):#mid better performance
-            dfCodes = pd.DataFrame(list(codes), columns = ['code','name','c_name'])  
-            dfCodes.index = dfCodes['code']
+            dfCodes = pd.DataFrame(list(codes), columns = ['symbol','code','name','c_name','digits'])  
+            dfCodes.index = dfCodes['symbol']
         else:
             dfCodes = pd.DataFrame(columns=['code','name','c_name'])
             for item in codes:
