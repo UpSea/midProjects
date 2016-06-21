@@ -11,6 +11,12 @@ from mt5Remote import remoteStorage
 class mt5DataCenter():
     def __init__(self,dataRoot):
         self.localStorage = localStorage(dataRoot,'Mt5','D')
+        
+        #mid periods 用于将本地使用的周期符号转换为远端系统使用的周期符号，在从远端下载数据时用
+        #mid mt5在远端以0x09表示日线周期
+        #mid tushare在远端以'D'表示日线周期，需要分别定义
+        self.periods = {'D':0x09,'W':'W','M':'M','m5':'5','m15':'15','m30':'30','h1':'60'}      
+        
         self.remoteStorage = remoteStorage('192.168.0.212',5050)     
     
     def getCodes(self,sourceType):
@@ -34,7 +40,7 @@ class mt5DataCenter():
     def downloadHistData(self,codeList = None,periodType = 'D',timeStart ='2000-01-01',timeEnd = '2016-05-20',storageType =  'mongodb'):
         dic = {}
         for code in codeList:   
-            data = self.remoteStorage.downloadKData(code)  
+            data = self.remoteStorage.downloadKData(symbol = code,periodType = self.periods[periodType],timeStart =timeStart,timeEnd =timeEnd)  
             print 'begin to download:',code
             if data is not None:
                 dic[code] = data
@@ -70,7 +76,7 @@ class mt5DataCenter():
         return dic    
     def retriveAvailableSymbols(self,storageType = 'mongodb' , periodType = 'D'):
         if(storageType == 'mongodb'):
-            if(periodType in self.localStorage.periods.keys()):
+            if(periodType in self.periods.keys()):
                 codes = self.localStorage.mongodb.retriveSymbolsAll(period =periodType)             
                 return codes    
             else:

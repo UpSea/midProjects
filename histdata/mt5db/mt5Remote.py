@@ -102,7 +102,7 @@ class remoteStorage():
         df.index.name='symbol'
         return df
 
-    def downloadKData(self,symbol):
+    def downloadKData(self,symbol = "",periodType = 0x09,timeStart ="",timeEnd = ""):
         self.connectSocket()
         
         ReqTypeHistory = 0x01	    #mid 查询历史价格数据
@@ -119,8 +119,7 @@ class remoteStorage():
         symbol = self.__getBuffer(symbol)
         
         nCount = struct.pack('i',300)
-        HistoryPeriodD1 = 0x09
-        ktype = struct.pack('i',HistoryPeriodD1)
+        ktype = struct.pack('i',periodType)
         
         login = broker+account+password
         reqHistory = login + symbol + nCount + ktype

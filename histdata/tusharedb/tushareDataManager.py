@@ -31,6 +31,12 @@ from data.localStorage import localStorage
 class tushareDataCenter():
     def __init__(self,dataRoot):
         self.localStorage = localStorage(dataRoot,'Tushare','D')
+        
+        #mid periods 用于将本地使用的周期符号转换为远端系统使用的周期符号，在从远端下载数据时用
+        #mid mt5在远端以0x09表示日线周期
+        #mid tushare在远端以'D'表示日线周期，需要分别定义        
+        #ktype 数据类型，D=日k线 W=周 M=月 5=5分钟 15=15分钟 30=30分钟 60=60分钟，默认为D
+        self.localStorage.periods = {'D':'D','W':'W','M':'M','m5':'5','m15':'15','m30':'30','h1':'60'}        
     def getCodesStorage(self):  
         selectorMsgBox=QtGui.QMessageBox()  
         selectorMsgBox.setWindowTitle("select codes storage.")  

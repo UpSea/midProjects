@@ -17,9 +17,6 @@ class localStorage():
         connect.use(db)    #database
         connect.setCollection(collection)    #table
         self.mongodb = connect
-        #ktype 数据类型，D=日k线 W=周 M=月 5=5分钟 15=15分钟 30=30分钟 60=60分钟，默认为D
-    
-        self.periods = {'D':'D','W':'W','M':'M','m5':'5','m15':'15','m30':'30','h1':'60'}
     def getCodesStorage(self):  
         selectorMsgBox=QtGui.QMessageBox()  
         selectorMsgBox.setWindowTitle("select codes storage.")  
