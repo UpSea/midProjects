@@ -85,13 +85,21 @@ class RowParser(RowParser):
         year = int(date[0:4])
         month = int(date[5:7])
         day = int(date[8:10])
-        ret = datetime.datetime(year, month, day)
+        
+        hour = int(date[11:13])
+        min = int(date[14:16])
+        sec = int(date[17:19])
+        
+        ret = datetime.datetime(year, month, day,hour,min,sec)
         return ret
     def __parseDate(self, dateString):
         ret = self.parse_date(dateString)
         # Time on Yahoo! Finance CSV files is empty. If told to set one, do it.
-        if self.__dailyBarTime is not None:
-            ret = datetime.datetime.combine(ret, self.__dailyBarTime)
+        #mid 下面这个过程将ret带h:m:s的时间弄成无h:m:s，使只能测试日线
+        if(False):
+            if self.__dailyBarTime is not None:
+                ret = datetime.datetime.combine(ret, self.__dailyBarTime)
+        
         # Localize the datetime if a timezone was given.
         if self.__timezone:
             ret = dt.localize(ret, self.__timezone)
@@ -146,13 +154,31 @@ class Feed(dataFrameBarFeed):
         if isinstance(timezone, int):
             raise Exception("timezone as an int parameter is not supported anymore. Please use a pytz timezone instead.")
         #mid bar.Frequency.DAY只应该在PAT中有依赖，在此之外，使用D,W，M，h1，m1等通用周期标记
-        if(frequency == 'D'):
+        '''
+            TRADE = -1
+            SECOND = 1
+            MINUTE = 60
+            HOUR = 60*60
+            DAY = 24*60*60
+            WEEK = 24*60*60*7
+            MONTH = 24*60*60*31
+        '''
+        
+        if(frequency == 'm15'):
+            frequency = bar.Frequency.MINUTE*15
+        elif(frequency == 'D'):
             frequency = bar.Frequency.DAY
         elif(frequency == 'W'):
             frequency = bar.Frequency.WEEK
-            
-        if frequency not in [bar.Frequency.DAY, bar.Frequency.WEEK]:
-            raise Exception("Invalid frequency.")
+        else:
+            raise Exception("Invalid frequency.")         
+
+        '''
+          
+         if frequency not in [bar.Frequency.DAY, bar.Frequency.WEEK]:
+            raise Exception("Invalid frequency.")         
+        '''  
+
 
         dataFrameBarFeed.__init__(self, frequency, maxLen)
         self.__timezone = timezone

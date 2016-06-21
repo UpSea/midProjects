@@ -176,6 +176,8 @@ class dataCenter():
         elif(dataProvider == "tushare"):
             import sys,os
             feeds = self.tsCenter.buildFeedForPAT(instruments = instruments, fromYear=fromYear,toYear=toYear, period=period,storageType=storageType)
+        elif(dataProvider =="mt5"):
+            feeds = self.mt5Center.buildFeedForPAT(instruments = instruments, fromYear=fromYear,toYear=toYear, period=period,storageType=storageType)
         elif(dataProvider == "generic"):
             feeds = self.__getFeedFromGenericCsv(instrument)
         return feeds           

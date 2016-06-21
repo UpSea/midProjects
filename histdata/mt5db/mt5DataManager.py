@@ -7,7 +7,7 @@ dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir))
 sys.path.append(dataRoot) 
 from data.localStorage import localStorage
 from mt5Remote import remoteStorage
-
+import mt5Interface as mt5Interface
 class mt5DataCenter():
     def __init__(self,dataRoot):
         self.localStorage = localStorage(dataRoot,'Mt5','D')
@@ -15,7 +15,7 @@ class mt5DataCenter():
         #mid periods 用于将本地使用的周期符号转换为远端系统使用的周期符号，在从远端下载数据时用
         #mid mt5在远端以0x09表示日线周期
         #mid tushare在远端以'D'表示日线周期，需要分别定义
-        self.periods = {'D':0x09,'W':'W','M':'M','m5':'5','m15':'15','m30':'30','h1':'60'}      
+        self.periods = mt5Interface.periods   
         
         self.remoteStorage = remoteStorage('192.168.0.212',5050)     
     
@@ -88,6 +88,16 @@ class mt5DataCenter():
         将dataframe格式历史数据转化为用于绘制canlde 的数据
         '''
         return self.localStorage.retriveCandleData(storageType = storageType,period = period,symbol = symbol)
+    def buildFeedForPAT(self,instruments = [], fromYear = '', toYear = '', storageType = 'csv', period='D', timezone=None, skipErrors=False):
+        '''mid
+        创建用于PAT的feeds，返回格式为字典，这个或许需要修改为单个feed(将所有数据都填入一个feed)
+        '''
+        import feedsForPAT as feedsForPAT 
+        feeds = {}
+        for instrument in instruments:
+            feed = feedsForPAT.Feed(tsDataCenter=self,frequency=period)
+            feeds[instrument] = feed.build_feed(instrument=instrument, fromYear=fromYear, toYear=toYear, storageType=storageType,period=period)           
+        return feeds    
 if __name__ == "__main__":
     dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir))        
     sys.path.append(dataRoot)  

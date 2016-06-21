@@ -155,11 +155,14 @@ class remoteStorage():
             
             dateTime = "%d-%02d-%02d %02d:%02d:%02d" % (year,mon,day,hour,min,sec)
             
-            kdata = [dateTime,dOpen,dHigh,dLow,dClose]
+            
+            #mid 从mt5获取的数据中dVolume是longlong，OHLC和dAmount是double，double在python中有对应类型，longlong没有，在将longlong Volume数据存入mongodb时会报错
+            #mid volume数据虽然对mt5没用，但是，PAT回测时，为了和股票统一，特保留了volume字段，所以，此处需要volume，但是只是占位意义
+            kdata = [dateTime,dOpen,dHigh,dLow,dClose,0.0,0.0]
             histories.append(kdata)   
             
-        df = pd.DataFrame(histories,columns=['datetime','open','high','low','close'])   
-        df = pd.DataFrame(histories,columns=['datetime','open','high','low','close'],index=df['datetime'])       
+        df = pd.DataFrame(histories,columns=['datetime','open','high','low','close','volume','amount'])   
+        df = pd.DataFrame(histories,columns=['datetime','open','high','low','close','volume','amount'],index=df['datetime'])              
         return df        
          
 if __name__ == "__main__":

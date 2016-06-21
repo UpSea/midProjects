@@ -37,7 +37,7 @@ class localStorage():
 
     def retriveHistData(self,storageType = 'mongodb',period = '',symbol = ''):
         '''mid
-        返回dataframe格式的历史数据
+        返回dataframe格式的历史数据,用于pat回测
         '''
         if(storageType == 'mongodb'):
             dfHistData = self.mongodb.retrive(symbol = symbol,period=period)
