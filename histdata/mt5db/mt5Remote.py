@@ -155,10 +155,17 @@ class remoteStorage():
             
             dateTime = "%d-%02d-%02d %02d:%02d:%02d" % (year,mon,day,hour,min,sec)
             
-            
-            #mid 从mt5获取的数据中dVolume是longlong，OHLC和dAmount是double，double在python中有对应类型，longlong没有，在将longlong Volume数据存入mongodb时会报错
-            #mid volume数据虽然对mt5没用，但是，PAT回测时，为了和股票统一，特保留了volume字段，所以，此处需要volume，但是只是占位意义
-            kdata = [dateTime,dOpen,dHigh,dLow,dClose,0.0,0.0]
+            '''mid
+            从mt5获取的数据中dVolume是longlong，OHLC和dAmount是double，double在python中有对应类型，longlong没有，在将longlong Volume数据存入mongodb时会报错
+            volume数据虽然对mt5没用，但是，PAT回测时，为了和股票统一，特保留了volume字段，所以，此处需要volume，但是只是占位意义
+                      
+            这个volume我以前理解的简单了，也就是错误了
+            在pat的逻辑中，每个bar有OHLCV 5个数据，V很重要，在回测过程中，你每个bar的回测交易量是不允许超过这个V值的，如果你将此值只看作是个占位符并且设置为0.0，
+            那么，在使用pat默认fillstrategy时，他会在每次交易前测试你order的交易量和此volume之间的关系，若volume达不到你的order量，则超过部分不交易。
+            对于mt5而言，其量是无限的，所以此处，我可以设置一个足够打的数据，以防在回测过程中导致交易量不够.
+            '''
+  
+            kdata = [dateTime,dOpen,dHigh,dLow,dClose,999999999999.0,0.0]
             histories.append(kdata)   
             
         df = pd.DataFrame(histories,columns=['datetime','open','high','low','close','volume','amount'])   

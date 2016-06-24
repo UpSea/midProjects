@@ -118,26 +118,43 @@ if __name__ == "__main__":
 
     app = QtGui.QApplication(sys.argv)
     #----------------------------------------------------------------------------------------------------
-    symbol = 'XAUUSD'
-    instruments = [symbol]
-    dataForCandle = dataCenter.getCandleData(symbol = symbol)     
-    
-    #mid ea01
-    money = moneyFixed.moneyFixed()
-    #money = moneyFirst.moneyFirst()
     '''mid
     mid dataProvider = tushare|mt5|yahoo|generic
     mid storageType = csv|mongodb
     mid period 数据类型，D=日k线 W=周 M=月 m1=1分钟 m5=5分钟 m15=15分钟 m30=30分钟 h1=60分钟，默认为D
-    '''    
-    ex01 = Expert(toPlot=False,  shortPeriod=20,longPeriod=30, 
-                dataProvider = 'mt5',storageType = 'mongodb',period = 'D',
+    '''       
+    if(False):
+        symbol = '000096'
+        dataProvider = 'tushare'
+        storageType = 'mongodb'
+        period = 'D'
+    if(False):
+        symbol = 'XAUUSD'
+        dataProvider = 'mt5'
+        storageType = 'mongodb'
+        period = 'D'        
+    if(True):
+        symbol = 'XAUUSD'
+        dataProvider = 'mt5'
+        storageType = 'mongodb'
+        period = 'm15'    
+    
+    
+    #mid ea01
+    #money = moneyFixed.moneyFixed()
+    money = moneyFirst.moneyFirst()
+ 
+    instruments = [symbol]
+    ex01 = Expert(toPlot=False,  shortPeriod=5,longPeriod=10, 
+                dataProvider = dataProvider,storageType = storageType,period = period,
                 instruments=instruments,money = money,
                 fromYear = 2014,toYear=2016)
     result01 = ex01.run()
     #mid ea02
     
     analyzer = Analyzer05(Globals=[]) 
+    #getCandleData(dataStorage = 'mongodb',dataPeriod = 'D',symbol = '600028',dateStart='2015-03-19',dateEnd = '2015-12-31'):
+    dataForCandle = dataCenter.getCandleData(dataProvider = dataProvider,dataStorage = storageType,dataPeriod = period,symbol = symbol)     
     analyzer.analyze(result01,dataForCandle)
 
     ex01.printStats()    

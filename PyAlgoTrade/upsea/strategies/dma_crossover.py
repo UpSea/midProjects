@@ -10,7 +10,7 @@ class DMACrossOver(strategy.BacktestingStrategy):
  def __init__(self, feed = None, instrument = '',shortPeriod =  0,longPeriod = 0,money = None,longAllowed=True,shortAllowed=True):
   strategy.BacktestingStrategy.__init__(self, feed)
 
-  mid_DEFAULT_MAX_LEN = 5 * DEFAULT_MAX_LEN
+  mid_DEFAULT_MAX_LEN = 10 * DEFAULT_MAX_LEN
   self.__instrument = instrument
   self.__longPosition = None
   self.__shortPosition = None
