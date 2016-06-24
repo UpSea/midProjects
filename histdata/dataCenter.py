@@ -24,13 +24,17 @@ class dataCenter():
         
         self.dataProviders = ['mt5','tushare','yahoo','sina','all']
         self.dataStorages = ['mongodb','csv','all']
-        self.dataPeriods =  ['D','W','M','m5','m15','m30','h1']
     def getDataProviders(self):
         return self.dataProviders
     def getDataStorages(self):
         return self.dataStorages
-    def getDataPeriods(self):
-        return self.dataPeriods
+    def getDataPeriods(self,dataProvider):
+        if(dataProvider == 'mt5'):
+            return self.mt5Center.localStorage.periods
+        if(dataProvider == 'tushare'):
+            return self.tsCenter.localStorage.periods
+        else:
+            raise Exception("Invalid dataProvider.")         
     def retriveCandleData(self,params = None):
         '''mid
         return data used to draw candle

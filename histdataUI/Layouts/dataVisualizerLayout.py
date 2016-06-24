@@ -84,8 +84,8 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
         
         periodComboBox=QtGui.QComboBox()
         self.localSymbolsPeriodComboBox = periodComboBox
-        dataPeriods = self.dataCenter.getDataPeriods()
-        for dataPeriod in dataPeriods:
+        dataPeriods = self.dataCenter.getDataPeriods('mt5')
+        for dataPeriod in sorted(dataPeriods):
             periodComboBox.insertItem(0,dataPeriod)               
         
         
@@ -94,7 +94,7 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
         self.aloneCheckBox.setChecked(True)      # 将Radio1选中
    
         
-        datasourceComboBox.activated[str].connect(self.onLocalSymbolSelectorActivate)        
+        datasourceComboBox.activated[str].connect(self.onDataSourceTypeComboBoxChanged)        
         storageComboBox.activated[str].connect(self.onLocalSymbolSelectorActivate)        
         periodComboBox.activated[str].connect(self.onLocalSymbolSelectorActivate)        
     
@@ -115,6 +115,15 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
         layoutSymbolsSelector.setStretch(8,1)
         
         return layoutSymbolsSelector
+    def onDataSourceTypeComboBoxChanged(self):
+        datasource = str(self.localDatasourceComboBox.currentText())
+        dataPeriods = self.dataCenter.getDataPeriods(datasource)
+        dataPeriodsSorted = sorted(dataPeriods)
+        self.localSymbolsPeriodComboBox.clear()
+        for dataPeriod in dataPeriodsSorted:
+            self.localSymbolsPeriodComboBox.insertItem(0,dataPeriod)          
+            
+        self.updateLocalAvailableSymbolsTable() 
     def onLocalSymbolSelectorActivate(self,text):
         self.updateLocalAvailableSymbolsTable()    
     def updateLocalAvailableSymbolsTable(self):

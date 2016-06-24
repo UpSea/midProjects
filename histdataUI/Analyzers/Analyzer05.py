@@ -373,67 +373,76 @@ class Analyzer05():
         mainLayout.addLayout(rightLayout)
         dialog.setLayout(mainLayout)        
         dialog.setWindowTitle(('Strategy Results'))
-        # 2) creates widgets 
-        #  2.1)candle
+
         import os,sys        
         xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdataUI'))
         sys.path.append(xpower)
     
         from Widgets.pgCandleWidgetCross import pgCandleWidgetCross
         from Widgets.pgCrossAddition import pgCrossAddition
+        from pyqtgraph.dockarea import DockArea,Dock 
+        area = DockArea()   
+        rightLayout.addWidget(area)
+        
+        # 2) creates widgets 
+        #  2.1)candle        
         pgCandleView = pgCandleWidgetCross(dataForCandle=KData)        
         self.pricePlot(pgCandleView) 
         self.pricePlot(pgCandleView)    
         self.indicatorsPlot(pgCandleView)        
+        d1 = Dock("candles", size=(200,300))     ## give this dock the minimum possible size
+        area.addDock(d1, 'bottom') 
+        d1.addWidget(pgCandleView)        
         
         #  2.2)Pnl
-        PyqtGraphPnl = pgCrossAddition()
-        self.pnlPlot(PyqtGraphPnl,bDrawText=bDrawText)
+        if(False):
+            PyqtGraphPnl = pgCrossAddition()
+            self.pnlPlot(PyqtGraphPnl,bDrawText=bDrawText)
+            d2 = Dock("pnl", closable=True, size=(200,100))
+            area.addDock(d2, 'bottom')    
+            d2.addWidget(PyqtGraphPnl)           
+            PyqtGraphPnl.setXLink(pgCandleView)
+       
         #  2.3)Position
-        PyqtGraphPosition = pgCrossAddition()
-        self.positionPlot(PyqtGraphPosition)
+        if(False):
+            PyqtGraphPosition = pgCrossAddition()
+            self.positionPlot(PyqtGraphPosition)
+            d3 = Dock("position", size=(200,100))
+            area.addDock(d3, 'bottom')        
+            d3.addWidget(PyqtGraphPosition)             
+            PyqtGraphPosition.setXLink(pgCandleView)
         #  2.4)portfolio
-        PyqtGraphPortfolio = pgCrossAddition()
-        self.portfolioPlot(PyqtGraphPortfolio)
+        if(True):
+            PyqtGraphPortfolio = pgCrossAddition()
+            self.portfolioPlot(PyqtGraphPortfolio)
+            d4 = Dock("portfolio", size=(200,100))
+            area.addDock(d4, 'bottom')     
+            d4.addWidget(PyqtGraphPortfolio)        
+            PyqtGraphPortfolio.setXLink(pgCandleView)
         #  2.5)price
-        PyqtGraphindicators = pgCrossAddition()
-        self.pricePlot(PyqtGraphindicators)    
-        self.indicatorsPlot(PyqtGraphindicators)
+        if(False):
+            PyqtGraphindicators = pgCrossAddition()
+            self.pricePlot(PyqtGraphindicators)    
+            self.indicatorsPlot(PyqtGraphindicators)
+            d5 = Dock("price", size=(200,100))
+            d5.addWidget(PyqtGraphindicators)
+            area.addDock(d5, 'bottom', d1)  
+            PyqtGraphindicators.setXLink(pgCandleView)
         #  2.6)order
         #PyqtGraphOrder = pgCrossAddition()
         #self.orderPlot(PyqtGraphOrder)
         #self.pricePlot(PyqtGraphOrder)
-        from pyqtgraph.dockarea import DockArea,Dock 
-        area = DockArea()
+
         ## Create docks, place them into the window one at a time.
         ## Note that size arguments are only a suggestion; docks will still have to
         ## fill the entire dock area and obey the limits of their internal widgets.
-        d1 = Dock("candles", size=(200,300))     ## give this dock the minimum possible size
-        d2 = Dock("pnl", closable=True, size=(200,100))
-        d3 = Dock("position", size=(200,100))
-        d4 = Dock("portfolio", size=(200,100))
-        d5 = Dock("price", size=(200,100))
         #d6 = Dock("order time,amount",size=(200,100))
 
-        area.addDock(d1, 'bottom') 
-        area.addDock(d2, 'bottom')    
-        area.addDock(d3, 'bottom')
-        area.addDock(d4, 'bottom')     
-        area.addDock(d5, 'bottom', d1)  
         #area.addDock(d6, 'bottom', d1)
-        rightLayout.addWidget(area)
 
-        d1.addWidget(pgCandleView)        
-        d2.addWidget(PyqtGraphPnl)     
-        d3.addWidget(PyqtGraphPosition)             
-        d4.addWidget(PyqtGraphPortfolio)        
-        d5.addWidget(PyqtGraphindicators)
+  
         #d6.addWidget(PyqtGraphOrder)
         
-        PyqtGraphPnl.setXLink(pgCandleView)
-        PyqtGraphPosition.setXLink(pgCandleView)
-        PyqtGraphPortfolio.setXLink(pgCandleView)
-        PyqtGraphindicators.setXLink(pgCandleView)
         #PyqtGraphOrder.setXLink(pgCandleView)
         return dialog
     

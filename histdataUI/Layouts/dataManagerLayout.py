@@ -376,13 +376,19 @@ class dataManagerLayout(QtGui.QHBoxLayout):
         self.connect(addNewSymbol,QtCore.SIGNAL("clicked()"),self.slotAddNewSymbol)  
         return layoutAddNewSymbol
     def createParamsLayout(self):
+        '''mid
+        创建时，默认以mt5数据源的可用周期填充周期控件
+        周期空间随不同数据源内容有所不同，比如，tushare无h4,mt5有h4
+        运行后，由数据源控件的变动出发更新可用周期控件内容
+        '''
         layoutParameters = QtGui.QGridLayout()
        
         lablePeriod = QtGui.QLabel(self.tr("Period:")) 
         periodComboBox=QtGui.QComboBox()
         self.periodComboBox = periodComboBox
-        dataPeriods = self.dataCenter.getDataPeriods()
-        for dataPeriod in dataPeriods:
+        
+        dataPeriods = self.dataCenter.getDataPeriods('mt5')
+        for dataPeriod in sorted(dataPeriods):
             periodComboBox.insertItem(0,dataPeriod)    
         
         lableTimeStart = QtGui.QLabel(self.tr("Time start:")) 
@@ -418,6 +424,8 @@ class dataManagerLayout(QtGui.QHBoxLayout):
         for dataStorage in dataStorages:
             storageComboBox.insertItem(0,dataStorage)           
         
+        dataSourceTypeComboBox.activated[str].connect(self.onDataSourceTypeComboBoxChanged)  
+        
         
         layoutParameters.addWidget(codesTypeLable,0,0)   
         layoutParameters.addWidget(dataSourceTypeComboBox,0,1)   
@@ -433,6 +441,13 @@ class dataManagerLayout(QtGui.QHBoxLayout):
         
  
         return layoutParameters
+    def onDataSourceTypeComboBoxChanged(self):
+        datasource = str(self.dataSourceTypeComboBox.currentText())
+        dataPeriods = self.dataCenter.getDataPeriods(datasource)
+        dataPeriodsSorted = sorted(dataPeriods)
+        self.periodComboBox.clear()
+        for dataPeriod in dataPeriodsSorted:
+            self.periodComboBox.insertItem(0,dataPeriod)         
     def createDownloadButtonLayout(self):
         downloadButtons = QtGui.QHBoxLayout()
         

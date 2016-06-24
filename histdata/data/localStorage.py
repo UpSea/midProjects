@@ -7,6 +7,7 @@ from PyQt4 import QtGui,QtCore
 """
 class localStorage():
     def __init__(self,dataRoot,db,collection):
+        self.periods = None #mid should be redefined when used in dataManager
         self.dataRoot = dataRoot      
         self.codefile = self.dataRoot +os.sep + "code.csv"   
         self.codeinusefile = self.dataRoot + os.sep + "code_inuse.csv"
