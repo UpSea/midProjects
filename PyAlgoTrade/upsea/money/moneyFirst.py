@@ -18,7 +18,7 @@ class moneyFirst(baseMoney.baseMoney):
         
         if(self.portfolioIndex == 0):
             self.initPortfolio = strat.getBroker().getCash()
-            self.initPortfolioCash = self.initPortfolio * 0.20
+            self.initPortfolioCash = self.initPortfolio * 0.60
             
             self.initSubPortfolio = self.initPortfolio
             self.initSubPortfolioCash = self.initPortfolioCash

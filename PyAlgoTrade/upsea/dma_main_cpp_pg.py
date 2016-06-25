@@ -129,7 +129,7 @@ if __name__ == "__main__":
         storageType = 'mongodb'
         period = 'D'
     if(True):
-        symbol = 'USDJPY'
+        symbol = 'XAUUSD'
         dataProvider = 'mt5'
         storageType = 'mongodb'
         period = 'D'        
@@ -141,8 +141,8 @@ if __name__ == "__main__":
     
     
     #mid ea01
-    #money = moneyFixed.moneyFixed()
-    money = moneyFirst.moneyFirst()
+    money = moneyFixed.moneyFixed()
+    #money = moneyFirst.moneyFirst()
  
     instruments = [symbol]
     ex01 = Expert(toPlot=False,  shortPeriod=5,longPeriod=10, 

@@ -99,8 +99,8 @@ class Analyzer05():
             ax.scatterAddition(date, self.results.AAPL)
     def pnlPlot(self,ax,bDrawText=False):
         date = np.array([mpd.date2num(date) for date in self.results.index])
-        if 'pnl' in self.results:
-            quotes = np.array(self.results.pnl)
+        if 'position_pnl' in self.results:
+            quotes = np.array(self.results.position_pnl)
             ax.plot(date,quotes , pen=(255,0,0), name="Red curve")
             ax.scatterAddition(date, quotes)
    
@@ -394,8 +394,8 @@ class Analyzer05():
         area.addDock(d1, 'bottom') 
         d1.addWidget(pgCandleView)        
         
-        #  2.2)Pnl
-        if(False):
+        #  2.2)Pnl 当前position价值曲线
+        if(True):
             PyqtGraphPnl = pgCrossAddition()
             self.pnlPlot(PyqtGraphPnl,bDrawText=bDrawText)
             d2 = Dock("pnl", closable=True, size=(200,100))
@@ -403,15 +403,15 @@ class Analyzer05():
             d2.addWidget(PyqtGraphPnl)           
             PyqtGraphPnl.setXLink(pgCandleView)
        
-        #  2.3)Position
-        if(False):
+        #  2.3)Position,
+        if(True):
             PyqtGraphPosition = pgCrossAddition()
             self.positionPlot(PyqtGraphPosition)
             d3 = Dock("position", size=(200,100))
             area.addDock(d3, 'bottom')        
             d3.addWidget(PyqtGraphPosition)             
             PyqtGraphPosition.setXLink(pgCandleView)
-        #  2.4)portfolio
+        #  2.4)portfolio  总资产变动曲线
         if(True):
             PyqtGraphPortfolio = pgCrossAddition()
             self.portfolioPlot(PyqtGraphPortfolio)
@@ -420,7 +420,7 @@ class Analyzer05():
             d4.addWidget(PyqtGraphPortfolio)        
             PyqtGraphPortfolio.setXLink(pgCandleView)
         #  2.5)price
-        if(False):
+        if(True):
             PyqtGraphindicators = pgCrossAddition()
             self.pricePlot(PyqtGraphindicators)    
             self.indicatorsPlot(PyqtGraphindicators)

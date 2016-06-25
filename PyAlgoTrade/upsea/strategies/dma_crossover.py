@@ -10,14 +10,20 @@ class DMACrossOver(strategy.BacktestingStrategy):
  def __init__(self, feed = None, instrument = '',shortPeriod =  0,longPeriod = 0,money = None,longAllowed=True,shortAllowed=True):
   strategy.BacktestingStrategy.__init__(self, feed)
 
+  self.init_subposition_value = 0  #mid init position value
+  
   mid_DEFAULT_MAX_LEN = 10 * DEFAULT_MAX_LEN
   self.__instrument = instrument
   self.__longPosition = None
   self.__shortPosition = None
-  self.__position = SequenceDataSeries(maxLen = mid_DEFAULT_MAX_LEN)
+  
+  self.__position = SequenceDataSeries(maxLen = mid_DEFAULT_MAX_LEN)       #mid 当前持有头寸数量
+  self.__position_pnl = SequenceDataSeries(maxLen = mid_DEFAULT_MAX_LEN) #mid 当前持有头寸价值
   self.__portfolio_value = SequenceDataSeries(maxLen = mid_DEFAULT_MAX_LEN)
   self.__buy = SequenceDataSeries(maxLen = mid_DEFAULT_MAX_LEN)
   self.__sell = SequenceDataSeries(maxLen = mid_DEFAULT_MAX_LEN)
+  
+  
   self.__buySignal = False
   self.__sellSignal = False
   self.money = money
@@ -40,10 +46,24 @@ class DMACrossOver(strategy.BacktestingStrategy):
   # record position      
   #######################################################################
   broker = self.getBroker()
-  share = broker.getShares(self.__instrument)
-  position = broker.getPositions()
+  position = broker.getPositions()                   #mid position is dict of share
+  share = broker.getShares(self.__instrument)        #mid position is dict of share
+  lastPrice = self.getLastPrice(self.__instrument)  
+  portfolio_value = broker.getEquity()
+  cash = broker.getCash()
+  
+  position_value = portfolio_value - cash
+  
+  position_pnl = position_value - self.init_subposition_value
+  
+  print
+  print 'cash: %.2f' %(cash)
+  print 'position value: %.2f' % (portfolio_value - cash)
+  print 'mid calc: %.2f' %(lastPrice*share+cash)
+  print 'broker returned: %.2f' %(portfolio_value)
+  
+  
   curTime = self.getCurrentDateTime()
-  portfolio_value = self.getResult()
   if(False):
    yLimit = self.money.getShares()*1.1
    if(self.i==0):
@@ -60,6 +80,7 @@ class DMACrossOver(strategy.BacktestingStrategy):
   else:
    currentTime = self.getCurrentDateTime()
    self.__position.appendWithDateTime(currentTime,share)  
+   self.__position_pnl.appendWithDateTime(currentTime,position_pnl)
    self.__portfolio_value.appendWithDateTime(currentTime,portfolio_value)  
    self.__buy.appendWithDateTime(currentTime,self.__buySignal)              
    self.__sell.appendWithDateTime(currentTime,self.__sellSignal) 
@@ -69,6 +90,8 @@ class DMACrossOver(strategy.BacktestingStrategy):
   return self.__portfolio_value
  def getPosition(self):
   return self.__position    
+ def getPositionPnl(self):
+  return self.__position_pnl 
  def getSMA(self):
   return self.__sma
  def getLMA(self):
@@ -80,14 +103,23 @@ class DMACrossOver(strategy.BacktestingStrategy):
  def onEnterOk(self, position):
   execInfo = position.getEntryOrder().getExecutionInfo()   
   portfolio = self.getResult()
-  cash = self.getBroker().getCash()
+  cash = self.getBroker().getCash() 
+  portfolio_value = self.getBroker().getEquity()
+  
+  self.init_subposition_value = portfolio_value - cash  
+  
+  
+  
   self.info("onEnterOk().current available cash: %.2f,portfolio: %.2f." % (cash,portfolio))
   if isinstance(position, strategy.position.LongPosition):
    self.info("onEnterOK().ExecutionInfo: %s,OPEN LONG %.2f at $%.2f" 
              % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice())) 
   elif isinstance(position, strategy.position.ShortPosition):
    self.info("onEnterOK().ExecutionInfo: %s,OPEN SHORT %.2f at $%.2f" 
-             % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice()))                    
+             % (execInfo.getDateTime(),execInfo.getQuantity(),execInfo.getPrice()))     
+   
+   
+   
  def onEnterCanceled(self, position):
   self.info("onEnterCanceled().current available cash: %.2f." % (self.getBroker().getCash()))
   if isinstance(position, strategy.position.LongPosition):
@@ -142,10 +174,11 @@ class DMACrossOver(strategy.BacktestingStrategy):
   buy = self.getBuy()
   sell = self.getSell()
   portfolio_value = self.getPortfolio()
-
-  result = pd.DataFrame({'positions':list(pos),'short_ema':list(sma),'long_ema':list(lma),
+  position_pnl = self.getPositionPnl()
+  
+  result = pd.DataFrame({'positions':list(pos),'position_pnl':list(position_pnl),'short_ema':list(sma),'long_ema':list(lma),
                          'buy':list(buy),'sell':list(sell),'portfolio_value':list(portfolio_value)},
-                        columns=['positions','short_ema','long_ema','buy','sell','portfolio_value'],
+                        columns=['positions','position_pnl','short_ema','long_ema','buy','sell','portfolio_value'],
                         index=pos.getDateTimes())        
   return result
  def onBars(self, bars):

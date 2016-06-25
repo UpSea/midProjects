@@ -9,7 +9,7 @@ class moneyFixed(baseMoney.baseMoney):
         strat.info(('moneyFixed.getShare().price:%.3f'%(curPrice)))
         
         if(self.openIndex == 0):
-            self.initCash = strat.getBroker().getCash()*0.10
+            self.initCash = strat.getBroker().getCash()*0.60
             self.openIndex = self.openIndex + 1
             
         shares = int(self.initCash/curPrice)
