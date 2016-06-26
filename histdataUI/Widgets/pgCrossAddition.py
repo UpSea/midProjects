@@ -86,7 +86,7 @@ class pgCrossAddition(pg.PlotWidget):
         每个通过scatterAddition加入scatter的pgPlot都会保存一份自己的clicked函数
         而clicked处理的是传入的参数pgPlot
         """
-        scatterPrice = pg.ScatterPlotItem(size=10, pen=pg.mkPen(None), pxMode=True, brush=pg.mkBrush(255, 255, 255, 120))            
+        scatterPrice = pg.ScatterPlotItem(size=5, pen=pg.mkPen(None), pxMode=True, brush=pg.mkBrush(255, 255, 255, 120))            
         spots = [{'pos': (x,price)} for x,price in zip(x,y)]
         scatterPrice.addPoints(spots)
         self.addItem(scatterPrice)

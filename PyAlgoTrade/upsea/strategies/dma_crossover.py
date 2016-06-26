@@ -10,15 +10,16 @@ class DMACrossOver(strategy.BacktestingStrategy):
  def __init__(self, feed = None, instrument = '',shortPeriod =  0,longPeriod = 0,money = None,longAllowed=True,shortAllowed=True):
   strategy.BacktestingStrategy.__init__(self, feed)
 
-  self.init_subposition_value = 0  #mid init position value
+  self.position_cost = 0  #mid init position value
   
   mid_DEFAULT_MAX_LEN = 10 * DEFAULT_MAX_LEN
   self.__instrument = instrument
   self.__longPosition = None
   self.__shortPosition = None
   
-  self.__position = SequenceDataSeries(maxLen = mid_DEFAULT_MAX_LEN)       #mid 当前持有头寸数量
-  self.__position_pnl = SequenceDataSeries(maxLen = mid_DEFAULT_MAX_LEN) #mid 当前持有头寸价值
+  self.__position_volume = SequenceDataSeries(maxLen = mid_DEFAULT_MAX_LEN)       #mid 当前持有头寸数量
+  self.__position_cost = SequenceDataSeries(maxLen = mid_DEFAULT_MAX_LEN)  #mid 当前持有头寸开仓成本
+  self.__position_pnl = SequenceDataSeries(maxLen = mid_DEFAULT_MAX_LEN)   #mid 当前持有头寸价值
   self.__portfolio_value = SequenceDataSeries(maxLen = mid_DEFAULT_MAX_LEN)
   self.__buy = SequenceDataSeries(maxLen = mid_DEFAULT_MAX_LEN)
   self.__sell = SequenceDataSeries(maxLen = mid_DEFAULT_MAX_LEN)
@@ -54,7 +55,7 @@ class DMACrossOver(strategy.BacktestingStrategy):
   
   position_value = portfolio_value - cash
   
-  position_pnl = position_value - self.init_subposition_value
+  position_pnl = position_value - self.position_cost
   
   print
   print 'cash: %.2f' %(cash)
@@ -74,13 +75,18 @@ class DMACrossOver(strategy.BacktestingStrategy):
     self.i = self.i + 1
    else:
     currentTime = self.getCurrentDateTime()
-    self.__position.appendWithDateTime(currentTime,share)                
+    self.__position.appendWithDateTime(currentTime,abs(share))                
     #self.__position.append(share)
 
   else:
    currentTime = self.getCurrentDateTime()
-   self.__position.appendWithDateTime(currentTime,share)  
+   
+   self.__position_volume.appendWithDateTime(currentTime,abs(share))  
+   
+   self.__position_cost.appendWithDateTime(currentTime,abs(self.position_cost))
+   
    self.__position_pnl.appendWithDateTime(currentTime,position_pnl)
+   
    self.__portfolio_value.appendWithDateTime(currentTime,portfolio_value)  
    self.__buy.appendWithDateTime(currentTime,self.__buySignal)              
    self.__sell.appendWithDateTime(currentTime,self.__sellSignal) 
@@ -88,8 +94,10 @@ class DMACrossOver(strategy.BacktestingStrategy):
   return self.__instrument
  def getPortfolio(self):
   return self.__portfolio_value
- def getPosition(self):
-  return self.__position    
+ def getPositionVolume(self):
+  return self.__position_volume    
+ def getPositionCost(self):
+  return self.__position_cost
  def getPositionPnl(self):
   return self.__position_pnl 
  def getSMA(self):
@@ -104,12 +112,28 @@ class DMACrossOver(strategy.BacktestingStrategy):
   execInfo = position.getEntryOrder().getExecutionInfo()   
   portfolio = self.getResult()
   cash = self.getBroker().getCash() 
-  portfolio_value = self.getBroker().getEquity()
-  
-  self.init_subposition_value = portfolio_value - cash  
-  
-  
-  
+
+  '''mid
+  以下两种方法都是为了计算持仓成本
+  由于getEquity()返回的是依据当日close价格计算出来的权益
+  所以，这个值不能作为持仓成本
+  持仓成本需要以onEnterOk时bar的open价格计算
+  所以应使用第二种算法
+  由于经常有跳开现象，所以依据bar(n-1).close发出的market order，
+  在bar(n).open执行时通常会有gap出现，表现在position_cost图上时就是持有成本离计划成本会有跳口，
+  '''
+  if(False):#mid two methods to cacl cost.
+   portfolio_value = self.getBroker().getEquity()
+   self.position_cost = portfolio_value - cash  
+  else:
+   feed = self.getFeed()
+   bars = feed.getCurrentBars()
+   bar = bars.getBar(self.__instrument)
+   openPrice = bar.getOpen()   
+   closePrice = self.getLastPrice(self.__instrument) #mid lastPrice == closePrice
+   share = self.getBroker().getShares(self.__instrument)
+   self.position_cost = openPrice*share
+
   self.info("onEnterOk().current available cash: %.2f,portfolio: %.2f." % (cash,portfolio))
   if isinstance(position, strategy.position.LongPosition):
    self.info("onEnterOK().ExecutionInfo: %s,OPEN LONG %.2f at $%.2f" 
@@ -168,18 +192,21 @@ class DMACrossOver(strategy.BacktestingStrategy):
  def run(self):
   strategy.BacktestingStrategy.run(self)
 
-  pos = self.getPosition()
   sma = self.getSMA()
   lma = self.getLMA()
   buy = self.getBuy()
   sell = self.getSell()
+  
   portfolio_value = self.getPortfolio()
+  
+  position_volume = self.getPositionVolume()
+  position_cost = self.getPositionCost()
   position_pnl = self.getPositionPnl()
   
-  result = pd.DataFrame({'positions':list(pos),'position_pnl':list(position_pnl),'short_ema':list(sma),'long_ema':list(lma),
+  result = pd.DataFrame({'position_volume':list(position_volume),'position_cost':list(position_cost),'position_pnl':list(position_pnl),'short_ema':list(sma),'long_ema':list(lma),
                          'buy':list(buy),'sell':list(sell),'portfolio_value':list(portfolio_value)},
-                        columns=['positions','position_pnl','short_ema','long_ema','buy','sell','portfolio_value'],
-                        index=pos.getDateTimes())        
+                        columns=['position_volume','position_cost','position_pnl','short_ema','long_ema','buy','sell','portfolio_value'],
+                        index=position_volume.getDateTimes())        
   return result
  def onBars(self, bars):
   '''mid

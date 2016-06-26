@@ -128,12 +128,12 @@ if __name__ == "__main__":
         dataProvider = 'tushare'
         storageType = 'mongodb'
         period = 'D'
-    if(True):
+    if(False):
         symbol = 'XAUUSD'
         dataProvider = 'mt5'
         storageType = 'mongodb'
         period = 'D'        
-    if(False):
+    if(True):
         symbol = 'XAUUSD'
         dataProvider = 'mt5'
         storageType = 'mongodb'

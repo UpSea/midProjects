@@ -34,7 +34,7 @@ class Analyzer05():
         """"""
         date = np.array([mpd.date2num(date) for date in self.results.index])  
         if 'portfolio_value' in self.results:
-            ax.plot(date,self.results.portfolio_value)
+            ax.plot(date,self.results.portfolio_value,pen=(255,255,255))
             ax.scatterAddition(date, self.results.portfolio_value) 
     #----------------------------------------------------------------------
     def orderPlot(self,ax):
@@ -61,35 +61,60 @@ class Analyzer05():
             date = np.array([mpd.date2num(date) for date in ordersCreated]) 
         
             ax.plot(date, ordersAmount,pen=(255,0,0), name="Orders amount curve")
-            ax.scatterAddition(date, ordersAmount)        
-    def positionPlot(self,ax,bDrawText=False):  
-        if 'positions' in self.results:
-            positions = self.results.positions
+            ax.scatterAddition(date, ordersAmount)   
+    def positionCostPlot(self,ax,bDrawText=False):  
+        if 'position_cost' in self.results:
+            position_cost = self.results.position_cost
             date = np.array([mpd.date2num(date) for date in self.results.index]) 
         
-            ax.plot(date, positions,pen=(255,0,0), name="Position curve")
-            ax.scatterAddition(date, positions)         
-    #----------------------------------------------------------------------
-    def indicatorsPlot(self,ax):
-        """"""
+            indexOfZero = position_cost[:] == 0
+            count = len(position_cost[indexOfZero])
+            
+            #date[0:count] = position_cost[count]
+            
+            dateOfNoneZero = date[count:]
+            position_costOfNoneZero = position_cost[count:]
+            
+            ax.plot(dateOfNoneZero,position_costOfNoneZero ,pen=(255,255,255), name="Position curve")
+            ax.scatterAddition(dateOfNoneZero, position_costOfNoneZero)   
+            
+    def positionVolumePlot(self,ax,bDrawText=False):  
+        if 'position_volume' in self.results:
+            position_volume = self.results.position_volume
+            date = np.array([mpd.date2num(date) for date in self.results.index]) 
+        
+            ax.plot(date, position_volume,pen=(255,255,255), name="Position curve")
+            ax.scatterAddition(date, position_volume)  
+            
+    def positionPnlPlot(self,ax,bDrawText=False):
+        date = np.array([mpd.date2num(date) for date in self.results.index])
+        if 'position_pnl' in self.results:
+            position_pnl = np.array(self.results.position_pnl)
+            ax.plot(date,position_pnl , pen=(255,255,255), name="Red curve")
+            ax.scatterAddition(date, position_pnl)    
+    def signalPlot(self,ax):
         date = np.array([mpd.date2num(date) for date in self.results.index]) 
-        if 'short_ema' in self.results and 'long_ema' in self.results:
-            ax.plot(date,self.results.short_ema)
-            ax.plot(date,self.results['long_ema'])
-
+        if 'buy' in self.results and 'sell' in self.results:     
             xBuy = np.array([mpd.date2num(date) for date in self.results.ix[self.results.buy].index])         
             yBuy = np.array(self.results.short_ema[self.results.buy])            
             for x1,y1 in zip(xBuy,yBuy):
-                a1 = pg.ArrowItem(angle=90, tipAngle=60, headLen=10, tailLen=0, tailWidth=10, pen={'color': 'r', 'width': 1})
+                a1 = pg.ArrowItem(angle=90, tipAngle=60, headLen=5, tailLen=0, tailWidth=5, pen={'color': 'r', 'width': 1})
                 ax.addItem(a1)
                 a1.setPos(x1,y1)        
                 
             xSell = np.array([mpd.date2num(date) for date in self.results.ix[self.results.sell].index])         
             ySell = np.array(self.results.short_ema[self.results.sell])            
             for x1,y1 in zip(xSell,ySell):
-                a1 = pg.ArrowItem(angle=-90, tipAngle=60, headLen=10, tailLen=0, tailWidth=10, pen={'color': 'g', 'width': 1})
+                a1 = pg.ArrowItem(angle=-90, tipAngle=60, headLen=5, tailLen=0, tailWidth=5, pen={'color': 'g', 'width': 1})
                 ax.addItem(a1)
-                a1.setPos(x1,y1)            
+                a1.setPos(x1,y1)          
+    #----------------------------------------------------------------------
+    def indicatorsPlot(self,ax):
+        """"""
+        date = np.array([mpd.date2num(date) for date in self.results.index]) 
+        if 'short_ema' in self.results and 'long_ema' in self.results:
+            ax.plot(date,self.results.short_ema)
+            ax.plot(date,self.results['long_ema'])          
     #----------------------------------------------------------------------
     def pricePlot(self,ax,bDrawText=False):
         """"""
@@ -97,12 +122,7 @@ class Analyzer05():
         if 'AAPL' in self.results:
             ax.plot(date,self.results.AAPL)
             ax.scatterAddition(date, self.results.AAPL)
-    def pnlPlot(self,ax,bDrawText=False):
-        date = np.array([mpd.date2num(date) for date in self.results.index])
-        if 'position_pnl' in self.results:
-            quotes = np.array(self.results.position_pnl)
-            ax.plot(date,quotes , pen=(255,0,0), name="Red curve")
-            ax.scatterAddition(date, quotes)
+
    
     def showPAT(self,results = None,KData = None):
         dialog = self.initDialog(results=results, KData=KData)
@@ -389,45 +409,55 @@ class Analyzer05():
         pgCandleView = pgCandleWidgetCross(dataForCandle=KData)        
         self.pricePlot(pgCandleView) 
         self.pricePlot(pgCandleView)    
-        self.indicatorsPlot(pgCandleView)        
-        d1 = Dock("candles", size=(200,300))     ## give this dock the minimum possible size
-        area.addDock(d1, 'bottom') 
-        d1.addWidget(pgCandleView)        
+        self.indicatorsPlot(pgCandleView) 
+        self.signalPlot(pgCandleView)
+        dCandle = Dock("candles",closable=True, size=(200,300))     ## give this dock the minimum possible size
+        area.addDock(dCandle, 'bottom') 
+        dCandle.addWidget(pgCandleView)        
         
-        #  2.2)Pnl 当前position价值曲线
+        #  2.2)position_pnl 当前position_pnl曲线
         if(True):
             PyqtGraphPnl = pgCrossAddition()
-            self.pnlPlot(PyqtGraphPnl,bDrawText=bDrawText)
-            d2 = Dock("pnl", closable=True, size=(200,100))
-            area.addDock(d2, 'bottom')    
-            d2.addWidget(PyqtGraphPnl)           
+            self.positionPnlPlot(PyqtGraphPnl,bDrawText=bDrawText)
+            self.signalPlot(PyqtGraphPnl)
+            dPnl = Dock("position_pnl", closable=True, size=(200,100))
+            area.addDock(dPnl, 'bottom')    
+            dPnl.addWidget(PyqtGraphPnl)           
             PyqtGraphPnl.setXLink(pgCandleView)
-       
-        #  2.3)Position,
+        # 2.3)position_cost 
         if(True):
+            PyqtGraphPositionCost = pgCrossAddition()
+            self.positionCostPlot(PyqtGraphPositionCost)
+            dPositionCost = Dock("position_cost",closable=True, size=(200,100))
+            area.addDock(dPositionCost, 'bottom')        
+            dPositionCost.addWidget(PyqtGraphPositionCost)             
+            PyqtGraphPositionCost.setXLink(pgCandleView)         
+        #  2.3)position_volume
+        if(False):
             PyqtGraphPosition = pgCrossAddition()
-            self.positionPlot(PyqtGraphPosition)
-            d3 = Dock("position", size=(200,100))
-            area.addDock(d3, 'bottom')        
-            d3.addWidget(PyqtGraphPosition)             
+            self.positionVolumePlot(PyqtGraphPosition)
+            dPosition = Dock("position_volume",closable=True, size=(200,100))
+            area.addDock(dPosition, 'bottom')        
+            dPosition.addWidget(PyqtGraphPosition)             
             PyqtGraphPosition.setXLink(pgCandleView)
-        #  2.4)portfolio  总资产变动曲线
+        #  2.4)portfolio  总资产变动曲线 cash + equity
         if(True):
             PyqtGraphPortfolio = pgCrossAddition()
             self.portfolioPlot(PyqtGraphPortfolio)
-            d4 = Dock("portfolio", size=(200,100))
-            area.addDock(d4, 'bottom')     
-            d4.addWidget(PyqtGraphPortfolio)        
+            dPortfolio = Dock("portfolio", closable=True,size=(200,100))
+            area.addDock(dPortfolio, 'bottom')     
+            dPortfolio.addWidget(PyqtGraphPortfolio)        
             PyqtGraphPortfolio.setXLink(pgCandleView)
-        #  2.5)price
-        if(True):
+        #  2.5)indicator
+        if(False):
             PyqtGraphindicators = pgCrossAddition()
             self.pricePlot(PyqtGraphindicators)    
             self.indicatorsPlot(PyqtGraphindicators)
-            d5 = Dock("price", size=(200,100))
-            d5.addWidget(PyqtGraphindicators)
-            area.addDock(d5, 'bottom', d1)  
+            dIndicator = Dock("indicator",closable=True, size=(200,100))
+            dIndicator.addWidget(PyqtGraphindicators)
+            area.addDock(dIndicator, 'bottom', dCandle)  
             PyqtGraphindicators.setXLink(pgCandleView)
+          
         #  2.6)order
         #PyqtGraphOrder = pgCrossAddition()
         #self.orderPlot(PyqtGraphOrder)

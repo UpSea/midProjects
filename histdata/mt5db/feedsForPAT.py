@@ -166,9 +166,9 @@ class Feed(dataFrameBarFeed):
         
         if(frequency == 'm15'):
             frequency = bar.Frequency.MINUTE*15
-        if(frequency == 'h1'):
+        elif(frequency == 'h1'):
             frequency = bar.Frequency.HOUR*1
-        if(frequency == 'h4'):
+        elif(frequency == 'h4'):
             frequency = bar.Frequency.HOUR*4       
         elif(frequency == 'D'):
             frequency = bar.Frequency.DAY
