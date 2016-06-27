@@ -43,6 +43,42 @@ class DMACrossOver(strategy.BacktestingStrategy):
   self.__lma = ma.SMA(prices,longPeriod,maxLen=mid_DEFAULT_MAX_LEN)
 
   self.i = 0
+ def getAssetStructure(self):
+  #mid --------------------------------
+  #mid 当前账户资产结构如下方式获取
+  #mid Long 和 Short不会同时存在
+  #mid 在开仓前，若有反向持仓，则此过程查询并输出已持有的反向持仓
+  broker = self.getBroker()
+  portfolio_value = broker.getEquity()
+  cash = broker.getCash()
+  if self.__shortPosition is not None or self.__longPosition is not None:
+   bars = self.getFeed().getCurrentBars()  
+   
+   positions = broker.getPositions()
+   
+   positionsOpenValue = {}
+   positionsCloseValue = {}
+   for key,value in positions.items():
+    print "key:"+key+",value:"+str(value)
+    bar = bars.getBar(key)
+    openPrice = bar.getOpen() 
+    closePrice = bar.getClose()
+    share = broker.getShares(key)
+    positionsOpenValue[key] = openPrice*share
+    positionsCloseValue[key] = closePrice*share
+    
+   print 
+   print 'current bar asset structure'
+   print 'open cash %2.f.' % (cash)
+   for key,value in positionsOpenValue.items():
+    print "key:"+key+",value:"+str(value)
+   print 'close cash %2.f.' % (cash)
+   for key,value in positionsCloseValue.items():
+    print "key:"+key+",value:"+str(value)    
+   print 'portfolio:%2.f' % (portfolio_value)
+   
+   return portfolio_value,cash,sum(positionsCloseValue.values())
+  return portfolio_value,cash,0
  def recordPositions(self):
   # record position      
   #######################################################################
@@ -230,15 +266,7 @@ class DMACrossOver(strategy.BacktestingStrategy):
   1.每个newbar按close价格计算指标，并在下一个bar按open成交
   2.每个newbar按open价格计算指标，并在此newbar按open成交
   以上1,2的计算逻辑是一致的。如果当前bar的close和下一个bar的open相差无几时，两种算法的回测结果也应相差无几
-  '''
-  #shares = int(self.getBroker().getCash() * 0.9 / bars[self.__instrument].getPrice())
-
-  #self.logInfo(bars = bars)
-
-  #portfolio = self.getResult()
-  #cash = self.getBroker().getCash()
-  #self.info("onBars().current available cash: %.2f,portfolio: %.2f." % (cash,portfolio))        
-
+  '''      
   self.__buySignal,self.__sellSignal = False,False
   # mid 1)close
   if(self.longAllowed):
@@ -254,7 +282,7 @@ class DMACrossOver(strategy.BacktestingStrategy):
     if(cross.cross_above(self.__sma, self.__lma) > 0):
      print
      self.info("onBars().Status info,before exitMarket(), SHORT POSITION to close %.2f" 
-               % (self.__shortPosition.getShares()))                                    
+               % (self.__shortPosition.getShares()))  
      self.__shortPosition.exitMarket()    
 
   # mid 2)open

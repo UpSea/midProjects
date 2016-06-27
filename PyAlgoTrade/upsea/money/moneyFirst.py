@@ -12,18 +12,18 @@ class moneyFirst(baseMoney.baseMoney):
         
         self.curSubPortfolio = 0
     def getShares(self,strat = None):   
-        curPrice = strat.getLastPrice(strat.getInstrument())
-        strat.info(('moneyFirst.getShare().price:%.3f'%(curPrice)))
+        curClosePrice = strat.getLastPrice(strat.getInstrument())
+        strat.info(('moneyFirst.getShare().price:%.3f'%(curClosePrice)))
         self.curSubPortfolio = strat.getResult()
         
         if(self.portfolioIndex == 0):
             self.initPortfolio = strat.getBroker().getCash()
-            self.initPortfolioCash = self.initPortfolio * 0.60
+            self.initPortfolioCash = self.initPortfolio * 0.40
             
             self.initSubPortfolio = self.initPortfolio
             self.initSubPortfolioCash = self.initPortfolioCash
             self.subPortfolioIndex = 1
-            shares = int(self.initPortfolioCash/curPrice)
+            shares = int(self.initPortfolioCash/curClosePrice)
         else:
             if(self.curSubPortfolio > self.initSubPortfolio):
                 self.subPortfolioIndex = 0
@@ -31,7 +31,7 @@ class moneyFirst(baseMoney.baseMoney):
             else:
                 self.subPortfolioIndex = self.subPortfolioIndex + 1
                 
-            shares = int ((self.initSubPortfolioCash / curPrice)*(100 + self.subPortfolioIndex*2) / 100.00)
+            shares = int ((self.initSubPortfolioCash / curClosePrice)*(100 + self.subPortfolioIndex*2) / 100.00)
 
         self.portfolioIndex = self.portfolioIndex + 1
         

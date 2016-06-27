@@ -128,12 +128,12 @@ if __name__ == "__main__":
         dataProvider = 'tushare'
         storageType = 'mongodb'
         period = 'D'
-    if(False):
+    if(True):
         symbol = 'XAUUSD'
         dataProvider = 'mt5'
         storageType = 'mongodb'
         period = 'D'        
-    if(True):
+    if(False):
         symbol = 'XAUUSD'
         dataProvider = 'mt5'
         storageType = 'mongodb'
@@ -141,9 +141,15 @@ if __name__ == "__main__":
     
     
     #mid ea01
-    money = moneyFixed.moneyFixed()
-    #money = moneyFirst.moneyFirst()
- 
+    money = 'moneyFixed'
+    money = 'moneyFirst'
+    money = 'moneySecond' 
+    if(money == 'moneyFixed'):
+        money = moneyFixed.moneyFixed()
+    elif(money == 'moneyFirst'):
+        money = moneyFirst.moneyFirst()
+    elif(money == 'moneySecond'):
+        money = moneySecond.moneySecond()
     instruments = [symbol]
     ex01 = Expert(toPlot=False,  shortPeriod=5,longPeriod=10, 
                 dataProvider = dataProvider,storageType = storageType,period = period,
