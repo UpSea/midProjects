@@ -86,7 +86,7 @@ class DMACrossOver(strategy.BacktestingStrategy):
   position = broker.getPositions()                   #mid position is dict of share
   share = broker.getShares(self.__instrument)        #mid position is dict of share
   lastPrice = self.getLastPrice(self.__instrument)  
-  portfolio_value = broker.getEquity()
+  portfolio_value = broker.getEquity()               #mid 按close价格计算的权益
   cash = broker.getCash()
   
   position_value = portfolio_value - cash
