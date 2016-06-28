@@ -164,8 +164,15 @@ class Feed(dataFrameBarFeed):
             MONTH = 24*60*60*31
         '''
         
-        if(frequency == 'm15'):
-            frequency = bar.Frequency.MINUTE*15
+        if(frequency == 'm1'):
+            frequency = bar.Frequency.MINUTE*1 
+            raise
+        elif(frequency == 'm5'):
+            frequency = bar.Frequency.MINUTE*5            
+        elif(frequency == 'm15'):
+            frequency = bar.Frequency.MINUTE*15        
+        elif(frequency == 'm30'):
+            frequency = bar.Frequency.MINUTE*30
         elif(frequency == 'h1'):
             frequency = bar.Frequency.HOUR*1
         elif(frequency == 'h4'):

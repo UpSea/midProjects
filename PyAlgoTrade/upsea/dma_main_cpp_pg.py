@@ -129,17 +129,17 @@ if __name__ == "__main__":
         dataProvider = 'tushare'
         storageType = 'csv'
         period = 'D'
-    if(False):
+    if(True):
         symbol = 'XAUUSD'
         dataProvider = 'mt5'
         storageType = 'csv'
-        period = 'h1'        
+        period = 'm5'        
     if(False):
         symbol = 'XAUUSD'
         dataProvider = 'mt5'
         storageType = 'mongodb'
         period = 'm15'    
-    if(True):
+    if(False):
         symbol = '600028'
         dataProvider = 'tushare'
         storageType = 'csv'
@@ -158,7 +158,7 @@ if __name__ == "__main__":
     instruments = [symbol]
     
     
-    timeFrom = dt.datetime(2016, 1,  1, 0,0,0)  #mid include
+    timeFrom = dt.datetime(2016, 5,  25, 0,0,0)  #mid include
     timeTo   = dt.datetime(2016, 5, 30, 0,0,0)   #mid include 
     
     ex01 = Expert(toPlot=False,  shortPeriod=5,longPeriod=10, 
