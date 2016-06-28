@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 import sys,os
 from PyQt4 import QtGui,QtCore
+import pandas as pd
+import datetime as dt        
+import pyalgotrade.logger        
 
 """mid
 不同数据源在本地有统一的csv和mongodb储存，特将本地储存安排在此类统一提供本地数据处理
@@ -18,6 +21,7 @@ class localStorage():
         connect.use(db)    #database
         connect.setCollection(collection)    #table
         self.mongodb = connect
+        self.logger = pyalgotrade.logger.getLogger("localStorage")        
     def getCodesStorage(self):  
         selectorMsgBox=QtGui.QMessageBox()  
         selectorMsgBox.setWindowTitle("select codes storage.")  
@@ -36,16 +40,37 @@ class localStorage():
         elif button==cancelButton:  
             return 'cancel'      
 
-    def retriveHistData(self,storageType = 'mongodb',period = '',symbol = ''):
+    def retriveHistData(self,storageType = 'mongodb',period = '',symbol = '', timeFrom=None, timeTo=None):
         '''mid
-        返回dataframe格式的历史数据,用于pat回测
+        返回dataframe格式的历史数据,用于pat回测,
+        historyDf.index is str as "%Y-%m-%d %H:%M:%S",this index will be parsed when building feed in build feed function.
         '''
         if(storageType == 'mongodb'):
-            dfHistData = self.mongodb.retrive(symbol = symbol,period=period)
+            try:#mid here should be exception process in case server is not responsable
+                ret = self.mongodb.retrive(symbol = symbol,period=period,timeFrom=timeFrom, timeTo=timeTo)
+            except Exception, e:
+                print str(e)
+                raise e
+                    
+            
         elif(storageType == 'csv'):
-            dfHistData = self.__retriveDataFrameKData__(symbol = symbol,period=period)
-        return dfHistData    
-    def retriveCandleData(self,storageType = 'mongodb',period = '',symbol = ''):
+            fileName = os.path.join(self.dataRoot,period,('%s.csv'%symbol))
+            historyDf = pd.DataFrame.from_csv(fileName).tz_localize('UTC')
+            historyDf.sort_index(inplace=True,ascending=True)                
+            
+            datetimeStr = [str(timestamp) for timestamp in historyDf.index]
+            
+            historyDf.index = datetimeStr
+            
+            if(isinstance(timeFrom,dt.datetime) and isinstance(timeTo,dt.datetime)):
+                strFrom = timeFrom.strftime("%Y-%m-%d %H:%M:%S").decode()
+                strTo = timeTo.strftime("%Y-%m-%d %H:%M:%S").decode()
+                
+                ret = historyDf[strFrom:strTo]
+            else:
+                ret = historyDf            
+        return ret    
+    def retriveCandleData(self,storageType = 'mongodb',period = '',symbol = '',timeFrom = None,timeTo = None):
         """
         将日期字符串转化为Datetime，再转化为narray，只用于绘制candle
         输入：
@@ -68,7 +93,7 @@ class localStorage():
         
         #mid 这个转换是将dataframe格式的数据转化为np.array格式，转换时排列的顺序重要
         #mid 必须确保是按时间index的升序排列
-        history = self.retriveHistData(storageType=storageType, period=period,symbol=symbol)
+        history = self.retriveHistData(storageType=storageType, period=period,symbol=symbol,timeFrom=timeFrom, timeTo=timeTo)
         history.sort_index(inplace=True,ascending=True)
         
         if sys.version > '3':
@@ -114,4 +139,31 @@ class localStorage():
             dfCodes = pd.read_csv(self.codefile,index_col=False,encoding='gbk',dtype={0:np.str,1:np.str})
             dfCodes.index = dfCodes['code']
             return dfCodes          
+    def exists(self,instrument,frequency):
+        if (frequency in self.periods.keys()):
+            fileName = os.path.join(self.dataRoot,frequency,('%s.csv'%instrument))
+            if os.path.exists(fileName):
+                return True
+            else:
+                return False               
+        else:
+            raise Exception("Invalid frequency")
+    def storeHistDataOneToCsv(self,code = '',period = 'D',histDataOne = None):
+        fileName = os.path.join(self.dataRoot,period,('%s.csv'%code))
+        fileDir = os.path.dirname(fileName)   
         
+        #mid 判断是否存在文件夹，如不存在，则创建
+        if not os.path.exists(fileDir):
+            self.logger.info("Creating %s directory" % (fileDir))
+            os.mkdir(fileDir)        
+        
+        #mid 判断是否存在已有同名文件，如有追加，如无，创建
+        if histDataOne is not None and len(histDataOne) != 0:
+            if os.path.exists(fileName):
+                histDataOne.to_csv(fileName, mode='a', header=None,encoding='gbk')
+            else:
+                histDataOne.to_csv(fileName,encoding='gbk')
+            return True
+        else:
+            return False         
+    

@@ -79,23 +79,33 @@ class RowParser(RowParser):
         self.__timezone = timezone
         self.__sanitize = sanitize
     def parse_date(self,date):
-        # Sample: 2005-12-30
+        # Sample: 2005-12-30 05:07:08
         # This custom parsing works faster than:
         # datetime.datetime.strptime(date, "%Y-%m-%d")
         year = int(date[0:4])
         month = int(date[5:7])
         day = int(date[8:10])
-        ret = datetime.datetime(year, month, day)
+    
+        hour = int(date[11:13])
+        min = int(date[14:16])
+        sec = int(date[17:19])
+    
+        ret = datetime.datetime(year, month, day,hour,min,sec)
+        print str(ret)
         return ret
     def __parseDate(self, dateString):
         ret = self.parse_date(dateString)
         # Time on Yahoo! Finance CSV files is empty. If told to set one, do it.
-        if self.__dailyBarTime is not None:
-            ret = datetime.datetime.combine(ret, self.__dailyBarTime)
+        #mid 下面这个过程将ret带h:m:s的时间弄成无h:m:s，使只能测试日线
+        if(False):
+            if self.__dailyBarTime is not None:
+                ret = datetime.datetime.combine(ret, self.__dailyBarTime)
+        
         # Localize the datetime if a timezone was given.
         if self.__timezone:
             ret = dt.localize(ret, self.__timezone)
         return ret
+
 
     def getFieldNames(self):
         # It is expected for the first row to have the field names.
@@ -146,14 +156,31 @@ class Feed(dataFrameBarFeed):
         if isinstance(timezone, int):
             raise Exception("timezone as an int parameter is not supported anymore. Please use a pytz timezone instead.")
         #mid bar.Frequency.DAY只应该在PAT中有依赖，在此之外，使用D,W，M，h1，m1等通用周期标记
-        if(frequency == 'D'):
+        '''
+            TRADE = -1
+            SECOND = 1
+            MINUTE = 60
+            HOUR = 60*60
+            DAY = 24*60*60
+            WEEK = 24*60*60*7
+            MONTH = 24*60*60*31
+        '''
+        
+        if(frequency == 'm15'):
+            frequency = bar.Frequency.MINUTE * 15         
+        elif(frequency == 'h1'):
+            frequency = bar.Frequency.HOUR * 1 
+        elif(frequency == 'D'):
             frequency = bar.Frequency.DAY
         elif(frequency == 'W'):
             frequency = bar.Frequency.WEEK
-            
+        else:
+            raise Exception("Invalid frequency.")  
+        
+        '''mid remarked
         if frequency not in [bar.Frequency.DAY, bar.Frequency.WEEK]:
-            raise Exception("Invalid frequency.")
-
+            raise Exception("Invalid frequency.")        
+        '''
         dataFrameBarFeed.__init__(self, frequency, maxLen)
         self.__timezone = timezone
         self.__sanitizeBars = False
@@ -184,7 +211,7 @@ class Feed(dataFrameBarFeed):
 
         rowParser = RowParser(self.getDailyBarTime(), self.getFrequency(), timezone, self.__sanitizeBars)
         dataFrameBarFeed.addBarsFromDataFrame(self, instrument,rowParser,dataFrame)
-    def addBarsFromCSV(self,instrument='', period='D', fromYear='', toYear=''):
+    def addBarsFromCSV(self,instrument='', period='D', timeFrom = None, timeTo = None):
         '''mid
         添加一个symbol的历史数据到对象
         '''
@@ -200,34 +227,31 @@ class Feed(dataFrameBarFeed):
             
          
         '''
-        if(not tsCenter.exists(instrument,period)):
-            logger.info("Downloading %s from %d to %d" % (instrument, fromYear,toYear))
+        if(not tsCenter.localStorage.exists(instrument,period)):
+            logger.info("Downloading %s from %s to %s" % (instrument,str(timeFrom),str(timeTo)))
             try:
-                if (period in self.tsDataCenter.periods.keys()):
-                    if tsCenter.downloadAndStoreKDataByCode(instrument = instrument,fromYear=fromYear,toYear = toYear,period=period):
+                if (period in self.tsDataCenter.localStorage.periods.keys()):
+                    if tsCenter.downloadAndStoreKDataByCode(code = instrument,timeFrom = timeFrom,timeTo = timeTo,period=period):
                         logger.info("Downloading successed.")
                     else:
                         logger.info("Downloading failed.")
                 else:
                     raise Exception("Invalid period")
             except Exception, e:
-                if skipErrors:
-                    logger.error(str(e))
-                    #continue
-                else:
-                    raise e
+                print str(e)
+                raise e
         else:
             logger.info("\n%s already existed." % (instrument))        
         
-        dat = tsCenter.retriveHistData(storageType = 'csv',period = period,symbol = instrument)
+        dat = tsCenter.localStorage.retriveHistData(storageType = 'csv',period = period,symbol = instrument,timeFrom = timeFrom, timeTo = timeTo)
         self.addBarsFromDataFrame(instrument, dat)   
     
 
-    def addBarsFromMongodb(self,instrument='', period='D', fromYear='', toYear=''):
+    def addBarsFromMongodb(self,instrument='', period='D',timeFrom=None,timeTo=None):
         tsCenter = self.tsDataCenter            
-        dat = tsCenter.localStorage.retriveHistData(storageType = 'mongodb',symbol = instrument,period=period)
+        dat = tsCenter.localStorage.retriveHistData(storageType = 'mongodb',symbol = instrument,period=period,timeFrom=timeFrom,timeTo=timeTo)
         self.addBarsFromDataFrame(instrument, dat)
-    def build_feed(self,instrument = '', fromYear='', toYear='', storageType='', period='D', timezone=None, skipErrors=False):
+    def build_feed(self,instrument = '', timeFrom=None,timeTo=None, storageType='', period='D', timezone=None, skipErrors=False):
         """Build and load a :class:`pyalgotrade.barfeed.yahoofeed.Feed` using CSV files downloaded from Yahoo! Finance.
         CSV files are downloaded if they haven't been downloaded before.
     
@@ -248,9 +272,9 @@ class Feed(dataFrameBarFeed):
         :rtype: :class:`pyalgotrade.barfeed.yahoofeed.Feed`.
         """
         if(storageType == 'csv'):
-            self.addBarsFromCSV(instrument=instrument, period=period, fromYear=fromYear, toYear=toYear)
+            self.addBarsFromCSV(instrument=instrument, period=period, timeFrom = timeFrom, timeTo = timeTo)
         elif(storageType == 'mongodb'):
-            self.addBarsFromMongodb(instrument = instrument, period=period, fromYear=fromYear, toYear=toYear)
+            self.addBarsFromMongodb(instrument = instrument, period=period, timeFrom=timeFrom, timeTo = timeTo)
             #dat = tsCenter.retriveKDataByCode(instrument,bar.Frequency.DAY)
             #ret.addBarsFromDataFrame(instrument, dat)               
         return self    

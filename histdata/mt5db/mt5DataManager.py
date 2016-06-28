@@ -8,6 +8,7 @@ sys.path.append(dataRoot)
 from data.localStorage import localStorage
 from mt5Remote import remoteStorage
 import mt5Interface as mt5Interface
+import pyalgotrade.logger as logger
 class mt5DataCenter():
     def __init__(self,dataRoot):
         self.localStorage = localStorage(dataRoot,'Mt5','D')
@@ -18,7 +19,8 @@ class mt5DataCenter():
         self.localStorage.periods = mt5Interface.periods  
         
         self.remoteStorage = remoteStorage('192.168.0.212',5050)     
-    
+        #self.logger =  pyalgotrade.logger.getLogger("mt5")
+        self.logger = logger.getLogger("mt5")
     def getCodes(self,sourceType):
         if(sourceType == 'remote'):
             codes = self.remoteStorage.downloadCodes()
@@ -37,10 +39,17 @@ class mt5DataCenter():
             return codes
         else:
             return self.localStorage.retriveCodes(sourceType)
-    def downloadHistData(self,codeList = None,periodType = 'D',timeStart ='2000-01-01',timeEnd = '2016-05-20',storageType =  'mongodb'):
+        
+    def downloadAndStoreKDataByCode(self,code = '',period="D",timeFrom = None,timeTo = None):
+        #ktype 数据类型，D=日k线 W=周 M=月 5=5分钟 15=15分钟 30=30分钟 60=60分钟，默认为D
+        
+        histDataOne = self.remoteStorage.downloadKData(symbol = code,periodType = self.localStorage.periods[period],timeFrom =timeFrom,timeTo =timeTo)
+        self.localStorage.storeHistDataOneToCsv(code = code,period = period,histDataOne = histDataOne)
+
+    def downloadHistData(self,codeList = None,periodType = 'D',timeFrom = None,timeTo = None,storageType =  'mongodb'):
         dic = {}
         for code in codeList:   
-            data = self.remoteStorage.downloadKData(symbol = code,periodType = self.localStorage.periods[periodType],timeStart =timeStart,timeEnd =timeEnd)  
+            data = self.remoteStorage.downloadKData(symbol = code,periodType = self.localStorage.periods[periodType],timeFrom =timeFrom,timeTo =timeTo)  
             print 'begin to download:',code
             if data is not None:
                 dic[code] = data
@@ -66,12 +75,7 @@ class mt5DataCenter():
         elif(storageType == 'csv'):
             for code in dic:
                 #mid 判断是否存在文件夹，如不存在，则创建
-                fileName = os.path.join(self.dataRoot,periodType,('%s.csv'%code))
-                fileDir = os.path.dirname(fileName)     
-                if not os.path.exists(fileDir):
-                    self.logger.info("Creating %s directory" % (fileDir))
-                    os.mkdir(fileDir)                   
-                dic[code].to_csv(fileName,encoding='gbk')
+                self.localStorage.storeHistDataOneToCsv(code = code,period = periodType,histDataOne = dic[code])
         #mid ----------------------------------------------------------------------
         return dic    
     def retriveAvailableSymbols(self,storageType = 'mongodb' , periodType = 'D'):
@@ -83,20 +87,20 @@ class mt5DataCenter():
                 pass
         elif(storageType == 'csv'):
             pass   
-    def retriveCandleData(self,storageType = 'mongodb',symbol = '',period = 'D'):
+    def retriveCandleData(self,storageType = 'mongodb',symbol = '',period = 'D',timeFrom = None,timeTo = None):
         '''mid
         将dataframe格式历史数据转化为用于绘制canlde 的数据
         '''
-        return self.localStorage.retriveCandleData(storageType = storageType,period = period,symbol = symbol)
-    def buildFeedForPAT(self,instruments = [], fromYear = '', toYear = '', storageType = 'csv', period='D', timezone=None, skipErrors=False):
+        return self.localStorage.retriveCandleData(storageType = storageType,period = period,symbol = symbol,timeFrom=timeFrom, timeTo=timeTo)
+    def buildFeedForPAT(self,instruments = [], timeFrom = None, timeTo = None, storageType = 'csv', period='D', timezone=None, skipErrors=False):
         '''mid
         创建用于PAT的feeds，返回格式为字典，这个或许需要修改为单个feed(将所有数据都填入一个feed)
         '''
         import feedsForPAT as feedsForPAT 
         feeds = {}
         for instrument in instruments:
-            feed = feedsForPAT.Feed(tsDataCenter=self,frequency=period)
-            feeds[instrument] = feed.build_feed(instrument=instrument, fromYear=fromYear, toYear=toYear, storageType=storageType,period=period)           
+            feed = feedsForPAT.Feed(dataCenter=self,frequency=period)
+            feeds[instrument] = feed.build_feed(instrument=instrument, timeFrom=timeFrom, timeTo=timeTo, storageType=storageType,period=period)           
         return feeds    
 if __name__ == "__main__":
     dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir))        

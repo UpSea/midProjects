@@ -22,7 +22,7 @@ import time,os
 from pandas import DataFrame
 
 from data.localStorage import localStorage
-#import pyalgotrade.logger        
+import pyalgotrade.logger as logger
 
 #reload(sys)
 #sys.setdefaultencoding('utf-8')
@@ -36,7 +36,9 @@ class tushareDataCenter():
         #mid mt5在远端以0x09表示日线周期
         #mid tushare在远端以'D'表示日线周期，需要分别定义        
         #ktype 数据类型，D=日k线 W=周 M=月 5=5分钟 15=15分钟 30=30分钟 60=60分钟，默认为D
-        self.localStorage.periods = {'D':'D','W':'W','M':'M','m5':'5','m15':'15','m30':'30','h1':'60'}        
+        self.localStorage.periods = {'D':'D','W':'W','M':'M','m5':'5','m15':'15','m30':'30','h1':'60'}     
+        self.logger = logger.getLogger("tushare")
+        
     def getCodesStorage(self):  
         selectorMsgBox=QtGui.QMessageBox()  
         selectorMsgBox.setWindowTitle("select codes storage.")  
@@ -100,36 +102,7 @@ class tushareDataCenter():
     def downloadAndStoreCodes(self):
         dat = self.downloadCodes()
         dat.to_csv(self.dataRoot,encoding='gbk')    
-    def exists(self,instrument,frequency):
-        if (frequency in self.periods.keys()):
-            fileName = os.path.join(self.dataRoot,frequency,('%s.csv'%instrument))
-            if os.path.exists(fileName):
-                return True
-            else:
-                return False               
-        else:
-            raise Exception("Invalid frequency")
 
-    def downloadAndStoreKDataByCode(self,instrument = '',fromYear = '',toYear = '',period="D"):
-        #ktype 数据类型，D=日k线 W=周 M=月 5=5分钟 15=15分钟 30=30分钟 60=60分钟，默认为D
-        _data_ = ts.get_hist_data(code=instrument,start=str(fromYear),end=str(toYear),ktype=self.periods[period])  #默认取3年，start 8-1包括
-        fileName = os.path.join(self.dataRoot,period,('%s.csv'%instrument))
-        fileDir = os.path.dirname(fileName)
-        
-        #mid 判断是否存在文件夹，如不存在，则创建
-        if not os.path.exists(fileDir):
-            self.logger.info("Creating %s directory" % (fileDir))
-            os.mkdir(fileDir)
-        
-        #mid 判断是否存在已有同名文件，如有追加，如无，创建
-        if _data_ is not None and len(_data_) != 0:
-            if os.path.exists(fileName):
-                _data_.to_csv(fileName, mode='a', header=None,encoding='gbk')
-            else:
-                _data_.to_csv(fileName,encoding='gbk')
-            return True
-        else:
-            return False
 
     def downloadAndStoreAllData(self):
         '''mid 下载代码表及其中所有历史数据
@@ -184,21 +157,46 @@ class tushareDataCenter():
             return 'qfq' 
         elif button==hfqButton:  
             return 'hfq'  
-    def downloadHistData(self,codeList = None,periodType = 'D',timeStart ='2000-01-01',timeEnd = '2016-05-20',storageType =  'mongodb'):
-        dic = {}
-        histDataType = self.getHistDataType()
-        for code in codeList:   
+        
+        
+        
+        
+    def downloadAndStoreKDataByCode(self,code = '',period="D",timeFrom = None,timeTo = None):
+        #ktype 数据类型，D=日k线 W=周 M=月 5=5分钟 15=15分钟 30=30分钟 60=60分钟，默认为D
+        
+        histDataOne = self.__downloadHistDataOne(code = code,period=period,timeFrom = timeFrom,timeTo = timeTo)
+        self.localStorage.storeHistDataOneToCsv(code = code,period = period,histDataOne = histDataOne)
+        if(histDataOne is  None):
+            return False
+        else:
+            return True
+    def __downloadHistDataOne(self,histDataType = 'dataWithMA',code = '',period="D",timeFrom = None,timeTo = None):
+        #ktype 数据类型，D=日k线 W=周 M=月 5=5分钟 15=15分钟 30=30分钟 60=60分钟，默认为D  
+        if(period == 'D'):
             if(histDataType == 'dataWithMA'):   #mid dataWithMA只有最近三年，有不同周期，有均线。其他复权数据只有日线，有所有上市以来的数据
-                _data_ = ts.get_hist_data(code = str(code),start=timeStart,end=timeEnd,ktype=self.periods[str(periodType)])
+                _data_ = ts.get_hist_data(code = str(code),start=str(timeFrom),end=str(timeTo),ktype=self.periods[str(period)])
             elif(histDataType == 'origin'):
-                _data_ = ts.get_h_data(code,start=timeStart, end=timeEnd,autype=None) #mid 不复权              
+                _data_ = ts.get_h_data(code,start=str(timeFrom), end=str(timeTo),autype=None) #mid 不复权              
             elif(histDataType == 'qfq'):
-                _data_ = ts.get_h_data(code,start=timeStart, end=timeEnd,autype='qfq') #前复权           
+                _data_ = ts.get_h_data(code,start=str(timeFrom), end=str(timeTo),autype='qfq') #前复权           
             elif(histDataType == 'hfq'):
-                _data_ = ts.get_h_data(code,start=timeStart, end=timeEnd,autype='hfq') #后复权           
-                
-            if _data_ is not None:
-                dic[code] = _data_
+                _data_ = ts.get_h_data(code,start=str(timeFrom), end=str(timeTo),autype='hfq') #后复权           
+            else:
+                _data_ = None
+        else:#mid dataWithMA只有最近三年，有不同周期，有均线。
+            _data_ = ts.get_hist_data(code = str(code),start=str(timeFrom),end=str(timeTo),ktype=self.localStorage.periods[str(period)])
+            
+        return _data_               
+    def downloadHistData(self,codeList = None,periodType = 'D',timeFrom = None,timeTo = None,storageType =  'mongodb'):
+        dic = {}
+        if(periodType == 'D'):
+            histDataType = self.getHistDataType() 
+        else:
+            histDataType = 'dataWithMA'
+        for code in codeList:   
+            histDataOne = self.__downloadHistDataOne(code = code,histDataType = histDataType,period=periodType,timeFrom = timeFrom,timeTo = timeTo)
+            if histDataOne is not None:
+                dic[code] = histDataOne
                 #print i,code,type(code)
         
         #mid ---------------------------------------------------------------------
@@ -218,13 +216,7 @@ class tushareDataCenter():
                     self.localStorage.mongodb.insert(quotesDict)                    
         elif(storageType == 'csv'):
             for code in dic:
-                #mid 判断是否存在文件夹，如不存在，则创建
-                fileName = os.path.join(self.dataRoot,periodType,('%s.csv'%code))
-                fileDir = os.path.dirname(fileName)     
-                if not os.path.exists(fileDir):
-                    self.logger.info("Creating %s directory" % (fileDir))
-                    os.mkdir(fileDir)                   
-                dic[code].to_csv(fileName,encoding='gbk')
+                self.localStorage.storeHistDataOneToCsv(code = code,period = periodType,histDataOne = dic[code])
         #mid ----------------------------------------------------------------------
         return dic
             
@@ -366,12 +358,12 @@ class tushareDataCenter():
 
         elif(storageType == 'csv'):
             pass   
-    def retriveCandleData(self,storageType = 'mongodb',symbol = '',period = 'D'):
+    def retriveCandleData(self,storageType = 'mongodb',symbol = '',period = 'D',timeFrom=None, timeTo=None):
         '''mid
         将dataframe格式历史数据转化为用于绘制canlde 的数据
         
         '''
-        return self.localStorage.retriveCandleData(storageType = storageType,period = period,symbol = symbol)
+        return self.localStorage.retriveCandleData(storageType = storageType,period = period,symbol = symbol,timeFrom=timeFrom, timeTo=timeTo)
     def get_macd(self,df):
         _columns_ = ['EMA_12','EMA_26','DIFF','MACD','BAR']
         a = np.zeros(len(df)*5).reshape(len(df),5) #也可以EMA_12 = [0 for i in range(len(df))]
@@ -385,7 +377,7 @@ class tushareDataCenter():
             a[i][3] = a[i-1][3]*8/10+a[i][2]*2/10 #MACD
             a[i][4]=2*(a[i][2]-a[i][3])
         return DataFrame(a,index = df.index,columns = _columns_) 
-    def buildFeedForPAT(self,instruments = [], fromYear = '', toYear = '', storageType = 'csv', period='D', timezone=None, skipErrors=False):
+    def buildFeedForPAT(self,instruments = [], timeFrom=None,timeTo=None, storageType = 'csv', period='D', timezone=None, skipErrors=False):
         '''mid
         创建用于PAT的feeds，返回格式为字典，这个或许需要修改为单个feed(将所有数据都填入一个feed)
         '''
@@ -393,7 +385,7 @@ class tushareDataCenter():
         feeds = {}
         for instrument in instruments:
             feed = feedsForPAT.Feed(tsDataCenter=self,frequency=period)
-            feeds[instrument] = feed.build_feed(instrument=instrument, fromYear=fromYear, toYear=toYear, storageType=storageType,period=period)           
+            feeds[instrument] = feed.build_feed(instrument=instrument, timeFrom = timeFrom, timeTo = timeTo, storageType=storageType,period=period)           
         return feeds
     #df为原dataframe da为macd
     def plt_macd(self,df,da):

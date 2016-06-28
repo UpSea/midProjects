@@ -102,7 +102,7 @@ class remoteStorage():
         df.index.name='symbol'
         return df
 
-    def downloadKData(self,symbol = "",periodType = 0x09,timeStart ="",timeEnd = ""):
+    def downloadKData(self,symbol = "",periodType = 0x09,timeFrom = None,timeTo = None):
         self.connectSocket()
         
         ReqTypeHistory = 0x01	    #mid 查询历史价格数据

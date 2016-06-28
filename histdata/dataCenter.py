@@ -44,14 +44,14 @@ class dataCenter():
         storageFormat = params['storageFormat']
         
         symbol = params['symbol']
-        strStart = params['dateStart']
-        strEnd = params['dateEnd']
+        timeFrom = params['dateStart']
+        timeTo = params['dateEnd']
         period = params['dataPeriod']        
 
         if(dataProvider == "tushare"):
-            return self.tsCenter.retriveCandleData(storageType = storageFormat,symbol = symbol,period = period)
+            return self.tsCenter.retriveCandleData(storageType = storageFormat,symbol = symbol,period = period,timeFrom=timeFrom, timeTo=timeTo)
         elif(dataProvider == "mt5"):
-            return self.mt5Center.retriveCandleData(storageType = storageFormat,symbol = symbol,period = period)            
+            return self.mt5Center.retriveCandleData(storageType = storageFormat,symbol = symbol,period = period,timeFrom=timeFrom, timeTo=timeTo)            
         elif(dataProvider == 'yahoo'):
             pass
         elif(dataProvider == 'sina'):
@@ -124,12 +124,12 @@ class dataCenter():
             elif(sourceType == 'csv'):
                 pass    
         return None
-    def downloadHistData(self,providerType='tushare',storageType = 'mongodb',periodType='D',codeList=None,timeStart='',timeEnd=''):
+    def downloadHistData(self,providerType='tushare',storageType = 'mongodb',periodType='D',codeList=None,timeFrom = None,timeTo = None):
         if(providerType == 'tushare'):
-            return self.tsCenter.downloadHistData(storageType=storageType,timeStart=timeStart,timeEnd=timeEnd,
+            return self.tsCenter.downloadHistData(storageType=storageType,timeFrom = timeFrom,timeTo = timeTo,
                                                   codeList = codeList,periodType = periodType)
         elif(providerType == 'mt5'):
-            return self.mt5Center.downloadHistData(storageType=storageType,timeStart=timeStart,timeEnd=timeEnd,
+            return self.mt5Center.downloadHistData(storageType=storageType,timeFrom = timeFrom,timeTo = timeTo,
                                                   codeList = codeList,periodType = periodType)
         elif(providerType == 'yahoo'):
             pass
@@ -169,7 +169,7 @@ class dataCenter():
             pass
         elif(dataProvider == 'sina'):
             pass
-    def getFeedsForPAT(self,dataProvider = "tushare",storageType = 'mongodb',instruments = [],period='D', fromYear=2015,toYear=2015):
+    def getFeedsForPAT(self,dataProvider = "tushare",storageType = 'mongodb',instruments = [],period='D', timeFrom=None,timeTo=None):
         '''mid
         提供回测数据给PAT调用的唯一接口
         '''
@@ -179,9 +179,9 @@ class dataCenter():
             feeds = self.__getFeedFromYahooCsv(instrument)
         elif(dataProvider == "tushare"):
             import sys,os
-            feeds = self.tsCenter.buildFeedForPAT(instruments = instruments, fromYear=fromYear,toYear=toYear, period=period,storageType=storageType)
+            feeds = self.tsCenter.buildFeedForPAT(instruments = instruments, timeFrom=timeFrom,timeTo=timeTo, period=period,storageType=storageType)
         elif(dataProvider =="mt5"):
-            feeds = self.mt5Center.buildFeedForPAT(instruments = instruments, fromYear=fromYear,toYear=toYear, period=period,storageType=storageType)
+            feeds = self.mt5Center.buildFeedForPAT(instruments = instruments, timeFrom=timeFrom,timeTo=timeTo, period=period,storageType=storageType)
         elif(dataProvider == "generic"):
             feeds = self.__getFeedFromGenericCsv(instrument)
         return feeds           
@@ -220,7 +220,7 @@ class dataCenter():
         return feed    
 
 # mid 以下两个函数只用于某些demo函数获取历史数据，如此安排可方便统一修改，也用于演示datacenter的调用
-def getCandleData(dataProvider = 'tushare',dataStorage = 'mongodb',dataPeriod = 'D',symbol = '600028',dateStart='2015-03-19',dateEnd = '2015-12-31'):
+def getCandleData(dataProvider = 'tushare',dataStorage = 'mongodb',dataPeriod = 'D',symbol = '600028',dateStart=None,dateEnd = None):
     dataSource={}
     dataSource['dataProvider'] = dataProvider
     dataSource['storageFormat']=dataStorage

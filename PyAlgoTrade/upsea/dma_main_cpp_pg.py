@@ -2,6 +2,7 @@
 import os,sys
 from PyQt4 import QtGui,QtCore
 import pandas as pd
+import datetime as dt
 
 #mid 1)dataCenter
 dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
@@ -20,7 +21,7 @@ import money.moneySecond as moneySecond
 
 class Expert():
     def __init__(self,toPlot = True,instruments = [],shortPeriod = 20,longPeriod = 40,dataProvider = 'tushare',
-                 storageType = 'mongodb',period = 'D',toYear = '',fromYear='',money = None):
+                 storageType = 'mongodb',period = 'D',timeFrom = None,timeTo=None,money = None):
         self.instrument = instruments[0]
         self.shortPeriod = shortPeriod
         self.longPeriod = longPeriod
@@ -30,7 +31,7 @@ class Expert():
         self.dataCenter = dataCenter.dataCenter()           
         #mid dataProvider = tushareCsv|tushare|yahooCsv|yahoo|generic
         feeds = self.dataCenter.getFeedsForPAT(dataProvider = dataProvider,storageType = storageType,instruments = instruments,period=period,
-                                                   toYear = toYear,fromYear=fromYear)
+                                                   timeTo = timeTo,timeFrom=timeFrom)
         self.feed = feeds[self.instrument]
         #mid money
         self.money = money
@@ -124,21 +125,25 @@ if __name__ == "__main__":
     mid period 数据类型，D=日k线 W=周 M=月 m1=1分钟 m5=5分钟 m15=15分钟 m30=30分钟 h1=60分钟，默认为D
     '''       
     if(False):
-        symbol = '000096'
+        symbol = '000099'
         dataProvider = 'tushare'
-        storageType = 'mongodb'
+        storageType = 'csv'
         period = 'D'
-    if(True):
+    if(False):
         symbol = 'XAUUSD'
         dataProvider = 'mt5'
-        storageType = 'mongodb'
-        period = 'D'        
+        storageType = 'csv'
+        period = 'h1'        
     if(False):
         symbol = 'XAUUSD'
         dataProvider = 'mt5'
         storageType = 'mongodb'
         period = 'm15'    
-    
+    if(True):
+        symbol = '600028'
+        dataProvider = 'tushare'
+        storageType = 'csv'
+        period = 'h1'     
     
     #mid ea01
     money = 'moneyFixed'
@@ -151,16 +156,20 @@ if __name__ == "__main__":
     elif(money == 'moneySecond'):
         money = moneySecond.moneySecond()
     instruments = [symbol]
+    
+    
+    timeFrom = dt.datetime(2016, 1,  1, 0,0,0)  #mid include
+    timeTo   = dt.datetime(2016, 5, 30, 0,0,0)   #mid include 
+    
     ex01 = Expert(toPlot=False,  shortPeriod=5,longPeriod=10, 
                 dataProvider = dataProvider,storageType = storageType,period = period,
                 instruments=instruments,money = money,
-                fromYear = 2014,toYear=2016)
+                timeFrom = timeFrom,timeTo=timeTo)
     result01 = ex01.run()
     #mid ea02
     
     analyzer = Analyzer05(Globals=[]) 
-    #getCandleData(dataStorage = 'mongodb',dataPeriod = 'D',symbol = '600028',dateStart='2015-03-19',dateEnd = '2015-12-31'):
-    dataForCandle = dataCenter.getCandleData(dataProvider = dataProvider,dataStorage = storageType,dataPeriod = period,symbol = symbol)     
+    dataForCandle = dataCenter.getCandleData(dataProvider = dataProvider,dataStorage = storageType,dataPeriod = period,symbol = symbol,dateStart=timeFrom,dateEnd = timeTo)     
     analyzer.analyze(result01,dataForCandle)
 
     ex01.printStats()    

@@ -210,8 +210,8 @@ class dataVisualizerLayout(QtGui.QVBoxLayout):
         dataSource['dataProvider'] = datasource
         dataSource['storageFormat']=storageType
         dataSource['dataPeriod']=period
-        dataSource['dateStart']='2015-03-19'
-        dataSource['dateEnd']='2015-12-31'  
+        dataSource['dateStart']=None
+        dataSource['dateEnd']=None  
         dataSource['alone'] = alone
         dataSource['overlay'] = overlay        
         

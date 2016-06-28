@@ -14,7 +14,7 @@ mid 201512011843
 检索得到的数据需要被打包成DataFrame格式返回给调用者。
 '''
 import pymongo
-from datetime import datetime
+import datetime as dt
 import tushare as ts
 import pandas as pd
 
@@ -99,7 +99,7 @@ class Mongodb(object):
         else:
             return -1
     #----------------------------------------------------------------------
-    def retrive(self,symbol='',start='',end='',period='D'):
+    def retrive(self,symbol='',period='D', timeFrom=None, timeTo=None):
         # 1) retrive data from database
         self.setCollection(period)
         data = self.find({'symbol':str(symbol)})
@@ -121,9 +121,14 @@ class Mongodb(object):
         historyDf.index.names = ['Date'] 
         historyDf.columns.names=['OHLC']
         historyDf.sort_index(inplace=True,ascending=True)
-    
-        #return historyDf.loc[start:end]
-        return historyDf[:]
+        
+        if(isinstance(timeFrom,dt.datetime) and  isinstance(timeTo,dt.datetime)):
+            strFrom = timeFrom.strftime("%Y-%m-%d %H:%M:%S").decode()
+            strTo = timeTo.strftime("%Y-%m-%d %H:%M:%S").decode()
+            ret = historyDf[strFrom:strTo]
+        else:
+            ret = historyDf
+        return ret
     #----------------------------------------------------------------------
     def retriveSymbolsAll(self,period = 'D'):
         """"""

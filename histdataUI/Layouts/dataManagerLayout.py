@@ -479,15 +479,12 @@ class dataManagerLayout(QtGui.QHBoxLayout):
             periodType = str(self.periodComboBox.currentText())
             
             
-            timeStart = self.timeStartTimeEdit.dateTime().toPyDateTime()
-            strStart = timeStart.strftime('%Y-%m-%d')
-            
+            timeStart = self.timeStartTimeEdit.dateTime().toPyDateTime()            
             timeEnd = datetime.now()
-            strEnd = timeEnd.strftime('%Y-%m-%d')  
                         
             # 2)download history data
             dataDict = self.dataCenter.downloadHistData(providerType=remoteDataSourceType,storageType=localStorageType,periodType=periodType,
-                                                        codeList=codeList,timeStart=strStart,timeEnd=strEnd)
+                                                        codeList=codeList,timeFrom = timeStart,timeTo = timeEnd)
             self.messageBoxAfterDownloaded(dataDict)   
             
         else:
