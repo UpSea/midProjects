@@ -3,7 +3,7 @@ import os,sys
 from PyQt4 import QtGui,QtCore
 import pandas as pd
 import datetime as dt
-
+import time as time
 #mid 1)dataCenter
 dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
 sys.path.append(dataRoot)        
@@ -22,6 +22,8 @@ import money.moneySecond as moneySecond
 class Expert():
     def __init__(self,toPlot = True,instruments = [],shortPeriod = 20,longPeriod = 40,dataProvider = 'tushare',
                  storageType = 'mongodb',period = 'D',timeFrom = None,timeTo=None,money = None):
+        self.timeFrom = timeFrom
+        self.timeTo = timeTo
         self.instrument = instruments[0]
         self.shortPeriod = shortPeriod
         self.longPeriod = longPeriod
@@ -29,7 +31,6 @@ class Expert():
         
         #mid data
         self.dataCenter = dataCenter.dataCenter()           
-        #mid dataProvider = tushareCsv|tushare|yahooCsv|yahoo|generic
         feeds = self.dataCenter.getFeedsForPAT(dataProvider = dataProvider,storageType = storageType,instruments = instruments,period=period,
                                                    timeTo = timeTo,timeFrom=timeFrom)
         self.feed = feeds[self.instrument]
@@ -62,13 +63,20 @@ class Expert():
         self.strat.attachAnalyzer(self.tradesAnalyzer)   
         self.strat.attachAnalyzer(self.drawdownAnalyzer)
     #----------------------------------------------------------------------
-    def printStats(self):
+    def summary(self):
+        return "from %s to %s:returns:%.2f%%,sharpe:%.2f,MaxDrawdown:%.2f%%,Longest drawdown duration:(%s)" % (str(self.timeFrom),str(self.timeTo),
+                                                                                                            self.returnsAnalyzer.getCumulativeReturns()[-1] * 100,
+                                                                                                            self.sharpeRatioAnalyzer.getSharpeRatio(0.05),
+                                                                                                            self.drawdownAnalyzer.getMaxDrawDown() * 100,
+                                                                                                            self.drawdownAnalyzer.getLongestDrawDownDuration())
+    def detail(self):
         """"""        
+        print "-------------------------------------------------------------------------"
         print "Final portfolio value: $%.2f" % self.strat.getResult()
         print "Cumulative returns: %.2f %%" % (self.returnsAnalyzer.getCumulativeReturns()[-1] * 100)
         print "Sharpe ratio: %.2f" % (self.sharpeRatioAnalyzer.getSharpeRatio(0.05))
         print "Max. drawdown: %.2f %%" % (self.drawdownAnalyzer.getMaxDrawDown() * 100)
-        print "Longest drawdown duration: %s" % (self.drawdownAnalyzer.getLongestDrawDownDuration())
+        print "Longest drawdown duration: (%s)" % (self.drawdownAnalyzer.getLongestDrawDownDuration())
         
         print
         print "Total trades: %d" % (self.tradesAnalyzer.getCount())
@@ -110,45 +118,17 @@ class Expert():
             print "Avg. return: %2.f %%" % (returns.mean() * 100)
             print "Returns std. dev.: %2.f %%" % (returns.std() * 100)
             print "Max. return: %2.f %%" % (returns.max() * 100)
-            print "Min. return: %2.f %%" % (returns.min() * 100)        
+            print "Min. return: %2.f %%" % (returns.min() * 100)    
+        print "-------------------------------------------------------------------------"
+    
     def run(self):
         result = self.strat.run()
         return result
-
-if __name__ == "__main__": 
-
-    app = QtGui.QApplication(sys.argv)
-    #----------------------------------------------------------------------------------------------------
-    '''mid
-    mid dataProvider = tushare|mt5|yahoo|generic
-    mid storageType = csv|mongodb
-    mid period 数据类型，D=日k线 W=周 M=月 m1=1分钟 m5=5分钟 m15=15分钟 m30=30分钟 h1=60分钟，默认为D
-    '''       
-    if(False):
-        symbol = '000099'
-        dataProvider = 'tushare'
-        storageType = 'csv'
-        period = 'D'
-    if(True):
-        symbol = 'XAUUSD'
-        dataProvider = 'mt5'
-        storageType = 'csv'
-        period = 'm5'        
-    if(False):
-        symbol = 'XAUUSD'
-        dataProvider = 'mt5'
-        storageType = 'mongodb'
-        period = 'm15'    
-    if(False):
-        symbol = '600028'
-        dataProvider = 'tushare'
-        storageType = 'csv'
-        period = 'h1'     
+def run(timeFrom = '',timeTo = '',symbol = '',dataProvider = '',storageType = '',period = '',money = None,shortPeriod=10,longPeriod=20):
+    #mid ea01    
+    timeFrom = dt.datetime.strptime(timeFrom,'%Y-%m-%d %H:%M:%S')    
+    timeTo = dt.datetime.strptime(timeTo,'%Y-%m-%d %H:%M:%S')      
     
-    #mid ea01
-    money = 'moneyFixed'
-    money = 'moneyFirst'
-    money = 'moneySecond' 
     if(money == 'moneyFixed'):
         money = moneyFixed.moneyFixed()
     elif(money == 'moneyFirst'):
@@ -156,52 +136,74 @@ if __name__ == "__main__":
     elif(money == 'moneySecond'):
         money = moneySecond.moneySecond()
     instruments = [symbol]
-    
-    
-    timeFrom = dt.datetime(2016, 3,  25, 0,0,0)  #mid include
-    timeTo   = dt.datetime(2016, 5, 30, 0,0,0)   #mid include 
-    
-    ex01 = Expert(toPlot=False,  shortPeriod=5,longPeriod=10, 
-                dataProvider = dataProvider,storageType = storageType,period = period,
-                instruments=instruments,money = money,
-                timeFrom = timeFrom,timeTo=timeTo)
+
+  
+
+
+    ex01 = Expert(toPlot=False,  shortPeriod=shortPeriod,longPeriod=longPeriod, 
+                  dataProvider = dataProvider,storageType = storageType,period = period,
+                  instruments=instruments,money = money,
+                  timeFrom = timeFrom,timeTo=timeTo)
+    startRun = time.clock()
     result01 = ex01.run()
+    endRun = time.clock()
+
     #mid ea02
+    startAnalize = time.clock()    
+    if(False):
+        analyzer = Analyzer05(Globals=[]) 
+        dataForCandle = dataCenter.getCandleData(dataProvider = dataProvider,dataStorage = storageType,dataPeriod = period,symbol = symbol,dateStart=timeFrom,dateEnd = timeTo)     
+        analyzer.analyze(result01,dataForCandle)
+    endAnalize = time.clock()
+    result02 = ex01.summary()    
+    #ex01.detail()
+    print
+    #print "total bars: %f" % len(dataForCandle)
+    print "run time: %f s" % (endRun - startRun)
+    print "analize time: %f s" % (endAnalize - startAnalize)
+    print         
     
-    analyzer = Analyzer05(Globals=[]) 
-    dataForCandle = dataCenter.getCandleData(dataProvider = dataProvider,dataStorage = storageType,dataPeriod = period,symbol = symbol,dateStart=timeFrom,dateEnd = timeTo)     
-    analyzer.analyze(result01,dataForCandle)
-
-    ex01.printStats()    
+    return result02
+    
+if __name__ == "__main__": 
+    #app = QtGui.QApplication(sys.argv)
+    '''mid
+    mid dataProvider = tushare|mt5|yahoo|generic
+    mid storageType = csv|mongodb
+    mid period 数据类型，D=日k线 W=周 M=月 m1=1分钟 m5=5分钟 m15=15分钟 m30=30分钟 h1=60分钟，默认为D
+    
+    money = 'moneyFixed'
+    money = 'moneyFirst'
+    money = 'moneySecond' 
+    '''       
     
     
-    #mid 3a03
-    # ---------------------------------------------------------------------------------------------------
-    sys.exit(app.exec_())  
-    '''
-
-    money = moneyFixed.moneyFixed()
-    ex = Expert(toPlot=True, instrument='000001SZ', shortPeriod=20, 
-               longPeriod=40, feedFormat='generic',
-               money = money)
-    ex.run()
-
-    money = moneyFixed.moneyFixed()
-    ex = Expert(toPlot=True, instrument='AAPL', shortPeriod=20, 
-               longPeriod=40, feedFormat='yahoo',
-               money = money)
-    ex.run()
-    money = moneyFixed.moneyFixed()
-    ex = Expert(toPlot=True, instrument='AAPL', shortPeriod=20, 
-               longPeriod=40, feedFormat='yahooCsv',
-               money = money)
-    ex.run()
-
+    #run(timeFrom = '2016-05-08 00:00:00',timeTo = '2016-05-30 00:00:00',symbol = '000099',money = 'moneyFixed',dataProvider = 'tushare',storageType = 'csv',period = 'D',shortPeriod=10,longPeriod=20)
+    #run(timeFrom = '2016-05-08 00:00:00',timeTo = '2016-05-30 00:00:00',symbol = 'XAUUSD',money = 'moneyFirst',dataProvider = 'mt5',storageType = 'mongodb',period = 'm15',shortPeriod=10,longPeriod=20)    
+    #run(timeFrom = '2016-05-08 00:00:00',timeTo = '2016-05-30 00:00:00',symbol = '600028',money = 'moneySecond',dataProvider = 'tushare',storageType = 'csv',period = 'h1',shortPeriod=10,longPeriod=20)    
+    timeFrom = '2016-05-05 00:00:00'
+    timeTo = '2016-05-30 00:00:00'
     
-    money = moneyFixed.moneyFixed()
-    ex = Expert(toPlot=True, instrument='600243', shortPeriod=20, 
-               longPeriod=40, feedFormat='tushareCsv',
-               money = money)
-    ex.run()        
+    timeStampFrom = int(time.mktime(time.strptime(timeFrom, "%Y-%m-%d %H:%M:%S")))
+    timeStampTo   = int(time.mktime(time.strptime(timeTo, "%Y-%m-%d %H:%M:%S")))    
+    print timeFrom,timeTo
+    i = 5
+    interval = (timeStampTo - timeStampFrom)/i
     
-    '''
+    start = timeStampFrom
+    results = []
+    for index in range(i):
+        end = start + interval
+        
+        timeStart = dt.datetime.utcfromtimestamp(start).strftime("%Y-%m-%d %H:%M:%S")
+        timeEnd = dt.datetime.utcfromtimestamp(end).strftime("%Y-%m-%d %H:%M:%S")
+        
+        result = run(timeFrom = timeStart,timeTo = timeEnd,symbol = 'XAUUSD',money = 'moneySecond',dataProvider = 'mt5',storageType = 'csv',period = 'm5',shortPeriod=10,longPeriod=20)    
+        results.append(result)
+        
+        start = end    
+        
+        
+    for result in results:
+        print result
+    #sys.exit(app.exec_())  

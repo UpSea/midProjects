@@ -73,7 +73,7 @@ class pgCrossAddition(pg.PlotWidget):
             leftAxisWidth = leftAxis.width()
             bottomAxisHeight = bottomAxis.height()
             rectTextDateHeight = rectTextDate.height()
-            print leftAxisWidth,bottomAxisHeight
+            #print leftAxisWidth,bottomAxisHeight
             #mid 3)set positions of price and date lable
             topLeft = self.plotItem.vb.mapSceneToView(QtCore.QPointF(rect.left()+leftAxisWidth,rect.top()))
             bottomRight = self.plotItem.vb.mapSceneToView(QtCore.QPointF(rect.width(),rect.bottom()-(bottomAxisHeight+rectTextDateHeight)))

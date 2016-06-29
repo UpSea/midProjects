@@ -52,7 +52,7 @@ class pgCandleWidgetCross(pgCrossAddition):
 
         #mid 1) 创建当前传入数据的candlestickItem
         self.candleData = dataForCandle   
-        if(self.candleData == None):
+        if(self.candleData is None):
             return  
         
         self.candleItem = CandlestickItem(dataForCandle)
@@ -102,7 +102,7 @@ class pgCandleWidgetCross(pgCrossAddition):
             mousePoint = self.plotItem.vb.mapSceneToView(pos)
             index = int(mousePoint.x())
             
-            if(self.candleData == None):
+            if(self.candleData is None):
                 return            
             
             xLeft = self.candleData[0,0]
@@ -113,12 +113,12 @@ class pgCandleWidgetCross(pgCrossAddition):
                 
                 barIndex = self.candleItem.pointIn(mousePoint)
                 if(barIndex != None):
-                    print(barIndex)
+                    #print(barIndex)
                     currentBar = self.candleData[barIndex,:]    
                     if(barIndex >= 0):
                         #strTime = dt.datetime.strftime(mpd.num2date(currentBar[0]).astimezone(pytz.timezone('Asia/Shanghai')),'%Y-%m-%d %H:%M:%S%Z')
                         strTime = dt.datetime.strftime(mpd.num2date(currentBar[0]).astimezone(pytz.timezone('utc')),'%Y-%m-%d %H:%M:%S%Z')
-                        print(barIndex,'----',strTime)
+                        #print(barIndex,'----',strTime)
                         open  = currentBar[1]
                         high  = currentBar[2]
                         low   = currentBar[3]

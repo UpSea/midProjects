@@ -28,7 +28,7 @@ def printSysInfo():
     logger.info("platform.uname()=%s", platform.uname());
 
 #mid commit的-m参数后面的字符串必须要使用"",所以，外侧使用""" """
-comments =  """ "mids local storage of csv tuned." """
+comments =  """ "mids strategy tuned." """
 
 if __name__ == '__main__':
     sysstr = platform.system()
