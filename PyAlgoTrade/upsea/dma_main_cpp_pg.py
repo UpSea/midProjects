@@ -158,7 +158,7 @@ if __name__ == "__main__":
     instruments = [symbol]
     
     
-    timeFrom = dt.datetime(2016, 5,  25, 0,0,0)  #mid include
+    timeFrom = dt.datetime(2016, 3,  25, 0,0,0)  #mid include
     timeTo   = dt.datetime(2016, 5, 30, 0,0,0)   #mid include 
     
     ex01 = Expert(toPlot=False,  shortPeriod=5,longPeriod=10, 
