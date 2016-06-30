@@ -6,14 +6,14 @@ import numpy as np
 import datetime as dt
 
 import sys,os
-xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'thirdParty','pyqtgraph-0.9.10'))
+xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,os.pardir,'thirdParty','pyqtgraph-0.9.10'))
 sys.path.append(xpower)
 import pyqtgraph as pg
 
 from PyQt4 import QtGui,QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 
-class Analyzer05():
+class Analyzer():
     """"""
     #----------------------------------------------------------------------
     def __init__(self,Globals=None):
@@ -395,7 +395,7 @@ class Analyzer05():
         dialog.setWindowTitle(('Strategy Results'))
 
         import os,sys        
-        xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdataUI'))
+        xpower = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,os.pardir,'histdataUI'))
         sys.path.append(xpower)
     
         from Widgets.pgCandleWidgetCross import pgCandleWidgetCross

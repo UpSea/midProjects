@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 import os,sys
 from pyalgotrade import plotter
-dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,'histdata'))        
-sys.path.append(dataRoot)        
-import dataCenter as dataCenter 
-#from BollingerBands import BBands
-import strategies.dma_crossover as dma_crossover
-import money.moneyFixed as moneyFixed
 
+from .dma_crossover import cross as cross
+
+dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,os.pardir,'histdata'))        
+sys.path.append(dataRoot)        
+
+import dataCenter as dataCenter 
+import dma_crossover as dma_crossover
 class Expert():
     def __init__(self,toPlot = True,instruments = [],shortPeriod = 20,longPeriod = 40,dataProvider = 'tushare',storageType = 'mongodb',period = 'D',toYear = '',fromYear='',money = None):
         self.instrument = instruments[0]
@@ -19,7 +20,7 @@ class Expert():
         self.dataCenter = dataCenter.dataCenter()           
         #mid dataProvider = tushareCsv|tushare|yahooCsv|yahoo|generic
         feeds = self.dataCenter.getFeedsForPAT(dataProvider = dataProvider,storageType = storageType,instruments = instruments,period=period,
-                                                   toYear = toYear,fromYear=fromYear)
+                                                   timeTo = toYear,timeFrom=fromYear)
         self.feed = feeds[self.instrument]
         #mid money
         self.money = money
@@ -66,7 +67,7 @@ class Expert():
         #addCallBack()
         #addDataSeries()    
         
-        position = strat.getPosition()
+        position = strat.getPositionVolume()
         SPlotter.getOrCreateSubplot("position").addDataSeries("position", position)    
         return SPlotter
     def run(self):
@@ -89,46 +90,3 @@ class Expert():
             plt.show()
         else:#使用pyalgo的方式绘制
             spPlooter.plot()
-
-
-if __name__ == "__main__":    
-    #mid dataProvider = tushare|yahoo|generic
-    #mid storageType = csv|mongodb
-    #mid ktype 数据类型，D=日k线 W=周 M=月 m5=5分钟 m15=15分钟 m30=30分钟 h1=60分钟，默认为D
-    
-    money = moneyFixed.moneyFixed()
-    instruments = ['600028']
-    ex = Expert(toPlot=True,  shortPeriod=20,longPeriod=30, 
-                dataProvider = 'tushare',storageType = 'mongodb',period = 'D',
-                instruments=instruments,money = money,
-                fromYear = 2014,toYear=2016)
-    ex.run()
-
-
-    '''
-
-    money = moneyFixed.moneyFixed()
-    ex = Expert(toPlot=True, instrument='000001SZ', shortPeriod=20, 
-               longPeriod=40, feedFormat='generic',
-               money = money)
-    ex.run()
-
-    money = moneyFixed.moneyFixed()
-    ex = Expert(toPlot=True, instrument='AAPL', shortPeriod=20, 
-               longPeriod=40, feedFormat='yahoo',
-               money = money)
-    ex.run()
-    money = moneyFixed.moneyFixed()
-    ex = Expert(toPlot=True, instrument='AAPL', shortPeriod=20, 
-               longPeriod=40, feedFormat='yahooCsv',
-               money = money)
-    ex.run()
-
-    
-    money = moneyFixed.moneyFixed()
-    ex = Expert(toPlot=True, instrument='600243', shortPeriod=20, 
-               longPeriod=40, feedFormat='tushareCsv',
-               money = money)
-    ex.run()        
-    
-    '''
