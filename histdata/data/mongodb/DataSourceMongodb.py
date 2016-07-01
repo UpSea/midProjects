@@ -123,8 +123,8 @@ class Mongodb(object):
         historyDf.sort_index(inplace=True,ascending=True)
         
         if(isinstance(timeFrom,dt.datetime) and  isinstance(timeTo,dt.datetime)):
-            strFrom = timeFrom.strftime("%Y-%m-%d %H:%M:%S").decode()
-            strTo = timeTo.strftime("%Y-%m-%d %H:%M:%S").decode()
+            strFrom = timeFrom.strftime("%Y-%m-%d %H:%M:%S")
+            strTo = timeTo.strftime("%Y-%m-%d %H:%M:%S")
             ret = historyDf[strFrom:strTo]
         else:
             ret = historyDf

@@ -22,8 +22,8 @@ import time,os
 from pandas import DataFrame
 
 from data.localStorage import localStorage
-import pyalgotrade.logger as logger
-
+import logbook  
+logbook.StderrHandler().push_application()
 #reload(sys)
 #sys.setdefaultencoding('utf-8')
 #code为全部，code_inuse为起止日期完备的数据
@@ -37,7 +37,7 @@ class tushareDataCenter():
         #mid tushare在远端以'D'表示日线周期，需要分别定义        
         #ktype 数据类型，D=日k线 W=周 M=月 5=5分钟 15=15分钟 30=30分钟 60=60分钟，默认为D
         self.localStorage.periods = {'D':'D','W':'W','M':'M','m5':'5','m15':'15','m30':'30','h1':'60'}     
-        self.logger = logger.getLogger("tushare")
+        self.logger = logbook.Logger('tushare')
         
     def getCodesStorage(self):  
         selectorMsgBox=QtGui.QMessageBox()  
@@ -101,7 +101,7 @@ class tushareDataCenter():
         return df
     def downloadAndStoreCodes(self):
         dat = self.downloadCodes()
-        dat.to_csv(self.dataRoot,encoding='gbk')    
+        dat.to_csv(self.localStorage.codefile,encoding='gbk')    
 
 
     def downloadAndStoreAllData(self):
@@ -396,14 +396,14 @@ class tushareDataCenter():
                     {"color":"black","linestyle":"-","label":"DIFF"},
                     {"color":"red","linestyle":"-","label":"MACD"},
                     {"color":"orange","linestyle":"-","label":"BAR"}]
-        """
-        for d,opt in izip(my_dfs, my_opts):
+        """        """
+
+        for d,opt in zip(my_dfs, my_opts):
             d.plot( **opt)
         plt.grid()
         plt.legend(loc=0)
         plt.show()          
         
-        """
 
     #选择下跌行情中天量成交和高换手率，后期加入小盘股等指标，scope 为近15日
     #scope =15,看最近15天的情况，v_times 为当日成交量为前一日的倍数，t_percent为当日换手率
@@ -452,7 +452,6 @@ class tushareDataCenter():
         #print get_beta(value1,value2) 
         
 if __name__ == "__main__":
-    #/home/mid/PythonProjects/midProjects/histdata/data/csv/tusharedb'
     import os,sys
     dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir))        
     sys.path.append(dataRoot)    
@@ -460,8 +459,26 @@ if __name__ == "__main__":
     dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'data','csv','tusharedb'))                    
     tsCenter = tushareDataCenter(dataPath)
     
+    import os,sys        
+    from PyQt4 import QtGui,QtCore
+    app = QtGui.QApplication([])   
+    
     if(True):
-        tsCenter.downloadHistData(['600028'])
+        import datetime
+        #mid download one
+        tsCenter.downloadHistData(['600028'],timeFrom=datetime.datetime(2016,1,12),timeTo=datetime.datetime(2016,5,30))
+        #mid 4)依据代码，检索本地数据，并图形化输出
+        kdata = tsCenter.localStorage.retriveHistData(storageType = 'mongodb',period = 'D',symbol = '600028', 
+                                                      timeFrom=datetime.datetime(2016,1,12), timeTo=datetime.datetime(2016,5,30))
+
+        da = tsCenter.get_macd(kdata)
+        da = tsCenter.plt_macd(kdata,da)    
+    if(True):
+        #mid 2)下载代码表
+        tsCenter.downloadAndStoreCodes()    
+    
+    
+    
     if(False):
         tsCenter.downloadAndStoreOrAppendAllData()
     if(False):
@@ -471,26 +488,14 @@ if __name__ == "__main__":
         #mid 应做修改，使用codes列表进行下载
         code = '600209'
         d = tsCenter.downloadAndStoreKDataByCode(code)
-    if(True):
-        #mid 2)下载代码表
-        tsCenter.downloadAndStoreCodes()
+
     if(False):
         #mid 3)依据已下载代码表下载所有对应KData到本地
         tsCenter.downloadAndStoreAllData()      
-    if(True):
-        #mid 4)依据代码，检索本地数据，并图形化输出
-        kdata = tsCenter.retriveKDataByCode('000881')
-        start = u'2015-04-01'
-        end = u'2015-12-31'
-        data = kdata.loc[start:end,['open','high','low','close']]
-        data = kdata.loc[start:end,:]
-        
-        kdata = data
-        
-        da = tsCenter.get_macd(kdata)
-        da = tsCenter.plt_macd(kdata,da)
+
     if(False):
         tsCenter.bigVolume()
+    sys.exit(app.exec_())
 ''' mid 读取并图形化某个symbol的数据
 df = pd.read_csv(datafile,index_col=0,parse_dates=[0],encoding='gbk') 
 da = get_macd(df) 

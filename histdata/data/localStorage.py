@@ -3,8 +3,8 @@ import sys,os
 from PyQt4 import QtGui,QtCore
 import pandas as pd
 import datetime as dt        
-import pyalgotrade.logger        
-
+import logbook  
+logbook.StderrHandler().push_application()
 """mid
 不同数据源在本地有统一的csv和mongodb储存，特将本地储存安排在此类统一提供本地数据处理
 """
@@ -21,7 +21,7 @@ class localStorage():
         connect.use(db)    #database
         connect.setCollection(collection)    #table
         self.mongodb = connect
-        self.logger = pyalgotrade.logger.getLogger("localStorage")        
+        self.logger = logbook.Logger('localStorage')    
     def getCodesStorage(self):  
         selectorMsgBox=QtGui.QMessageBox()  
         selectorMsgBox.setWindowTitle("select codes storage.")  
@@ -46,11 +46,17 @@ class localStorage():
         historyDf.index is str as "%Y-%m-%d %H:%M:%S",this index will be parsed when building feed in build feed function.
         '''
         if(storageType == 'mongodb'):
+            ret = self.mongodb.retrive(symbol = symbol,period=period,timeFrom=timeFrom, timeTo=timeTo)
+            
+            '''mid below codes only for py2
             try:#mid here should be exception process in case server is not responsable
                 ret = self.mongodb.retrive(symbol = symbol,period=period,timeFrom=timeFrom, timeTo=timeTo)
             except Exception, e:
                 print str(e)
-                raise e
+                raise e            
+            '''
+            
+
                     
             
         elif(storageType == 'csv'):

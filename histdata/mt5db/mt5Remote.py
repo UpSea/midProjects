@@ -1,49 +1,59 @@
 # -*- coding: utf-8 -*-
-
 import socket
 import struct
 import sys,os
 import pandas as pd  
+import traceback
+import logbook  
+logbook.StderrHandler().push_application()
 
 class remoteStorage():
     def __init__(self,HOST,PORT):
         self.HOST = HOST
         self.PORT = PORT
+        self.logger = logbook.Logger('mt5Remote')
+    def except23(self,code,errorType,error):
+        if sys.version > '3':
+            PY3 = True
+        else:
+            PY3 = False          
+    
     def connectSocket(self):
         try:  
             self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
-        except socket.error, e:  
-            print 'Strange error creating socket:%s' % e  
+        except:  
+            traceback.print_exc()
             sys.exit(1)  
         #mid 创建连接  connect()连接成功后才返回，否则阻塞，无返回值
         try:  
             self.s.connect((self.HOST,self.PORT))
-        except socket.gaierror, e:  
-            print 'Address-related error connecting to server :%s' % e  
-            sys.exit(1)  
-        except socket.error, e:  
-            print 'Connection error:%s' % e  
-            sys.exit(1)    
-            
-        # 显示本机的IP地址和端口号  
-        print 'Connected from', self.s.getsockname()  
-        # 显示远端服务器的IP地址和端口号  
-        print 'Connected to ', self.s.getpeername()         
+        except :  
+            traceback.print_exc()
+            sys.exit(1)   
+        # 显示本机的IP地址和端口号          
+        self.logger.info( 'Connected from%s'%(str(self.s.getsockname())))                  
+
+        # 显示远端服务器的IP地址和端口号 
+        self.logger.info( 'Connected to %s'%(str(self.s.getpeername() )))                  
     def closeSocket(self):
         self.s.close()   #关闭连接      
-    def __getBuffer(self,strIn):
+    def __getBuffer(self,strIn,size=64):
         #mid 通过socket发送数据给mt5时，采用的是字节流方式，而且原先定义解析的是长为64的char*类型的字串，
         #mid 所以此处需要装配 
+        strBuffer = struct.pack("%ds"%size,strIn.encode('utf-8'))
+        #strBuffer = struct.pack("%64s"%size,b'strIn')
+        self.logger.info(strBuffer.decode())           
+        '''
         listBuffer = 64*[0]
         for i, ch in enumerate(strIn):
-            listBuffer[i] = ch
-        
-        strBuffer = ''
+            listBuffer[i] = ch        
         for i,ch in enumerate(listBuffer):
             if type(ch) is str:
-                strBuffer = strBuffer + struct.pack('c',ch)
+                strBuffer = strBuffer + struct.pack("%c",ch)
+                strBuffer = strBuffer + struct.pack('B',ch)
             elif type(ch) is int:
-                strBuffer = strBuffer + struct.pack('B',0)
+                strBuffer = strBuffer + struct.pack('B',0)        
+        '''
         return strBuffer
     def __recvAll(self,size):
         #mid recv的数量超过一定数量之后，总会一次接收不完，所以需要如此循环接收并组装返回
@@ -51,16 +61,16 @@ class remoteStorage():
         toRecv = totalToRecv= size
         totalReceived = 0
         received = ''
-        data = ''
+        data = b''
         while 1:
             self.s.settimeout(1)
             try:
                 received = self.s.recv(toRecv)
-            except socket.error,e:
-                print 'Error receiving data:%s' % e
+            except:
+                traceback.print_exc()
                 break
             toRecv = toRecv - len(received)
-            data += received    
+            data += received  
             totalReceived = len(data)
             if totalReceived == totalToRecv:
                 break
@@ -71,8 +81,8 @@ class remoteStorage():
         reqHeader = struct.pack('B',ReqTypeCode)
         try:
             self.s.send(reqHeader)
-        except socket.error, e:  
-            print 'Error sending data:%s' % e  
+        except :  
+            traceback.print_exc()  
             sys.exit(1)        
         sizeOfRspCodeHeader = 64*2 + 4
         rspCodeHeader = self.__recvAll(sizeOfRspCodeHeader)
@@ -109,8 +119,8 @@ class remoteStorage():
         reqHeader = struct.pack('B',ReqTypeHistory)
         try:
             self.s.send(reqHeader)
-        except socket.error, e:  
-            print 'Error sending data:%s' % e  
+        except:  
+            traceback.print_exc() 
             sys.exit(1)  
 
         broker = self.__getBuffer('fxcm')
@@ -126,8 +136,8 @@ class remoteStorage():
         
         try:
             self.s.send(reqHistory)
-        except socket.error, e:  
-            print 'Error sending data:%s' % e  
+        except:  
+            traceback.print_exc() 
             sys.exit(1)  
 
         sizeOfRspHistoryHeader = 64*1 + 4 + 4
@@ -178,7 +188,7 @@ if __name__ == "__main__":
     
     dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'data','csv','mt5db'))                    
     mt5Center = remoteStorage('192.168.0.212',5050)   
-    
+    logger = logbook.Logger('mt5Remote')
     if(True):
         data = mt5Center.downloadKData('XAUUSD')
         
@@ -188,8 +198,8 @@ if __name__ == "__main__":
         
         
         for i,code in enumerate(data.values):
-            print i,'----',code
+            logger.info( '%05d%s%s' %(i,'----',str(code)))
     if(True):
         dfCodes = mt5Center.downloadCodes()
-        for code in dfCodes.values:
-            print '----',code                  
+        for i,code in enumerate(dfCodes.values):
+            logger.info( '%05d%s%s'%(i,'----',str(code)))                  

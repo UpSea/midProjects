@@ -5,10 +5,16 @@ import sys,os
 
 dataRoot = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir))        
 sys.path.append(dataRoot) 
+
+dataRoot = os.path.abspath(os.path.dirname(__file__))        
+sys.path.append(dataRoot) 
+
 from data.localStorage import localStorage
 from mt5Remote import remoteStorage
 import mt5Interface as mt5Interface
-import pyalgotrade.logger as logger
+import logbook  
+logbook.StderrHandler().push_application()
+
 class mt5DataCenter():
     def __init__(self,dataRoot):
         self.localStorage = localStorage(dataRoot,'Mt5','D')
@@ -20,8 +26,9 @@ class mt5DataCenter():
         
         self.remoteStorage = remoteStorage('192.168.0.212',5050)     
         #self.logger =  pyalgotrade.logger.getLogger("mt5")
-        self.logger = logger.getLogger("mt5")
-    def getCodes(self,sourceType):
+        self.logger = logbook.Logger('mt5')    
+        
+    def getCodes(self,sourceType,storage):
         if(sourceType == 'remote'):
             codes = self.remoteStorage.downloadCodes()
             #codes.index = codes['code']
@@ -37,8 +44,8 @@ class mt5DataCenter():
             elif(storage == 'csv'):
                 codes.to_csv(self.localStorage.codefile,encoding='gbk',index=False)    
             return codes
-        else:
-            return self.localStorage.retriveCodes(sourceType)
+        elif(sourceType == 'local'):
+            return self.localStorage.retriveCodes(storage)
         
     def downloadAndStoreKDataByCode(self,code = '',period="D",timeFrom = None,timeTo = None):
         #ktype 数据类型，D=日k线 W=周 M=月 5=5分钟 15=15分钟 30=30分钟 60=60分钟，默认为D
@@ -50,7 +57,7 @@ class mt5DataCenter():
         dic = {}
         for code in codeList:   
             data = self.remoteStorage.downloadKData(symbol = code,periodType = self.localStorage.periods[periodType],timeFrom =timeFrom,timeTo =timeTo)  
-            print 'begin to download:',code
+            #print 'begin to download:',code
             if data is not None:
                 dic[code] = data
                 #print i,code,type(code)
@@ -109,17 +116,16 @@ if __name__ == "__main__":
     dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,'data','csv','mt5db'))                    
     mt5Center = mt5DataCenter(dataPath)   
     
+    logbook.StderrHandler().push_application()
+    log = logbook.Logger('Algorithm')    
     if(True):
         data = mt5Center.downloadHistData(['XAUUSD'])
-        
-        
-        if(data is not None):
-            quotesDict = data.to_dict()           
-        
-        
+                    
         for i,code in enumerate(data):
-            print i,'----',code
+            df = data[code]
+            for i,row in enumerate(df.itertuples()):
+                log.info( '%05d---%s' % (i,str(row)))
     if(True):
-        dfCodes = mt5Center.reqCodes()
-        for code in dfCodes.values:
-            print '----',code          
+        dfCodes = mt5Center.getCodes('local','mongodb')
+        for i,code in enumerate(dfCodes.itertuples()):
+            log.info('%05d---%s'%(i,str(code)))          

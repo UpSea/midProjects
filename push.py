@@ -3,13 +3,11 @@ import re
 import os,sys
 import subprocess
 import platform;
-import logging
+import logbook  
+logbook.StderrHandler().push_application()
+logger = logbook.Logger('push info ----')
 
-def printSysInfo():
-    logger = logging.getLogger('mid sysinfo')
-    
-    #logger.info = logger.warning
-    
+def printSysInfo():    
     logger.info("platform.machine()=%s", platform.machine());
     logger.info("platform.node()=%s", platform.node());
     logger.info("platform.platform()=%s", platform.platform());
@@ -28,7 +26,7 @@ def printSysInfo():
     logger.info("platform.uname()=%s", platform.uname());
 
 #mid commit的-m参数后面的字符串必须要使用"",所以，外侧使用""" """
-comments =  """ "mids upsea reconstructured." """
+comments =  """ "mids upsea,xpower all reconstructed,data manager tuned for py3 and py2." """
 
 if __name__ == '__main__':
     sysstr = platform.system()
@@ -44,36 +42,36 @@ if __name__ == '__main__':
         os.system('path')
         #sys.path.append(gitpath) #mid 这个是添加到python路径中，不是系统路径，windows系统路径需要使用os.system
     elif(sysstr == "Linux"):
-        print "Call Linux tasks"
+        logger.info ("Call Linux tasks")
     else:
-        print "Other System tasks" 
+        logger.info ("Other System tasks") 
     
     
     project_dir = os.path.abspath(os.path.dirname(__file__))
     try:
         os.chdir(project_dir)
-        print 'pwd changed to '+project_dir        
-    except Exception, e:
+        logger.info( 'pwd changed to '+project_dir    )    
+    except:
         raise e    
     
     try:
         os.system('git add --all')
-        print 'git add --all'
-    except Exception, error:
-        print error    
+        logger.info( 'git add --all')
+    except:
+        logger.info(str(e))    
     
     try:
         
         commit = 'git commit -m ' + comments
-        print 'git commit -m'
+        logger.info( 'git commit -m')
         os.system(commit)
-    except Exception, error:
-        print error    
+    except:
+        logger.info( error )    
     
     try:
         os.system('git push git@github.com:upsea/midProjects master')        
-        print 'push oked.'
-    except Exception, error:
-        print error
+        logger.info( 'push oked.')
+    except :
+        logger.info (e)
         
         
