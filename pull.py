@@ -5,7 +5,7 @@ import subprocess
 import platform;
 import logbook  
 logbook.StderrHandler().push_application()
-logger = logbook.Logger('push info ----')
+logger = logbook.Logger('pull info ----')
 
 if __name__ == '__main__':
     project_dir = os.path.abspath(os.path.dirname(__file__))
