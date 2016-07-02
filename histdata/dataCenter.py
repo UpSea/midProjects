@@ -75,7 +75,7 @@ class dataCenter():
         period = params['dataPeriod']        
 
         if(dataProvider == "tushare"):
-            dfHistory = self.tsCenter.retriveHistData(storageType = storageFormat,symbol = symbol,period = period)
+            dfHistory = self.tsCenter.localStorage.retriveHistData(storageType = storageFormat,symbol = symbol,period = period)
             return dfHistory
         elif(dataProvider == 'yahoo'):
             pass
