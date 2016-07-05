@@ -34,7 +34,25 @@ class dataCenter():
         if(dataProvider == 'tushare'):
             return self.tsCenter.localStorage.periods
         else:
-            raise Exception("Invalid dataProvider.")         
+            raise Exception("Invalid dataProvider.") 
+    
+    
+    # mid 以下两个函数只用于某些demo函数获取历史数据，如此安排可方便统一修改，也用于演示datacenter的调用
+    def getCandleData(self,dataProvider = 'tushare',dataStorage = 'mongodb',dataPeriod = 'D',symbol = '600028',dateStart=None,dateEnd = None):
+        dataSource={}
+        dataSource['dataProvider'] = dataProvider
+        dataSource['storageFormat']=dataStorage
+        dataSource['dataPeriod']=dataPeriod
+        dataSource['symbol']=symbol
+        dataSource['dateStart']=dateStart
+        dataSource['dateEnd']=dateEnd  
+        dataSource['alone'] = True
+        dataSource['overlay'] = False   
+        
+        dataForCandle = self.retriveCandleData(params = dataSource)     
+        
+        return dataForCandle      
+    
     def retriveCandleData(self,params = None):
         '''mid
         return data used to draw candle
