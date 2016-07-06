@@ -150,16 +150,17 @@ class dataManagerLayout(QtGui.QHBoxLayout):
         dfLocalSymbols.index = 'code'
         dfLocalSymbols.columns = ['code','name','c_name',...]
         """
+        
         codesType = self.codesTypeComboBox.currentText()
-        sourceType = self.sourceTypeComboBox.currentText()
+        storageType = self.sourceTypeComboBox.currentText()
         if(codesType == 'tushare'):
-            self.dfLocalSymbols = self.dataCenter.getCodes(codesType,sourceType)
+            self.dfLocalSymbols = self.dataCenter.getCodes(codesType,storageType)
             self.__updateLocalSymbolsTableTushare()
         elif(codesType == 'mt5'):
-            self.dfLocalSymbols = self.dataCenter.getCodes(codesType,sourceType)
+            self.dfLocalSymbols = self.dataCenter.getCodes(codesType,storageType)
             self.__updataLocalSymbolsTableMt5()
         else:
-            QtGui.QMessageBox.information(self.parent,'information',codesType + ' codesTable data from '+sourceType+'\nis not prepared.')
+            QtGui.QMessageBox.information(self.parent,'information',codesType + ' codesTable data from '+storageType+'\nis not prepared.')
             return
         
       

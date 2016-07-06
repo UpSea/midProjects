@@ -110,36 +110,36 @@ class dataCenter():
             pass
         else:
             pass
-    def getCodes(self,codesType,sourceType):
+    def getCodes(self,codesType,storageType):
         '''mid
         codes 在储存时不存所获取数据的index，只储存values
         values值中必须要有一列名称为'symbol',这是为了检索时准备
         因为检索时是以symbol为关键字建表的
         '''
         if(codesType == 'tushare'):
-            return self.tsCenter.getCodes(sourceType)
+            return self.tsCenter.getCodes(storageType)
         elif(codesType == 'mt5'):
-            return self.mt5Center.getCodes(sourceType)
+            return self.mt5Center.getCodes(storageType)
         elif(codesType == 'yahoo'):
-            if(sourceType == 'remote'):
+            if(storageType == 'remote'):
                 pass
-            elif(sourceType == 'mongodb'):
+            elif(storageType == 'mongodb'):
                 pass
-            elif(sourceType == 'csv'):
+            elif(storageType == 'csv'):
                 pass 
         elif(codesType == 'sina'):
-            if(sourceType == 'remote'):
+            if(storageType == 'remote'):
                 pass
-            elif(sourceType == 'mongodb'):
+            elif(storageType == 'mongodb'):
                 pass
-            elif(sourceType == 'csv'):
+            elif(storageType == 'csv'):
                 pass             
         elif(codesType == 'datayes'):
-            if(sourceType == 'remote'):
+            if(storageType == 'remote'):
                 pass
-            elif(sourceType == 'mongodb'):
+            elif(storageType == 'mongodb'):
                 pass
-            elif(sourceType == 'csv'):
+            elif(storageType == 'csv'):
                 pass    
         return None
     def downloadHistData(self,providerType='tushare',storageType = 'mongodb',periodType='D',codeList=None,timeFrom = None,timeTo = None):

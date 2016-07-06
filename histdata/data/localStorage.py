@@ -139,15 +139,17 @@ class localStorage():
         if len(quotesWithDate) == 0:
             raise SystemExit    
         return quotesWithDate.T           
-    def retriveCodes(self,sourceType):
-        if(sourceType == 'mongodb'):
+    def retriveCodes(self,storageType = ""):
+        if(storageType == 'mongodb'):
             self.mongodb.setCollection('codes')
             codes = self.mongodb.retriveCodes()
             return codes
-        elif(sourceType == 'csv'):
+        elif(storageType == 'csv'):
             dfCodes = pd.read_csv(self.codefile,index_col=False,encoding='gbk',dtype={0:np.str,1:np.str})
             dfCodes.index = dfCodes['code']
-            return dfCodes          
+            return dfCodes        
+        else:
+            raise Exception("localStorage,invalid storageType")
     def exists(self,instrument,frequency):
         if (frequency in self.periods.keys()):
             fileName = os.path.join(self.dataRoot,frequency,('%s.csv'%instrument))

@@ -28,8 +28,8 @@ class mt5DataCenter():
         #self.logger =  pyalgotrade.logger.getLogger("mt5")
         self.logger = logbook.Logger('mt5')    
         
-    def getCodes(self,sourceType,storage):
-        if(sourceType == 'remote'):
+    def getCodes(self,storageType = ""):
+        if(storageType == 'remote'):
             codes = self.remoteStorage.downloadCodes()
             #codes.index = codes['code']
             
@@ -44,9 +44,10 @@ class mt5DataCenter():
             elif(storage == 'csv'):
                 codes.to_csv(self.localStorage.codefile,encoding='gbk',index=False)    
             return codes
-        elif(sourceType == 'local'):
-            return self.localStorage.retriveCodes(storage)
-        
+        elif(storageType == 'mongodb' or storageType == 'csv'):
+            return self.localStorage.retriveCodes(storageType = storageType)
+        else:
+            raise Exception("mt5 datacenter,Invalid frequency.");
     def downloadAndStoreKDataByCode(self,code = '',period="D",timeFrom = None,timeTo = None):
         #ktype 数据类型，D=日k线 W=周 M=月 5=5分钟 15=15分钟 30=30分钟 60=60分钟，默认为D
         
@@ -126,6 +127,6 @@ if __name__ == "__main__":
             for i,row in enumerate(df.itertuples()):
                 log.info( '%05d---%s' % (i,str(row)))
     if(True):
-        dfCodes = mt5Center.getCodes('local','mongodb')
+        dfCodes = mt5Center.getCodes('mongodb')
         for i,code in enumerate(dfCodes.itertuples()):
             log.info('%05d---%s'%(i,str(code)))          
