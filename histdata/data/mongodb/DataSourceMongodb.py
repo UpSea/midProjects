@@ -103,7 +103,7 @@ class Mongodb(object):
         # 1) retrive data from database
         self.setCollection(period)
         data = self.find({'symbol':str(symbol)})
-        print('----retrived ok')
+        print(str(symbol) + '----retrived ok')
         
         
         #cursor = tweets.find(fields=['id'])

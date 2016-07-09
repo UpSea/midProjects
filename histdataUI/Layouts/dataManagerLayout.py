@@ -521,7 +521,7 @@ class dataManagerLayout(QtGui.QHBoxLayout):
                         
             # 2)download history data
             dataDict = self.dataCenter.downloadHistData(providerType=remoteDataSourceType,storageType=localStorageType,periodType=periodType,
-                                                        codeList=codeList,timeStart=strStart,timeEnd=strEnd)
+                                                        codeList=codeList,timeFrom=strStart,timeTo=strEnd)
             self.messageBoxAfterDownloaded(dataDict)
         else:   #none selected and empty table
             symbol = 'none to download.'

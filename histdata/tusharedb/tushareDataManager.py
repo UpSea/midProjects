@@ -379,14 +379,22 @@ class tushareDataCenter():
         return DataFrame(a,index = df.index,columns = _columns_) 
     def buildFeedForPAT(self,instruments = [], timeFrom=None,timeTo=None, storageType = 'csv', period='D', timezone=None, skipErrors=False):
         '''mid
-        创建用于PAT的feeds，返回格式为字典，这个或许需要修改为单个feed(将所有数据都填入一个feed)
+        创建用于PAT的feeds，返回格式为单个feed(将所有数据都填入一个feed)
+        '''
+        import feedsForPAT as feedsForPAT 
+        feed = feedsForPAT.Feed(tsDataCenter=self,frequency=period)
+        ret = feed.build_feed(instruments=instruments, timeFrom = timeFrom, timeTo = timeTo, storageType=storageType,period=period)           
+        return ret
+    def buildFeedForPAT_old(self,instruments = [], timeFrom=None,timeTo=None, storageType = 'csv', period='D', timezone=None, skipErrors=False):
+        '''mid
+        创建用于PAT的feeds，返回格式为feed字典
         '''
         import feedsForPAT as feedsForPAT 
         feeds = {}
         for instrument in instruments:
             feed = feedsForPAT.Feed(tsDataCenter=self,frequency=period)
-            feeds[instrument] = feed.build_feed(instrument=instrument, timeFrom = timeFrom, timeTo = timeTo, storageType=storageType,period=period)           
-        return feeds
+            feeds[instrument] = feed.build_feed(instruments=[instrument], timeFrom = timeFrom, timeTo = timeTo, storageType=storageType,period=period)           
+        return feeds    
     #df为原dataframe da为macd
     def plt_macd(self,df,da):
         my_dfs = [df['open'], da['EMA_12'], da['EMA_26'], da['DIFF'], da['MACD'], da['BAR'],] # or in your case [ df,do]

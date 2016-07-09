@@ -197,6 +197,22 @@ class dataCenter():
             feeds = self.__getFeedFromYahooCsv(instrument)
         elif(dataProvider == "tushare"):
             import sys,os
+            feeds = self.tsCenter.buildFeedForPAT_old(instruments = instruments, timeFrom=timeFrom,timeTo=timeTo, period=period,storageType=storageType)
+        elif(dataProvider =="mt5"):
+            feeds = self.mt5Center.buildFeedForPAT(instruments = instruments, timeFrom=timeFrom,timeTo=timeTo, period=period,storageType=storageType)
+        elif(dataProvider == "generic"):
+            feeds = self.__getFeedFromGenericCsv(instrument)
+        return feeds        
+    def getFeedForPAT(self,dataProvider = "tushare",storageType = 'mongodb',instruments = [],period='D', timeFrom=None,timeTo=None):
+        '''mid
+        提供回测数据给PAT调用的唯一接口
+        '''
+        if(dataProvider == "yahoo"):
+            feeds = self.__getFeedFromYahoo(instrument)
+        elif(dataProvider == "yahooCsv"):
+            feeds = self.__getFeedFromYahooCsv(instrument)
+        elif(dataProvider == "tushare"):
+            import sys,os
             feeds = self.tsCenter.buildFeedForPAT(instruments = instruments, timeFrom=timeFrom,timeTo=timeTo, period=period,storageType=storageType)
         elif(dataProvider =="mt5"):
             feeds = self.mt5Center.buildFeedForPAT(instruments = instruments, timeFrom=timeFrom,timeTo=timeTo, period=period,storageType=storageType)
