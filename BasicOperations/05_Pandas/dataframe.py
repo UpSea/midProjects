@@ -28,7 +28,8 @@ print(df.loc[dates[0]]) #mid row
 print(df['20130102':'20130104']) #mid rows
 print(df.loc['20130101':'20130104',['A','B']])
 print(df.loc['20130102',['A','B']])
-print(df.loc['20130102','A'])
+print(df.loc['20130102','A']) 
+print(df.loc[['20130102','20130101'],['A','B']])
 # 3)locaction
 print(df.iloc[3]) #mid row
 print(df.iloc[3:5,0:2]) #mid rows,columns
