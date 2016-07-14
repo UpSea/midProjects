@@ -100,7 +100,15 @@ class mt5DataCenter():
         将dataframe格式历史数据转化为用于绘制canlde 的数据
         '''
         return self.localStorage.retriveCandleData(storageType = storageType,period = period,symbol = symbol,timeFrom=timeFrom, timeTo=timeTo)
-    def buildFeedForPAT(self,instruments = [], timeFrom = None, timeTo = None, storageType = 'csv', period='D', timezone=None, skipErrors=False):
+    def buildFeedForPAT(self,instruments = [], timeFrom=None,timeTo=None, storageType = 'csv', period='D', timezone=None, skipErrors=False):
+        '''mid
+        创建用于PAT的feeds，返回格式为单个feed(将所有数据都填入一个feed)
+        '''
+        import feedsForPAT as feedsForPAT 
+        feed = feedsForPAT.Feed(dataCenter=self,frequency=period)
+        ret = feed.build_feed(instruments=instruments, timeFrom = timeFrom, timeTo = timeTo, storageType=storageType,period=period)           
+        return ret   
+    def buildFeedForPAT_old(self,instruments = [], timeFrom = None, timeTo = None, storageType = 'csv', period='D', timezone=None, skipErrors=False):
         '''mid
         创建用于PAT的feeds，返回格式为字典，这个或许需要修改为单个feed(将所有数据都填入一个feed)
         '''
