@@ -64,7 +64,7 @@ class localStorage():
             historyDf = pd.DataFrame.from_csv(fileName).tz_localize('UTC')
             historyDf.sort_index(inplace=True,ascending=True)                
             
-            datetimeStr = [str(timestamp) for timestamp in historyDf.index]
+            datetimeStr = [str(timestamp).decode() for timestamp in historyDf.index]
             
             historyDf.index = datetimeStr
             
