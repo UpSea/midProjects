@@ -272,7 +272,8 @@ class Feed(dataFrameBarFeed):
         :rtype: :class:`pyalgotrade.barfeed.yahoofeed.Feed`.
         """
         if(storageType == 'csv'):
-            self.addBarsFromCSV(instrument=instrument, period=period, timeFrom = timeFrom, timeTo = timeTo)
+            for instrument in instruments:            
+                self.addBarsFromCSV(instrument=instrument, period=period, timeFrom = timeFrom, timeTo = timeTo)
         elif(storageType == 'mongodb'):
             for instrument in instruments:
                 self.addBarsFromMongodb(instrument = instrument, period=period, timeFrom=timeFrom, timeTo = timeTo)
