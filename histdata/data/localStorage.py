@@ -55,10 +55,6 @@ class localStorage():
                 print str(e)
                 raise e            
             '''
-            
-
-                    
-            
         elif(storageType == 'csv'):
             fileName = os.path.join(self.dataRoot,period,('%s.csv'%symbol))
             historyDf = pd.DataFrame.from_csv(fileName)
@@ -72,7 +68,12 @@ class localStorage():
             if(isinstance(timeFrom,dt.datetime) and isinstance(timeTo,dt.datetime)):
                 strFrom = timeFrom.strftime("%Y-%m-%d %H:%M:%S").decode()
                 strTo = timeTo.strftime("%Y-%m-%d %H:%M:%S").decode()
-                
+                '''mid
+                以下以时间为标准对historyDf做切片操作
+                在py2 linux 下，strFrom和strTo不必必须包含在historyDf的index中
+                在py2 window下，strFrom和strTo必须要在historyDf的index中存在时才能通过，
+                不知何意，此处index为uncode类型字符串
+                '''
                 ret = historyDf[strFrom:strTo]
             else:
                 ret = historyDf            
