@@ -14,15 +14,20 @@ import pandas as pd
 import numpy as np
 from tusharedb.tushareDataManager import tushareDataCenter
 from mt5db.mt5DataManager import mt5DataCenter
+from eastmoneydb.eastmoneyDataManager import eastmoneyDataCenter
 class dataCenter():
     def __init__(self):
+        #mid init tusharedb
         dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','csv','tusharedb'))                
         self.tsCenter = tushareDataCenter(dataPath)  
-        
+        #mid init mt5db
         dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','csv','mt5db'))                        
         self.mt5Center = mt5DataCenter(dataPath)
+        #mid init eastmoneydb
+        dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__),'data','csv','eastmoneydb'))                        
+        self.eastmoneyCenter = eastmoneyDataCenter(dataPath)        
         
-        self.dataProviders = ['mt5','tushare','yahoo','sina','all']
+        self.dataProviders = ['mt5','tushare','eastmoney','yahoo','sina','all']
         self.dataStorages = ['mongodb','csv','all']
     def getDataProviders(self):
         return self.dataProviders
@@ -33,6 +38,8 @@ class dataCenter():
             return self.mt5Center.localStorage.periods
         if(dataProvider == 'tushare'):
             return self.tsCenter.localStorage.periods
+        if(dataProvider == 'eastmoney'):
+            return self.eastmoneyCenter.localStorage.periods        
         else:
             raise Exception("Invalid dataProvider.") 
     
@@ -70,10 +77,10 @@ class dataCenter():
             return self.tsCenter.retriveCandleData(storageType = storageFormat,symbol = symbol,period = period,timeFrom=timeFrom, timeTo=timeTo)
         elif(dataProvider == "mt5"):
             return self.mt5Center.retriveCandleData(storageType = storageFormat,symbol = symbol,period = period,timeFrom=timeFrom, timeTo=timeTo)            
-        elif(dataProvider == 'yahoo'):
-            pass
-        elif(dataProvider == 'sina'):
-            pass
+        elif(dataProvider == "eastmoney"):
+            return self.eastmoneyCenter.retriveCandleData(storageType = storageFormat,symbol = symbol,period = period,timeFrom=timeFrom, timeTo=timeTo)            
+        else:
+            raise Exception("Invalid dataProvider.") 
     '''
     def retriveCandleData(self,datasource = 'tushare',storageType = 'mongodb',symbol = '',period = 'D'):
         if (datasource == 'tushare'):
@@ -95,21 +102,17 @@ class dataCenter():
         if(dataProvider == "tushare"):
             dfHistory = self.tsCenter.localStorage.retriveHistData(storageType = storageFormat,symbol = symbol,period = period)
             return dfHistory
-        elif(dataProvider == 'yahoo'):
-            pass
-        elif(dataProvider == 'sina'):
-            pass        
+        else:
+            raise Exception("Invalid dataProvider.") 
     def getLocalAvailableDataSymbols(self,dataType = 'tushare',storageType = 'mongodb',periodType = "D"):
         if(dataType == 'tushare'):
             return self.tsCenter.retriveAvailableSymbols(storageType=storageType,periodType = periodType)
         elif(dataType == 'mt5'):
             return self.mt5Center.retriveAvailableSymbols(storageType=storageType,periodType = periodType)
-        elif(dataType == 'yahoo'):
-            pass        
-        elif(dataType == 'sina'):
-            pass
+        elif(dataType == 'eastmoney'):
+            return self.eastmoneyCenter.retriveAvailableSymbols(storageType=storageType,periodType = periodType)        
         else:
-            pass
+            raise Exception("Invalid dataProvider.") 
     def getCodes(self,codesType,storageType):
         '''mid
         codes 在储存时不存所获取数据的index，只储存values
@@ -149,6 +152,9 @@ class dataCenter():
         elif(providerType == 'mt5'):
             return self.mt5Center.downloadHistData(storageType=storageType,timeFrom = timeFrom,timeTo = timeTo,
                                                   codeList = codeList,periodType = periodType)
+        elif(providerType == 'eastmoney'):
+            return self.eastmoneyCenter.downloadHistData(storageType=storageType,timeFrom = timeFrom,timeTo = timeTo,
+                                                  codeList = codeList,periodType = periodType)            
         elif(providerType == 'yahoo'):
             pass
         elif(providerType == 'datayes'):
@@ -196,7 +202,6 @@ class dataCenter():
         elif(dataProvider == "yahooCsv"):
             feeds = self.__getFeedFromYahooCsv(instrument)
         elif(dataProvider == "tushare"):
-            import sys,os
             feeds = self.tsCenter.buildFeedForPAT_old(instruments = instruments, timeFrom=timeFrom,timeTo=timeTo, period=period,storageType=storageType)
         elif(dataProvider =="mt5"):
             feeds = self.mt5Center.buildFeedForPAT(instruments = instruments, timeFrom=timeFrom,timeTo=timeTo, period=period,storageType=storageType)
@@ -212,8 +217,9 @@ class dataCenter():
         elif(dataProvider == "yahooCsv"):
             feeds = self.__getFeedFromYahooCsv(instrument)
         elif(dataProvider == "tushare"):
-            import sys,os
             feeds = self.tsCenter.buildFeedForPAT(instruments = instruments, timeFrom=timeFrom,timeTo=timeTo, period=period,storageType=storageType)
+        elif(dataProvider == "eastmoney"):
+            feeds = self.eastmoneyCenter.buildFeedForPAT(instruments = instruments, timeFrom=timeFrom,timeTo=timeTo, period=period,storageType=storageType)
         elif(dataProvider =="mt5"):
             feeds = self.mt5Center.buildFeedForPAT(instruments = instruments, timeFrom=timeFrom,timeTo=timeTo, period=period,storageType=storageType)
         elif(dataProvider == "generic"):
