@@ -195,7 +195,7 @@ class eastmoneyDataCenter():
         xlbook = self.xlapp.workbooks.open(self.bookPath)  
     def __downloadHistDataOne(self,histDataType = 'dataWithMA',code = '',period="D",timeFrom = None,timeTo = None):
         #ktype 数据类型，D=日k线 W=周 M=月 5=5分钟 15=15分钟 30=30分钟 60=60分钟，默认为D  
-        modelName = 'mid_hist'
+        modelName = 'midHistForPython'
         functionName = 'downloadHistAndToCsvOne'
 
         dataPath = self.localStorage.dataRoot+os.sep+period
