@@ -75,6 +75,7 @@ def subMain():
     
     # 1)get codes form eastmoney
     codeList =  getSymbols()
+    codeList = "510050"
     # 2)download history data
     dataDict = DC.downloadHistData(providerType=remoteDataSourceType,storageType=localStorageType,periodType=periodType,
                                                 codeList=codeList,timeFrom = timeStart,timeTo = timeEnd)
