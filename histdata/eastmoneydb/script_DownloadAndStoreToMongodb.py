@@ -75,16 +75,16 @@ def subMain():
     
     # 1)get codes form eastmoney
     codeList =  getSymbols()
-    codeList = "510050.SH"
+    codeList = ["510050.SH"]
     # 2)download history data
     dataDict = DC.downloadHistData(providerType=remoteDataSourceType,storageType=localStorageType,periodType=periodType,
                                                 codeList=codeList,timeFrom = timeStart,timeTo = timeEnd)
         
 if __name__ == '__main__':
-    app = QtGui.QApplication(sys.argv)
+    #app = QtGui.QApplication(sys.argv)
     #mid-----------------------------------------------------------------------------------------------------------------------------
 
     subMain()
     
     #mid-----------------------------------------------------------------------------------------------------------------------------
-    sys.exit(app.exec_())       
+    #sys.exit(app.exec_())       

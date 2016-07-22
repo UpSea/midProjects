@@ -207,7 +207,10 @@ class eastmoneyDataCenter():
         #Path = "F:\midSources\PythonProjects\midProjects\histdata\data\csv\eastmoneydb\D"
         #SecuCode = "000022.SZ"
         dateFrom = "2000-01-01"
-        dateTo = "2016-07-14"
+        dateTo = "2016-07-14"        
+        
+        dateFrom = str(timeFrom)
+        dateTo = str(timeTo)
         #X = downloadHistAndToCsvOne(Path, SecuCode, dateFrom, dateTo)
 
              
