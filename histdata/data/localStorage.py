@@ -129,6 +129,9 @@ class localStorage():
         elif(sysstr == "Linux"):  
             if(type(history.index) is pd.core.index.Index):
                 #date = np.array([mpd.date2num(pd.to_datetime(dateStr+' 09:30:00+08','%Y-%m-%d %H:%M:%S').tz_localize('utc')) for dateStr in history.index]) 
+                
+                history = history[history.index != 'NaT'] #mid eastmoney 有时候会出现此值，特过滤
+                
                 date = np.array([mpd.date2num(pd.to_datetime(dateStr,format= '%Y-%m-%d %H:%M:%S').tz_localize('utc')) for dateStr in history.index]) 
             elif(type(history.index) is pd.tseries.index.DatetimeIndex):
                 date = np.array([mpd.date2num(Timestamp) for Timestamp in history.index])                                 
